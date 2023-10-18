@@ -19,7 +19,7 @@ function Get-CluedInVocabularyKey {
 
     [CmdletBinding()]
     param (
-        [int]$Id
+        [guid]$Id
     )
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'getVocabularyKeysFromVocabularyId'

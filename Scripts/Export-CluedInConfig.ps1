@@ -70,9 +70,17 @@ foreach ($dataSet in $dataSetProcess) {
     }
 }
 
-Write-Host "INFO - Exporting Vocabularies and Keys"
+Write-Host "INFO - Exporting Vocabularies"
 $path = Join-Path -Path $BackupPath -ChildPath 'Vocab'
 if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
-Get-CluedInVocabulary | Out-JsonFile -Path $path -Name 'Vocabularies'
+$vocabularies = Get-CluedInVocabulary 
+$vocabularies | Out-JsonFile -Path $path -Name 'Vocabularies'
+
+Write-Host "INFO - Exporting Vocabulary Keys"
+$path = Join-Path -Path $BackupPath -ChildPath 'Vocab/Keys'
+if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
+foreach ($i in $vocabularies.data.management.vocabularies.data.vocabularyId) {
+    Get-CluedInVocabularyKey -Id $i | Out-JsonFile -Path $path -Name $i
+}
 
 Write-Host "INFO - Backup now complete"

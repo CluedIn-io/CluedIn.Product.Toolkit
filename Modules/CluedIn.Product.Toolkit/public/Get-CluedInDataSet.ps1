@@ -19,7 +19,7 @@ function Get-CluedInDataSet {
 
     [CmdletBinding()]
     param(
-        [int]$Id
+        [guid]$Id
     )
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'getDataSetById'

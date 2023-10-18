@@ -71,6 +71,8 @@ foreach ($dataSet in $dataSetProcess) {
 }
 
 Write-Host "INFO - Exporting Vocabularies and Keys"
-
+$path = Join-Path -Path $BackupPath -ChildPath 'Vocab'
+if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
+Get-CluedInVocabulary | Out-JsonFile -Path $path -Name 'Vocabularies'
 
 Write-Host "INFO - Backup now complete"

@@ -29,5 +29,15 @@ function Get-CluedInVocabulary {
         query = $queryContent
     }
 
-    return Invoke-CluedInGraphQL -Query $query
+    $result = Invoke-CluedInGraphQL -Query $query
+    $total = $result.data.management.vocabularies.total
+    
+    while (!$allResults) {
+        $query['variables']['pageNumber']++
+        $nextPage = Invoke-CluedInGraphQL -Query $query
+        $result.data.management.vocabularies.data += $nextPage.data.management.vocabularies.data
+        if ($result.data.management.vocabularies.data.count -ge $total) { break }
+    }
+
+    return $result
 }

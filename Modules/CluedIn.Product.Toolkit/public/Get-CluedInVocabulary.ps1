@@ -32,7 +32,7 @@ function Get-CluedInVocabulary {
     $result = Invoke-CluedInGraphQL -Query $query
     $total = $result.data.management.vocabularies.total
     
-    while (!$allResults) {
+    while ($true) {
         $query['variables']['pageNumber']++
         $nextPage = Invoke-CluedInGraphQL -Query $query
         $result.data.management.vocabularies.data += $nextPage.data.management.vocabularies.data

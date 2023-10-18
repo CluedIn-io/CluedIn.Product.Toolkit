@@ -44,7 +44,7 @@ $settings = ($adminSetting.data.administration.configurationSettings).psobject.p
 
 foreach ($setting in $settings) {
     # We apparently export API keys which need to be re-imported.
-    # Need to find out where these are grabberd from and we can then store back in KV
+    # Need to find out where these are grabbed from and we can then store/retrieve from KV
 
     $key = $setting
     $value = $adminSetting.data.administration.configurationSettings.$key

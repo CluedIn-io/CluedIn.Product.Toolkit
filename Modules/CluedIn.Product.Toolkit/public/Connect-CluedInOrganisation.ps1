@@ -30,6 +30,7 @@ function Connect-CluedInOrganisation {
     param(
         [Parameter(Mandatory)][string]$BaseURL,
         [Parameter(Mandatory)][string]$Organisation,
+        [version]$Version,
         [string]$APIToken
     )
 
@@ -51,10 +52,13 @@ function Connect-CluedInOrganisation {
         return $refreshRequired
     }
 
+    [string]$envVersion = '{0}.{1}' -f $Version.Major, ([string]$Version.Minor).PadLeft(2, '0')
+
     $existingToken = ${env:CLUEDIN_JWTOKEN}
     if ($existingToken) {
         Write-Verbose "Checking existing token is still valid"
         $skipToken = !(NewJWT($existingToken))
+        $tokenContent = ${env:CLUEDIN_JWTOKEN}
     }
     
     if (!$skipToken) { 
@@ -84,7 +88,7 @@ function Connect-CluedInOrganisation {
     else { Write-Verbose "Skipping Token Regen as current one is valid" }
 
     ${env:CLUEDIN_ORGANISATION} = $Organisation
-    ${env:CLUEDIN_CURRENTVERSION} = '2023.07' # Read-Host "Current product version in Major.Minor format"
+    ${env:CLUEDIN_CURRENTVERSION} = $envVersion
     ${env:CLUEDIN_ENDPOINT} = 'https://{0}.{1}' -f $Organisation, $BaseURL
     ${env:CLUEDIN_JWTOKEN} = $tokenContent
 

@@ -1,0 +1,36 @@
+# Backs up configuration from specified environment
+
+trigger: none
+
+name: ${{ parameters.organisation }}.${{ parameters.baseURL }} Backup ($(Date:yyyyMMdd)$(Rev:r))
+
+parameters:
+- name: baseURL
+  displayName: 'Clued In Base URL'
+  type: string
+- name: organisation
+  displayName: 'Clued In Organisation'
+  type: string
+- name: version
+  displayName: 'Clued In Environment Version'
+  type: string
+
+#variables:
+#- template: vars/vars.yaml
+
+jobs:
+- job: backupConfiguration
+  displayName: Backup Configuration
+  steps:  
+  - task: AzureCLI@2
+    displayName: 'Backup'
+    inputs:
+      azureSubscription: 'Your ADO Subscription Here'
+      scriptType: pscore
+      scriptPath: Scripts/Export-CluedInConfig.ps1
+      scriptArguments: >-
+        -BaseURL ${{ parameters.baseURL }}
+        -Organisation ${{ parameters.organisation }}
+        -Version ${{ parameters.version }}
+  
+  - task: SyncWithGitRepo # Update me

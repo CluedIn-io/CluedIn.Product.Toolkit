@@ -16,7 +16,7 @@ function Set-CluedInAdminSettings {
         $AdminSettingValue
     )
 
-    $id = (Get-CurrentOrganisation).data.administration.organization.id
+    $id = (Get-CluedInCurrentOrganisation).data.administration.organization.id
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'changeConfigurationSettings'
 

@@ -8,6 +8,7 @@
     It utilises the module 'CluedIn.Product.Toolkit' to facilitate all this.
 
     .PARAMETER BaseURL
+    This is the base url used to access the environment. It should not contain http(s)
 
     .PARAMETER Organisation
 
@@ -30,23 +31,23 @@ param(
 Write-Verbose "Importing modules"
 Import-Module "$PSScriptRoot/../Modules/CluedIn.Product.Toolkit"
 
-Write-Host "INFO - Connecting to 'https://$Organisation.$BaseURL'"
+Write-Host "INFO: Connecting to 'https://$Organisation.$BaseURL'"
 Connect-CluedInOrganisation -BaseURL $BaseURL -Organisation $Organisation -Version $Version
 
-Write-Host "INFO - Starting backup"
+Write-Host "INFO: Starting backup"
 
-Write-Host "INFO - Exporting Admin Settings"
+Write-Host "INFO: Exporting Admin Settings"
 $generalPath = Join-Path -Path $BackupPath -ChildPath 'General'
 if (!(Test-Path -Path $generalPath -PathType Container)) { New-Item $generalPath -ItemType Directory | Out-Null }
 Get-CluedInAdminSetting | Out-JsonFile -Path $generalPath -Name 'AdminSetting'
 
-Write-Host "INFO - Exporting Data Source Sets"
+Write-Host "INFO: Exporting Data Source Sets"
 $path = Join-Path -Path $BackupPath -ChildPath 'Data/SourceSets'
 if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
 $dataSourceSets = Get-CluedInDataSourceSet
 $dataSourceSets | Out-JsonFile -Path $path -Name 'DataSourceSet'
 
-Write-Host "INFO - Exporting Data Sources"
+Write-Host "INFO: Exporting Data Sources"
 $path = Join-Path -Path $BackupPath -ChildPath 'Data/Sources'
 if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
 $dataSources = $dataSourceSets.data.inbound.dataSourceSets.data.datasources
@@ -60,7 +61,7 @@ for ($i = 0; $i -lt $dataSources.count; $i++) {
     }
 }
 
-Write-Host "INFO - Exporting Data Sets"
+Write-Host "INFO: Exporting Data Sets"
 $path = Join-Path -Path $BackupPath -ChildPath 'Data/Sets'
 if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
 foreach ($dataSet in $dataSetProcess) {
@@ -70,17 +71,17 @@ foreach ($dataSet in $dataSetProcess) {
     }
 }
 
-Write-Host "INFO - Exporting Vocabularies"
+Write-Host "INFO: Exporting Vocabularies"
 $path = Join-Path -Path $BackupPath -ChildPath 'Vocab'
 if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
 $vocabularies = Get-CluedInVocabulary 
 $vocabularies | Out-JsonFile -Path $path -Name 'Vocabularies'
 
-Write-Host "INFO - Exporting Vocabulary Keys"
+Write-Host "INFO: Exporting Vocabulary Keys"
 $path = Join-Path -Path $BackupPath -ChildPath 'Vocab/Keys'
 if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
 foreach ($i in $vocabularies.data.management.vocabularies.data.vocabularyId) {
     Get-CluedInVocabularyKey -Id $i | Out-JsonFile -Path $path -Name $i
 }
 
-Write-Host "INFO - Backup now complete"
+Write-Host "INFO: Backup now complete"

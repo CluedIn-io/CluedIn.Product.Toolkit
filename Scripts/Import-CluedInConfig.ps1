@@ -1,9 +1,9 @@
 <#
     .SYNOPSIS
-    Restores configuration to the connected environment by using backups
+    Imports configuration to the connected environment by using backups
 
     .DESCRIPTION
-    Restores configuration to the connected environment by using backups
+    Imports configuration to the connected environment by using backups
 
     It utilises the module 'CluedIn.Product.Toolkit' to facilitate all this.
 
@@ -24,35 +24,40 @@ param(
     [Parameter(Mandatory)][string]$BaseURL,
     [Parameter(Mandatory)][string]$Organisation,
     [Parameter(Mandatory)][version]$Version,
-    [Parameter(Mandatory)][string]$BackupPath = 'C:\.dev\EXPORTTEST'
+    [Parameter(Mandatory)][string]$RestorePath = 'C:\.dev\EXPORTTEST'
 )
 
 Write-Verbose "Importing modules"
 Import-Module "$PSScriptRoot/../Modules/CluedIn.Product.Toolkit"
 
-Write-Host "INFO - Connecting to 'https://$Organisation.$BaseURL'"
+Write-Host "INFO: Connecting to 'https://$Organisation.$BaseURL'"
 Connect-CluedInOrganisation -BaseURL $BaseURL -Organisation $Organisation -Version $Version
 
-Write-Host "INFO - Starting restore"
+Write-Host "INFO: Starting import"
 
+Write-Host "INFO: Importing Admin Settings"
+$generalPath = Join-Path -Path $BackupPath -ChildPath 'General'
+if (!(Test-Path -Path $generalPath -PathType Container)) { throw "'$generalPath' could not be found. Please investigate" }
+$adminSetting = Get-Content -Path (Join-Path -Path $generalPath -ChildPath 'AdminSetting.json') | ConvertFrom-Json
 
-# Restore Admin Settings
+$settings = ($adminSetting.data.administration.configurationSettings).psobject.properties.name
 
-$adminSettings = Get-Content "$PSScriptRoot\BackupFiles\Settings.json" | ConvertFrom-Json
-$Settings = $BackupFile.data.administration.configurationSettings
+foreach ($setting in $settings) {
+    # We apparently export API keys which need to be re-imported.
+    # Need to find out where these are grabberd from and we can then store back in KV
 
-foreach ( $Setting in $Settings.psobject.properties.name ) {
-    $AdminSettingName = ""
-    $AdminSettingValue = ""
+    $key = $setting
+    $value = $adminSetting.data.administration.configurationSettings.$key
 
-    $AdminSettingName = $Setting.replace('.','-')
-    $KVEntry = Get-AzKeyVaultSecret -VaultName "ABA-DEV-IMPL-KV-001" -Name $AdminSettingName -AsPlainText
-  
-    $Query = SetAdminSettingsQuery -ActiveOrg $Config['OrgId'] -AdminSettingName $Setting  -AdminSettingValue $KVEntry
-
-    Get-CI-Data -baseURL $_baseURL -token $Token -GQlQuery $Query 
+    Set-CluedInAdminSettings -AdminSettingName $key -AdminSettingValue $value
 }
 
-# Restore Vocab and Keys
-$VocabBackups = Get-ChildItem -Path  "$PSScriptRoot\BackupFiles\Vocabs\" -Filter VOC-*
+Write-Host "INFO: Importing Vocabularies"
 
+Write-Host "INFO: Importing Vocabulary Keys"
+
+Write-Host "INFO: Importing Data Source Sets"
+
+Write-Host "INFO: Importing Data Sources"
+
+Write-Host "INFO: Importing Data Sets"

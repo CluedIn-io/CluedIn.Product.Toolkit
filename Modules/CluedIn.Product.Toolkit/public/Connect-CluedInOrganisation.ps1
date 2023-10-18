@@ -34,7 +34,7 @@ function Connect-CluedInOrganisation {
     )
 
     function NewJWT($token) {
-        $tokenProperties = ConvertFrom-JWTToken -Token $token
+        $tokenProperties = ConvertFrom-JWToken -Token $token
         Write-Debug "Token Properties: $($tokenProperties | Out-String)"
         if ($Organisation -ne $tokenProperties.OrganizationName) {
             if ($APIToken) { throw "Please check you are using the correct API Token for the given Organisation" }

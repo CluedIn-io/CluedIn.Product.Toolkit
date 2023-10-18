@@ -44,7 +44,9 @@ function Connect-CluedInOrganisation {
         }
 
         $tokenExpire = (Get-Date 01.01.1970)+([System.TimeSpan]::fromseconds($tokenProperties.exp))
+        Write-Verbose "Token Expires: $tokenExpire"
         $refreshRequired = $tokenExpire -lt (Get-Date).AddMinutes(-3)
+        Write-Debug "Refresh Required: $refreshRequired"
 
         return $refreshRequired
     }
@@ -52,7 +54,7 @@ function Connect-CluedInOrganisation {
     $existingToken = ${env:CLUEDIN_JWTOKEN}
     if ($existingToken) {
         Write-Verbose "Checking existing token is still valid"
-        $skipToken = NewJWT($existingToken)
+        $skipToken = !(NewJWT($existingToken))
     }
     
     if (!$skipToken) { 
@@ -79,6 +81,7 @@ function Connect-CluedInOrganisation {
             Write-Verbose "Token successfully obtained"
         }
     }
+    else { Write-Verbose "Skipping Token Regen as current one is valid" }
 
     ${env:CLUEDIN_ORGANISATION} = $Organisation
     ${env:CLUEDIN_CURRENTVERSION} = '2023.07' # Read-Host "Current product version in Major.Minor format"

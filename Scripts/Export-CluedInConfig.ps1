@@ -19,7 +19,7 @@ param(
 )
 
 Write-Verbose "Importing modules"
-Import-Module "../Modules/CluedIn.Product.Toolkit"
+Import-Module "$PSScriptRoot/../Modules/CluedIn.Product.Toolkit"
 
 Write-Host "INFO - Connecting to 'https://$Organisation.$BaseURL'"
 Connect-CluedInOrganisation -BaseURL $BaseURL -Organisation $Organisation

@@ -25,7 +25,7 @@ param(
     [Parameter(Mandatory)][string]$BaseURL,
     [Parameter(Mandatory)][string]$Organisation,
     [Parameter(Mandatory)][version]$Version,
-    [Parameter()][string]$BackupPath = 'C:\.dev\EXPORTTEST'
+    [Parameter()][string]$BackupPath = 'C:\.dev\EXPORTTEST' # UPDATE/REMOVE ME 
 )
 
 Write-Verbose "Importing modules"

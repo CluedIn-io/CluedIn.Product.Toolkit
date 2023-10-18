@@ -1,0 +1,12 @@
+mutation createDataSource($dataSourceSetId: ID, $dataSource: InputDataSource) {
+  inbound {
+    createDataSource(
+      dataSourceSetId: $dataSourceSetId
+      dataSource: $dataSource
+    ) {
+      id
+      __typename
+    }
+    __typename
+  }
+}

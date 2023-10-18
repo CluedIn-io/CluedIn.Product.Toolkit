@@ -1,0 +1,6 @@
+mutation createDataSourceSet($dataSourceSet: InputDataSourceSet) {
+  inbound {
+    createDataSourceSet(dataSourceSet: $dataSourceSet)
+    __typename
+  }
+}

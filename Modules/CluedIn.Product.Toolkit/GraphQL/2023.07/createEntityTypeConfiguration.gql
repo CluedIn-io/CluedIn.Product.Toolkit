@@ -1,0 +1,29 @@
+mutation createEntityTypeConfiguration(
+  $entityTypeConfiguration: InputEntityTypeLayoutConfiguration!
+) {
+  management {
+    id
+    createEntityTypeConfiguration(
+      entityTypeConfiguration: $entityTypeConfiguration
+    ) {
+      ...EntityTypeConfiguration
+      __typename
+    }
+    __typename
+  }
+}
+
+fragment EntityTypeConfiguration on EntityTypeLayoutConfiguration {
+  activ
+  displayName
+  entityType
+  icon
+  id
+  layoutConfiguration
+  pageTemplateId
+  path
+  route
+  template
+  type
+  __typename
+}

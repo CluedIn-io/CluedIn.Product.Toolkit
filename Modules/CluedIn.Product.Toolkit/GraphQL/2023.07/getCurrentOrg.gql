@@ -1,0 +1,24 @@
+query getCurrentOrg {
+  administration {
+    id
+    organization {
+      Id
+      ClientId
+      OrganizationName
+      Description
+      Domain
+      Logo
+      Banner
+      LogoFullResolution
+      BannerFullResolution
+      Website
+      Location
+      LocationGeocode
+      AllowEmailDomainSignup
+      PrimaryColor
+      Theme
+      __typename
+    }
+    __typename
+  }
+}

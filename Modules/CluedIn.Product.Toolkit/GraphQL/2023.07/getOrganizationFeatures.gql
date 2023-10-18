@@ -1,0 +1,16 @@
+query getOrganizationFeatures {
+  administration {
+    id
+    organizationFeatures {
+      id
+      name
+      displayName
+      description
+      status
+      isEnabled
+      isTrial
+      __typename
+    }
+    __typename
+  }
+}

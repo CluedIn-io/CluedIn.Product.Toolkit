@@ -1,0 +1,10 @@
+query me {
+  administration {
+    me {
+      client
+      entity
+      __typename
+    }
+    __typename
+  }
+}

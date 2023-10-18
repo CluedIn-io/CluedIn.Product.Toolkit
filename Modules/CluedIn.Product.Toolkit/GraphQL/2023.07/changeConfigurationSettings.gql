@@ -1,0 +1,11 @@
+mutation changeConfigurationSettings($id: ID!, $key: String!, $value: String!) {
+  administration {
+    id
+    changeConfigurationSettings(
+      organizationId: $organizationId
+      key: $key
+      value: $value
+    )
+    __typename
+  }
+}

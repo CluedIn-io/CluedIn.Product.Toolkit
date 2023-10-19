@@ -96,58 +96,58 @@ foreach ($vocabKey in $vocabKeys) {
     }    
 }
 
-Write-Host "INFO: Importing Data Source Sets"
-$dataPath = Join-Path -Path $RestorePath -ChildPath 'Data'
-$dataSourceSetsPath = Join-Path -Path $dataPath -ChildPath 'SourceSets'
-$dataSourcesPath = Join-Path -Path $dataPath -ChildPath 'Sources'
-$dataSetsPath = Join-Path -Path $dataPath -ChildPath 'Sets'
-if (!(Test-Path -Path $dataSourceSetsPath, $dataSourcesPath, $dataSetsPath -PathType Container)) {
-    throw "There as an issue finding '$dataPath' or sub-folders. Please investigate" 
-}
-
-$dataSourceSets = Get-Content -Path (Join-Path -Path $dataSourceSetsPath -ChildPath 'DataSourceSet.json') | ConvertFrom-Json -Depth 20
-Write-Host "INFO: A total of $($dataSourceSets.data.inbound.datasourcesets.total) data source sets will be imported"
-
-foreach ($dataSourceSet in $dataSourceSets.data.inbound.dataSourceSets.data) {
-    Write-Host "Processing Data Source Set: $($dataSourceSet.name) ($($dataSourceSet.id))"
-    Write-Debug "$($dataSourceSet | Out-String)"
-
-    $dataSourceSetResult = New-CluedInDataSourceSet -Object $dataSourceSet
-    checkErrors($dataSourceSetResult)
-}
-
-Write-Host "INFO: Importing Data Sources"
-$dataSources = Get-ChildItem -Path $dataSourcesPath -Filter "*.json"
-
-foreach ($dataSource in $dataSources) {
-    $dataSourceJson = Get-Content -Path $dataSource.FullName | ConvertFrom-Json -Depth 20
-    $dataSourceObject = $dataSourceJson.data.inbound.dataSource
-    $dataSourceSetName = $dataSourceObject.dataSourceSet.name
-
-    $dataSourceSet = Get-CluedInDataSourceSet -Search $dataSourceSetName
-    $dataSourceSetExact = $dataSourceSet.data.inbound.dataSourceSets.data | 
-        Where-Object {$_.name -match "^$dataSourceSetName$"}
-    $dataSourceObject.dataSourceSet.id = $dataSourceSetExact.id
-
-    Write-Host "Processing Data Source: $($dataSourceObject.name) ($($dataSourceObject.id))"
-    $dataSourceResult = New-CluedInDataSource -Object $dataSourceObject
-    checkErrors($dataSourceResult)
-}
-
-Write-Host "INFO: Importing Data Sets"
-$dataSets = Get-ChildItem -Path $dataSetsPath -Filter "*-DataSet.json"
-foreach ($dataSet in $dataSets) {
-    $dataSetJson = Get-Content -Path $dataSet.FullName | ConvertFrom-Json -Depth 20
-    $dataSetObject = $dataSetJson.data.inbound.dataSet
-    $dataSource = Get-CluedInDataSource -Search $dataSetObject.dataSource.name
-    $dataSetObject.dataSource.id = $dataSource.data.inbound.dataSource.id
-
-    $dataSetResult = New-CluedInDataSet -Object $dataSetObject
-    checkErrors($dataSetResult)
-
-    if ($dataSetObject.dataSource.type -eq 'endpoint') {
-        $guid = $dataSetResult.data.inbound.createDataSets.id
-        $endpoint = '{0}/upload/api/endpoint/{1}' -f ${env:CLUEDIN_ENDPOINT}, $guid
-        Write-Host "New Endpoint created: $endPoint"
-    }
-}
+#Write-Host "INFO: Importing Data Source Sets"
+#$dataPath = Join-Path -Path $RestorePath -ChildPath 'Data'
+#$dataSourceSetsPath = Join-Path -Path $dataPath -ChildPath 'SourceSets'
+#$dataSourcesPath = Join-Path -Path $dataPath -ChildPath 'Sources'
+#$dataSetsPath = Join-Path -Path $dataPath -ChildPath 'Sets'
+#if (!(Test-Path -Path $dataSourceSetsPath, $dataSourcesPath, $dataSetsPath -PathType Container)) {
+#    throw "There as an issue finding '$dataPath' or sub-folders. Please investigate" 
+#}
+#
+#$dataSourceSets = Get-Content -Path (Join-Path -Path $dataSourceSetsPath -ChildPath 'DataSourceSet.json') | ConvertFrom-Json -Depth 20
+#Write-Host "INFO: A total of $($dataSourceSets.data.inbound.datasourcesets.total) data source sets will be imported"
+#
+#foreach ($dataSourceSet in $dataSourceSets.data.inbound.dataSourceSets.data) {
+#    Write-Host "Processing Data Source Set: $($dataSourceSet.name) ($($dataSourceSet.id))"
+#    Write-Debug "$($dataSourceSet | Out-String)"
+#
+#    $dataSourceSetResult = New-CluedInDataSourceSet -Object $dataSourceSet
+#    checkErrors($dataSourceSetResult)
+#}
+#
+#Write-Host "INFO: Importing Data Sources"
+#$dataSources = Get-ChildItem -Path $dataSourcesPath -Filter "*.json"
+#
+#foreach ($dataSource in $dataSources) {
+#    $dataSourceJson = Get-Content -Path $dataSource.FullName | ConvertFrom-Json -Depth 20
+#    $dataSourceObject = $dataSourceJson.data.inbound.dataSource
+#    $dataSourceSetName = $dataSourceObject.dataSourceSet.name
+#
+#    $dataSourceSet = Get-CluedInDataSourceSet -Search $dataSourceSetName
+#    $dataSourceSetExact = $dataSourceSet.data.inbound.dataSourceSets.data | 
+#        Where-Object {$_.name -match "^$dataSourceSetName$"}
+#    $dataSourceObject.dataSourceSet.id = $dataSourceSetExact.id
+#
+#    Write-Host "Processing Data Source: $($dataSourceObject.name) ($($dataSourceObject.id))"
+#    $dataSourceResult = New-CluedInDataSource -Object $dataSourceObject
+#    checkErrors($dataSourceResult)
+#}
+#
+#Write-Host "INFO: Importing Data Sets"
+#$dataSets = Get-ChildItem -Path $dataSetsPath -Filter "*-DataSet.json"
+#foreach ($dataSet in $dataSets) {
+#    $dataSetJson = Get-Content -Path $dataSet.FullName | ConvertFrom-Json -Depth 20
+#    $dataSetObject = $dataSetJson.data.inbound.dataSet
+#    $dataSource = Get-CluedInDataSource -Search $dataSetObject.dataSource.name
+#    $dataSetObject.dataSource.id = $dataSource.data.inbound.dataSource.id
+#
+#    $dataSetResult = New-CluedInDataSet -Object $dataSetObject
+#    checkErrors($dataSetResult)
+#
+#    if ($dataSetObject.dataSource.type -eq 'endpoint') {
+#        $guid = $dataSetResult.data.inbound.createDataSets.id
+#        $endpoint = '{0}/upload/api/endpoint/{1}' -f ${env:CLUEDIN_ENDPOINT}, $guid
+#        Write-Host "New Endpoint created: $endPoint"
+#    }
+#}

@@ -53,6 +53,35 @@ foreach ($setting in $settings) {
 }
 
 Write-Host "INFO: Importing Vocabularies"
+$vocabPath = Join-Path -Path $RestorePath -ChildPath 'Vocab'
+$vocabKeysPath = Join-Path -Path $vocabPath -ChildPath 'Keys'
+if (!(Test-Path -Path $vocabPath -PathType Container)) { throw "There as an issue finding '$vocabPath'. Please ensuer it exists" }
+$vocabularies = Get-Content -Path (Join-Path -Path $vocabPath -ChildPath 'Vocabularies.json') | ConvertFrom-Json
+Write-Host "INFO: A total of $($vocab.data.management.vocabularies.total) vocabularies will be imported"
+
+foreach ($vocab in $vocab.data.management.vocabularies.data) {
+    $vocabName = $vocab.vocabularyName
+    $vocabId = $vocab.vocabularyId
+    $vocabGrouping = $vocab.grouping
+    $vocabPrefix = $vocab.keyPrefix
+
+    Write-Host "Processing Vocab: $vocabName ($vocabId)"
+    New-CluedInVocabulary -DisplayName $vocabName -EntityCode $vocabGrouping -Provider "" -Prefix $vocabPrefix
+
+    $vocabKeys = Get-Content -Path (Join-Path -Path $vocabKeysPath -ChildPath "$vocabId.json") | ConvertFrom-Json
+    foreach ($vocabKey in $vocabKeys.data.management.vocabularyKeysFromVocabularyId.data) {
+        Write-Host "Processing Vocab Key: $($vocabKey.displayName) ($($vocabKey.vocabularyKeyId))"
+        $params = @{
+            DisplayName = $vocabKey.displayName
+            GroupName = $vocabKey.groupName
+            DataType = $vocabKey.dataType
+            Description = $vocabKey.description
+            Prefix = $vocabKey.name
+            VocabId = $vocabId
+        }
+        New-CluedInVocabularyKey @params
+    }
+}
 
 Write-Host "INFO: Importing Vocabulary Keys"
 

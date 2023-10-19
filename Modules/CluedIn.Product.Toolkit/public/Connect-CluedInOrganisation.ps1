@@ -30,7 +30,7 @@ function Connect-CluedInOrganisation {
     param(
         [Parameter(Mandatory)][string]$BaseURL,
         [Parameter(Mandatory)][string]$Organisation,
-        [version]$Version,
+        [Parameter(Mandatory)][version]$Version,
         [string]$APIToken
     )
 

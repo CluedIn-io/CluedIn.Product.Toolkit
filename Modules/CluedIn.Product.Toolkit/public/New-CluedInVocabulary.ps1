@@ -49,7 +49,7 @@ function New-CluedInVocabulary {
                             }
                         )
                     }
-                ) | ConvertTo-Json -Depth 20 -Compress # Description needs to be in json format for GraphQL to accept
+                ) | ConvertTo-Json -Depth 20 -AsArray -Compress
             }
         }
         query = $queryContent

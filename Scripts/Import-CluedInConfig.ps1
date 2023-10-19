@@ -28,7 +28,14 @@ param(
 )
 
 function checkErrors($result) {
-    if ($result.errors) { Write-Warning "Failed: $($result.errors.message)" }
+    if ($result.errors) { 
+        switch ($result.errors.message) {
+            {$_ -match '409'} {Write-Warning "An existing entry already exists"}
+            default {
+                Write-Warning "Failed: $($result.errors.message)"
+            }
+        }         
+    }
 }
 
 Write-Verbose "Importing modules"

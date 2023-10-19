@@ -30,10 +30,9 @@ param(
 function checkErrors($result) {
     if ($result.errors) { 
         switch ($result.errors.message) {
-            {$_ -match '409'} {Write-Warning "An existing entry already exists"}
-            default {
-                Write-Warning "Failed: $($result.errors.message)"
-            }
+            {$_ -match '409'} { Write-Warning "An existing entry already exists" }
+            {$_ -match '400'} { Write-Warning "Invalid" }
+            default { Write-Warning "Failed: $($result.errors.message)" }
         }         
     }
 }

@@ -88,7 +88,7 @@ foreach ($vocabKey in $vocabKeys) {
         $vocabulary = Get-CluedInVocabulary -Search $key.vocabulary.vocabularyName
 
         $params = @{
-            Object = $vocabKey
+            Object = $key
             VocabId = $vocabulary.data.management.vocabularies.data.vocabularyId
         }
         $vocabKeyResult = New-CluedInVocabularyKey @params

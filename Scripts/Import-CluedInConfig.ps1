@@ -64,13 +64,13 @@ foreach ($setting in $settings) {
 }
 
 # Vocabulary
-Write-Host "INFO: Importing Vocabularies"
 $vocabPath = Join-Path -Path $RestorePath -ChildPath 'Vocab'
 $vocabKeysPath = Join-Path -Path $vocabPath -ChildPath 'Keys'
 if (!(Test-Path -Path $vocabKeysPath -PathType Container)) { 
     throw "There as an issue finding '$vocabPath' or sub-folders. Please investigate" 
 }
 
+Write-Host "INFO: Importing Vocabularies"
 $vocabularies = Get-Content -Path (Join-Path -Path $vocabPath -ChildPath 'Vocabularies.json') | ConvertFrom-Json -Depth 20
 Write-Host "INFO: A total of $($vocabularies.data.management.vocabularies.total) vocabularies will be imported"
 

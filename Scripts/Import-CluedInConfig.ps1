@@ -60,13 +60,13 @@ $vocabularies = Get-Content -Path (Join-Path -Path $vocabPath -ChildPath 'Vocabu
 Write-Host "INFO: A total of $($vocabularies.data.management.vocabularies.total) vocabularies will be imported"
 
 foreach ($vocab in $vocabularies.data.management.vocabularies.data) {
-    Write-Debug "Object:`n$($vocab | Out-String)"
+    Write-Debug "$($vocab | Out-String)"
 
     Write-Host "Processing Vocab: $($vocab.vocabularyName) ($($vocab.vocabularyId))"
     $vocabResult = New-CluedInVocabulary -Object $vocab
     if ($vocabResult.errors) { Write-Warning "Failed: $($vocabResult.errors.message)" }
 
-    Write-Verbose "Fetching Keys for vocabId: $($vocab.vocabularyId)"
+    Write-Verbose "Fetching Keys for vocabId: $($vocab.vocabularyId)" # This is to find the matching export. Not the new vocab
     $vocabKeys = Get-Content -Path (Join-Path -Path $vocabKeysPath -ChildPath "$($vocab.vocabularyId).json") | ConvertFrom-Json -Depth 20
     foreach ($vocabKey in $vocabKeys.data.management.vocabularyKeysFromVocabularyId.data) {
         Write-Host "Processing Vocab Key: $($vocabKey.displayName) ($($vocabKey.vocabularyKeyId))"
@@ -74,7 +74,8 @@ foreach ($vocab in $vocabularies.data.management.vocabularies.data) {
             Object = $vocabKey
             VocabId = $vocabResult.data.management.createVocabulary.vocabularyId
         }
-        New-CluedInVocabularyKey @params
+        $vocabKeyResult = New-CluedInVocabularyKey @params
+        if ($vocabKeyResult.errors) { Write-Warning "Failed: $($vocabResult.errors.message)" }
     }
 }
 

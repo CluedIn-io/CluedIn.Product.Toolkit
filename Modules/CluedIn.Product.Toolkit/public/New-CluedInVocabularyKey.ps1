@@ -21,11 +21,11 @@ function New-CluedInVocabularyKey {
     )
 
     if ($PsCmdlet.ParameterSetName -eq 'Existing') {
-        $DisplayName = $Object.vocabularyName
-        $GroupName = $Object.grouping
-        $DataType =
-        $Description = ''
-        $Prefix = $Object.keyPrefix
+        $DisplayName = $Object.displayName
+        $GroupName = $Object.groupName
+        $DataType = $Object.dataType
+        $Description = $Object.description
+        $Prefix = $Object.name
     }
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'createVocabularyKey'

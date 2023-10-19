@@ -12,7 +12,7 @@ function New-CluedInDataSourceSet {
 
     [CmdletBinding()]
     param(
-        [Parameter(ParameterSetName = 'New')][int]$AuthorID,
+        [Parameter(ParameterSetName = 'New')][guid]$AuthorID,
         [Parameter(ParameterSetName = 'New')][string]$DisplayName,
         [Parameter(ParameterSetName = 'Existing')][PSCustomObject]$Object
     )

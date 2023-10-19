@@ -11,13 +11,15 @@ function Get-CluedInVocabulary {
     #>
 
     [CmdletBinding()]
-    param()
+    param(
+        [string]$Search = ""
+    )
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'getAllVocabularies'
 
     $query = @{
         variables =@{
-            searchName = $null
+            searchName = $Search
             pageNumber = 1
             pageSize = 20
             entityType = $null

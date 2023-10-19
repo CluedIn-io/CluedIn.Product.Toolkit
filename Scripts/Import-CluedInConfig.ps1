@@ -52,8 +52,9 @@ foreach ($setting in $settings) {
 
     $key = $setting
     $value = $adminSetting.data.administration.configurationSettings.$key
-
-    Set-CluedInAdminSettings -AdminSettingName $key -AdminSettingValue $value
+    Write-Host "INFO: Processing Admin Setting '$key'"
+    $adminSettingResult = Set-CluedInAdminSettings -AdminSettingName $key -AdminSettingValue $value
+    checkErrors($adminSettingResult)
 }
 
 Write-Host "INFO: Importing Vocabularies"
@@ -71,21 +72,28 @@ foreach ($vocab in $vocabularies.data.management.vocabularies.data) {
     Write-Debug "$($vocab | Out-String)"
 
     $vocabResult = New-CluedInVocabulary -Object $vocab
-    if ($vocabResult.errors) { Write-Warning "Failed: $($vocabResult.errors.message)" }
+    checkErrors($vocabResult)
+}
 
-    Write-Verbose "Fetching Keys for vocabId: $($vocab.vocabularyId)" # This is to find the matching export. Not the new vocab
-    $vocabKeys = Get-Content -Path (Join-Path -Path $vocabKeysPath -ChildPath "$($vocab.vocabularyId).json") | ConvertFrom-Json -Depth 20
-    foreach ($vocabKey in $vocabKeys.data.management.vocabularyKeysFromVocabularyId.data) {
-        Write-Host "Processing Vocab Key: $($vocabKey.displayName) ($($vocabKey.vocabularyKeyId))"
-        Write-Debug "$($vocabKey | Out-String)"
+Write-Host "INFO: Importing Vocabulary Keys"
+$vocabKeys = Get-ChildItem -Path $vocabKeysPath -Filter "*.json"
+foreach ($vocabKey in $vocabKeys) {
+    $vocabKeyJson = Get-Content -Path $vocabKey.FullName | ConvertFrom-Json -Depth 20
+    $vocabKeyObject = $vocabKeyJson.data.management.vocabularyKeysFromVocabularyId.data
+
+    foreach ($key in $vocabKeyObject) {
+        Write-Host "Processing Vocab Key: $($key.displayName) ($($key.vocabularyKeyId))"
+        Write-Debug "$($key | Out-String)"
+
+        $vocabulary = Get-CluedInVocabulary -Search $key.vocabulary.vocabularyName
 
         $params = @{
             Object = $vocabKey
-            VocabId = $vocabResult.data.management.createVocabulary.vocabularyId
+            VocabId = $vocabulary.data.management.vocabularies.data.vocabularyId
         }
         $vocabKeyResult = New-CluedInVocabularyKey @params
         checkErrors($vocabKeyResult)
-    }
+    }    
 }
 
 Write-Host "INFO: Importing Data Source Sets"
@@ -139,7 +147,7 @@ foreach ($dataSet in $dataSets) {
 
     if ($dataSetObject.dataSource.type -eq 'endpoint') {
         $guid = $dataSetResult.data.inbound.createDataSets.id
-        $endpoint = 'https://{0}/upload/api/endpoint/{1}' -f ${env:CLUEDIN_ENDPOINT}, $guid
+        $endpoint = '{0}/upload/api/endpoint/{1}' -f ${env:CLUEDIN_ENDPOINT}, $guid
         Write-Host "New Endpoint created: $endPoint"
     }
 }

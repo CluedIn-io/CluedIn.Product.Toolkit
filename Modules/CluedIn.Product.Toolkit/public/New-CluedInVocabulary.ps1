@@ -31,16 +31,16 @@ function New-CluedInVocabulary {
         default {
             $entityTypeConfiguration = @{
                 new = $false
-                icon = 'Idea'
+                icon = ''
                 entityType = $EntityCode
-                displayName = ""
+                displayName = ''
             }
             $description = @(
                 @{
                     type = 'paragraph'
                     children = @(
                         @{
-                            text = 'Some random description that might be useful'
+                            text = ''
                         }
                     )
                 }

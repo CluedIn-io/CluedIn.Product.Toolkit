@@ -63,6 +63,7 @@ foreach ($setting in $settings) {
     checkErrors($adminSettingResult)
 }
 
+# Vocabulary
 Write-Host "INFO: Importing Vocabularies"
 $vocabPath = Join-Path -Path $RestorePath -ChildPath 'Vocab'
 $vocabKeysPath = Join-Path -Path $vocabPath -ChildPath 'Keys'
@@ -102,26 +103,27 @@ foreach ($vocabKey in $vocabKeys) {
     }    
 }
 
-#Write-Host "INFO: Importing Data Source Sets"
-#$dataPath = Join-Path -Path $RestorePath -ChildPath 'Data'
-#$dataSourceSetsPath = Join-Path -Path $dataPath -ChildPath 'SourceSets'
-#$dataSourcesPath = Join-Path -Path $dataPath -ChildPath 'Sources'
-#$dataSetsPath = Join-Path -Path $dataPath -ChildPath 'Sets'
-#if (!(Test-Path -Path $dataSourceSetsPath, $dataSourcesPath, $dataSetsPath -PathType Container)) {
-#    throw "There as an issue finding '$dataPath' or sub-folders. Please investigate" 
-#}
-#
-#$dataSourceSets = Get-Content -Path (Join-Path -Path $dataSourceSetsPath -ChildPath 'DataSourceSet.json') | ConvertFrom-Json -Depth 20
-#Write-Host "INFO: A total of $($dataSourceSets.data.inbound.datasourcesets.total) data source sets will be imported"
-#
-#foreach ($dataSourceSet in $dataSourceSets.data.inbound.dataSourceSets.data) {
-#    Write-Host "Processing Data Source Set: $($dataSourceSet.name) ($($dataSourceSet.id))"
-#    Write-Debug "$($dataSourceSet | Out-String)"
-#
-#    $dataSourceSetResult = New-CluedInDataSourceSet -Object $dataSourceSet
-#    checkErrors($dataSourceSetResult)
-#}
-#
+# Data Sources
+Write-Host "INFO: Importing Data Source Sets"
+$dataPath = Join-Path -Path $RestorePath -ChildPath 'Data'
+$dataSourceSetsPath = Join-Path -Path $dataPath -ChildPath 'SourceSets'
+$dataSourcesPath = Join-Path -Path $dataPath -ChildPath 'Sources'
+$dataSetsPath = Join-Path -Path $dataPath -ChildPath 'Sets'
+if (!(Test-Path -Path $dataSourceSetsPath, $dataSourcesPath, $dataSetsPath -PathType Container)) {
+    throw "There as an issue finding '$dataPath' or sub-folders. Please investigate" 
+}
+
+$dataSourceSets = Get-Content -Path (Join-Path -Path $dataSourceSetsPath -ChildPath 'DataSourceSet.json') | ConvertFrom-Json -Depth 20
+Write-Host "INFO: A total of $($dataSourceSets.data.inbound.datasourcesets.total) data source sets will be imported"
+
+foreach ($dataSourceSet in $dataSourceSets.data.inbound.dataSourceSets.data) {
+    Write-Host "Processing Data Source Set: $($dataSourceSet.name) ($($dataSourceSet.id))"
+    Write-Debug "$($dataSourceSet | Out-String)"
+
+    $dataSourceSetResult = New-CluedInDataSourceSet -Object $dataSourceSet
+    checkErrors($dataSourceSetResult)
+}
+
 #Write-Host "INFO: Importing Data Sources"
 #$dataSources = Get-ChildItem -Path $dataSourcesPath -Filter "*.json"
 #

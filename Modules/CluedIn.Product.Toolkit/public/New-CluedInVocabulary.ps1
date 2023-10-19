@@ -13,7 +13,7 @@ function New-CluedInVocabulary {
     [CmdletBinding()]
     param(
         [string]$DisplayName,
-        [int]$EntityCode,
+        [string]$EntityCode,
         [string]$Provider,
         [string]$Prefix
     )

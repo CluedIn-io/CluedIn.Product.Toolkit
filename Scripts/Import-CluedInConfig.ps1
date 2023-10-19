@@ -36,9 +36,9 @@ Connect-CluedInOrganisation -BaseURL $BaseURL -Organisation $Organisation -Versi
 Write-Host "INFO: Starting import"
 
 Write-Host "INFO: Importing Admin Settings"
-$generalPath = Join-Path -Path $BackupPath -ChildPath 'General'
+$generalPath = Join-Path -Path $RestorePath -ChildPath 'General'
 if (!(Test-Path -Path $generalPath -PathType Container)) { throw "'$generalPath' could not be found. Please investigate" }
-$adminSetting = Get-Content -Path (Join-Path -Path $generalPath -ChildPath 'AdminSetting.json') | ConvertFrom-Json
+$adminSetting = Get-Content -Path (Join-Path -Path $generalPath -ChildPath 'AdminSetting.json') | ConvertFrom-Json -Depth 99
 
 $settings = ($adminSetting.data.administration.configurationSettings).psobject.properties.name
 
@@ -57,18 +57,24 @@ $vocabPath = Join-Path -Path $RestorePath -ChildPath 'Vocab'
 $vocabKeysPath = Join-Path -Path $vocabPath -ChildPath 'Keys'
 if (!(Test-Path -Path $vocabPath -PathType Container)) { throw "There as an issue finding '$vocabPath'. Please ensuer it exists" }
 $vocabularies = Get-Content -Path (Join-Path -Path $vocabPath -ChildPath 'Vocabularies.json') | ConvertFrom-Json
-Write-Host "INFO: A total of $($vocab.data.management.vocabularies.total) vocabularies will be imported"
+Write-Host "INFO: A total of $($vocabularies.data.management.vocabularies.total) vocabularies will be imported"
 
-foreach ($vocab in $vocab.data.management.vocabularies.data) {
+foreach ($vocab in $vocabularies.data.management.vocabularies.data) {
     $vocabName = $vocab.vocabularyName
+    Write-Debug "vocabName: $vocabName"
     $vocabId = $vocab.vocabularyId
+    Write-Debug "vocabId: $vocabId"
     $vocabGrouping = $vocab.grouping
+    Write-Debug "vocabGrouping: $vocabGrouping"
     $vocabPrefix = $vocab.keyPrefix
+    Write-Debug "vocabPrefix: $vocabPrefix"
 
     Write-Host "Processing Vocab: $vocabName ($vocabId)"
-    New-CluedInVocabulary -DisplayName $vocabName -EntityCode $vocabGrouping -Provider "" -Prefix $vocabPrefix
+    $result = New-CluedInVocabulary -DisplayName $vocabName -EntityCode $vocabGrouping -Provider "" -Prefix $vocabPrefix
+    Write-Host ($result | Out-String)
 
-    $vocabKeys = Get-Content -Path (Join-Path -Path $vocabKeysPath -ChildPath "$vocabId.json") | ConvertFrom-Json
+    Write-Verbose "Fetching Keys for vocabId: $vocabId"
+    $vocabKeys = Get-Content -Path (Join-Path -Path $vocabKeysPath -ChildPath "$vocabId.json") | ConvertFrom-Json -Depth 99
     foreach ($vocabKey in $vocabKeys.data.management.vocabularyKeysFromVocabularyId.data) {
         Write-Host "Processing Vocab Key: $($vocabKey.displayName) ($($vocabKey.vocabularyKeyId))"
         $params = @{
@@ -83,10 +89,10 @@ foreach ($vocab in $vocab.data.management.vocabularies.data) {
     }
 }
 
-Write-Host "INFO: Importing Vocabulary Keys"
-
-Write-Host "INFO: Importing Data Source Sets"
-
-Write-Host "INFO: Importing Data Sources"
-
-Write-Host "INFO: Importing Data Sets"
+#Write-Host "INFO: Importing Vocabulary Keys"
+#
+#Write-Host "INFO: Importing Data Source Sets"
+#
+#Write-Host "INFO: Importing Data Sources"
+#
+#Write-Host "INFO: Importing Data Sets"

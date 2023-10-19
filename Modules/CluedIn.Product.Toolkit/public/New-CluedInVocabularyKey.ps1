@@ -16,7 +16,7 @@ function New-CluedInVocabularyKey {
         [string]$DataType,
         [string]$Description,
         [string]$Prefix,
-        [int]$VocabId
+        [guid]$VocabId
     )
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'createVocabularyKey' # This is technically `createVocabulary`

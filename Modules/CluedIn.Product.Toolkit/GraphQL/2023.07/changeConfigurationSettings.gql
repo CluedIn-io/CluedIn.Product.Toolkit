@@ -1,4 +1,4 @@
-mutation changeConfigurationSettings($id: ID!, $key: String!, $value: String!) {
+mutation changeConfigurationSettings($organizationId: ID!, $key: String!, $value: String!) {
   administration {
     id
     changeConfigurationSettings(

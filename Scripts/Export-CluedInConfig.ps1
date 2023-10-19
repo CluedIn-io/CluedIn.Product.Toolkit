@@ -36,11 +36,13 @@ Connect-CluedInOrganisation -BaseURL $BaseURL -Organisation $Organisation -Versi
 
 Write-Host "INFO: Starting backup"
 
+# Settings
 Write-Host "INFO: Exporting Admin Settings"
 $generalPath = Join-Path -Path $BackupPath -ChildPath 'General'
 if (!(Test-Path -Path $generalPath -PathType Container)) { New-Item $generalPath -ItemType Directory | Out-Null }
 Get-CluedInAdminSetting | Out-JsonFile -Path $generalPath -Name 'AdminSetting'
 
+# Data Sources
 Write-Host "INFO: Exporting Data Source Sets"
 $path = Join-Path -Path $BackupPath -ChildPath 'Data/SourceSets'
 if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
@@ -71,17 +73,22 @@ foreach ($dataSet in $dataSetProcess) {
     }
 }
 
+# Vocabulary
 Write-Host "INFO: Exporting Vocabularies"
-$path = Join-Path -Path $BackupPath -ChildPath 'Vocab'
-if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
+$dataCatalogPath = Join-Path -Path $BackupPath -ChildPath 'DataCatalog'
+$vocabPath = Join-Path -Path $dataCatalogPath -ChildPath 'Vocab'
+if (!(Test-Path -Path $vocabPath -PathType Container)) { New-Item $vocabPath -ItemType Directory | Out-Null }
 $vocabularies = Get-CluedInVocabulary 
-$vocabularies | Out-JsonFile -Path $path -Name 'Vocabularies'
+$vocabularies | Out-JsonFile -Path $dataCatalogPath -Name 'VocabulariesManifest'
+foreach ($vocab in $vocabularies.data.management.vocabularies.data) {
+    Get-CluedInVocabularyById -Id $vocab.vocabularyId | Out-JsonFile -Path $vocabPath -Name $vocab.vocabularyId
+}
 
 Write-Host "INFO: Exporting Vocabulary Keys"
-$path = Join-Path -Path $BackupPath -ChildPath 'Vocab/Keys'
-if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
+$vocabKeysPath = Join-Path -Path $dataCatalogPath -ChildPath 'Keys'
+if (!(Test-Path -Path $vocabKeysPath -PathType Container)) { New-Item $vocabKeysPath -ItemType Directory | Out-Null }
 foreach ($i in $vocabularies.data.management.vocabularies.data.vocabularyId) {
-    Get-CluedInVocabularyKey -Id $i | Out-JsonFile -Path $path -Name $i
+    Get-CluedInVocabularyKey -Id $i | Out-JsonFile -Path $vocabKeysPath -Name $i
 }
 
 Write-Host "INFO: Backup now complete"

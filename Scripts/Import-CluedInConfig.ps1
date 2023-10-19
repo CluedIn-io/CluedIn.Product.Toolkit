@@ -45,6 +45,7 @@ Connect-CluedInOrganisation -BaseURL $BaseURL -Organisation $Organisation -Versi
 
 Write-Host "INFO: Starting import"
 
+# Settings
 Write-Host "INFO: Importing Admin Settings"
 $generalPath = Join-Path -Path $RestorePath -ChildPath 'General'
 if (!(Test-Path -Path $generalPath -PathType Container)) { throw "'$generalPath' could not be found. Please investigate" }

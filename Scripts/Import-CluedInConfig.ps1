@@ -27,10 +27,10 @@ param(
     [Parameter(Mandatory)][string]$RestorePath = 'C:\.dev\EXPORTTEST'
 )
 
-function checkErrors($result) {
+function checkResults($result) {
     if ($result.errors) { 
         switch ($result.errors.message) {
-            {$_ -match '409'} { Write-Warning "An existing entry already exists" }
+            {$_ -match '409'} { Write-Warning "An entry already exists" }
             {$_ -match '400'} { Write-Warning "Invalid" }
             default { Write-Warning "Failed: $($result.errors.message)" }
         }         
@@ -43,10 +43,8 @@ Import-Module "$PSScriptRoot/../Modules/CluedIn.Product.Toolkit"
 Write-Host "INFO: Connecting to 'https://$Organisation.$BaseURL'"
 Connect-CluedInOrganisation -BaseURL $BaseURL -Organisation $Organisation -Version $Version
 
-Write-Host "INFO: Starting import"
-
 # Settings
-Write-Host "INFO: Importing Admin Settings"
+Write-Host "INFO: Importing Admin Settings" -ForegroundColor 'Green'
 $generalPath = Join-Path -Path $RestorePath -ChildPath 'General'
 if (!(Test-Path -Path $generalPath -PathType Container)) { throw "'$generalPath' could not be found. Please investigate" }
 $adminSetting = Get-Content -Path (Join-Path -Path $generalPath -ChildPath 'AdminSetting.json') | ConvertFrom-Json -Depth 20
@@ -59,9 +57,9 @@ foreach ($setting in $settings) {
 
     $key = $setting
     $value = $adminSetting.data.administration.configurationSettings.$key
-    Write-Host "INFO: Processing Admin Setting '$key'"
+    Write-Host "Processing Admin Setting: $key" -ForegroundColor Cyan
     $adminSettingResult = Set-CluedInAdminSettings -AdminSettingName $key -AdminSettingValue $value
-    checkErrors($adminSettingResult)
+    checkResults($adminSettingResult)
 }
 
 # Vocabulary
@@ -72,27 +70,27 @@ if (!(Test-Path -Path $vocabPath, $vocabKeysPath -PathType Container)) {
     throw "There as an issue finding '$vocabPath' or sub-folders. Please investigate" 
 }
 
-Write-Host "INFO: Importing Vocabularies"
+Write-Host "INFO: Importing Vocabularies" -ForegroundColor 'Green'
 $vocabularies = Get-ChildItem -Path $vocabPath -Filter "*.json"
 foreach ($vocabulary in $vocabularies) {
     $vocabJson = Get-Content -Path $vocabulary.FullName | ConvertFrom-Json -Depth 20
     $vocabObject = $vocabJson.data.management.vocabulary
 
-    Write-Host "Processing Vocab: $($vocabObject.vocabularyName) ($($vocabObject.vocabularyId))"
+    Write-Host "Processing Vocab: $($vocabObject.vocabularyName) ($($vocabObject.vocabularyId))" -ForegroundColor Cyan
     Write-Debug "$($vocabObject | Out-String)"
 
     $vocabResult = New-CluedInVocabulary -Object $vocabObject
-    checkErrors($vocabResult)
+    checkResults($vocabResult)
 }
 
-Write-Host "INFO: Importing Vocabulary Keys"
+Write-Host "INFO: Importing Vocabulary Keys" -ForegroundColor 'Green'
 $vocabKeys = Get-ChildItem -Path $vocabKeysPath -Filter "*.json"
 foreach ($vocabKey in $vocabKeys) {
     $vocabKeyJson = Get-Content -Path $vocabKey.FullName | ConvertFrom-Json -Depth 20
     $vocabKeyObject = $vocabKeyJson.data.management.vocabularyKeysFromVocabularyId.data
 
     foreach ($key in $vocabKeyObject) {
-        Write-Host "Processing Vocab Key: $($key.displayName) ($($key.vocabularyKeyId))"
+        Write-Host "Processing Vocab Key: $($key.displayName) ($($key.vocabularyKeyId))" -ForegroundColor Cyan
         Write-Debug "$($key | Out-String)"
 
         $vocabulary = Get-CluedInVocabulary -Search $key.vocabulary.vocabularyName
@@ -102,12 +100,12 @@ foreach ($vocabKey in $vocabKeys) {
             VocabId = $vocabulary.data.management.vocabularies.data.vocabularyId
         }
         $vocabKeyResult = New-CluedInVocabularyKey @params
-        checkErrors($vocabKeyResult)
+        checkResults($vocabKeyResult)
     }    
 }
 
 # Data Sources
-Write-Host "INFO: Importing Data Source Sets"
+Write-Host "INFO: Importing Data Source Sets" -ForegroundColor 'Green'
 $dataPath = Join-Path -Path $RestorePath -ChildPath 'Data'
 $dataSourceSetsPath = Join-Path -Path $dataPath -ChildPath 'SourceSets'
 $dataSourcesPath = Join-Path -Path $dataPath -ChildPath 'Sources'
@@ -117,48 +115,63 @@ if (!(Test-Path -Path $dataSourceSetsPath, $dataSourcesPath, $dataSetsPath -Path
 }
 
 $dataSourceSets = Get-Content -Path (Join-Path -Path $dataSourceSetsPath -ChildPath 'DataSourceSet.json') | ConvertFrom-Json -Depth 20
-Write-Host "INFO: A total of $($dataSourceSets.data.inbound.datasourcesets.total) data source sets will be imported"
-
 foreach ($dataSourceSet in $dataSourceSets.data.inbound.dataSourceSets.data) {
-    Write-Host "Processing Data Source Set: $($dataSourceSet.name) ($($dataSourceSet.id))"
+    Write-Host "Processing Data Source Set: $($dataSourceSet.name) ($($dataSourceSet.id))" -ForegroundColor Cyan
     Write-Debug "$($dataSourceSet | Out-String)"
 
-    $dataSourceSetResult = New-CluedInDataSourceSet -Object $dataSourceSet
-    checkErrors($dataSourceSetResult)
+    $exists = (Get-CluedInDataSourceSet -Search $($dataSourceSet.name)).data.inbound.dataSourceSets.data
+
+    if (!$exists) {
+        $dataSourceSetResult = New-CluedInDataSourceSet -Object $dataSourceSet
+        checkResults($dataSourceSetResult)
+    }
+    else { Write-Warning "An entry already exists" }
 }
 
-#Write-Host "INFO: Importing Data Sources"
-#$dataSources = Get-ChildItem -Path $dataSourcesPath -Filter "*.json"
-#
-#foreach ($dataSource in $dataSources) {
-#    $dataSourceJson = Get-Content -Path $dataSource.FullName | ConvertFrom-Json -Depth 20
-#    $dataSourceObject = $dataSourceJson.data.inbound.dataSource
-#    $dataSourceSetName = $dataSourceObject.dataSourceSet.name
-#
-#    $dataSourceSet = Get-CluedInDataSourceSet -Search $dataSourceSetName
-#    $dataSourceSetExact = $dataSourceSet.data.inbound.dataSourceSets.data | 
-#        Where-Object {$_.name -match "^$dataSourceSetName$"}
-#    $dataSourceObject.dataSourceSet.id = $dataSourceSetExact.id
-#
-#    Write-Host "Processing Data Source: $($dataSourceObject.name) ($($dataSourceObject.id))"
-#    $dataSourceResult = New-CluedInDataSource -Object $dataSourceObject
-#    checkErrors($dataSourceResult)
-#}
-#
-#Write-Host "INFO: Importing Data Sets"
-#$dataSets = Get-ChildItem -Path $dataSetsPath -Filter "*-DataSet.json"
-#foreach ($dataSet in $dataSets) {
-#    $dataSetJson = Get-Content -Path $dataSet.FullName | ConvertFrom-Json -Depth 20
-#    $dataSetObject = $dataSetJson.data.inbound.dataSet
-#    $dataSource = Get-CluedInDataSource -Search $dataSetObject.dataSource.name
-#    $dataSetObject.dataSource.id = $dataSource.data.inbound.dataSource.id
-#
-#    $dataSetResult = New-CluedInDataSet -Object $dataSetObject
-#    checkErrors($dataSetResult)
-#
-#    if ($dataSetObject.dataSource.type -eq 'endpoint') {
-#        $guid = $dataSetResult.data.inbound.createDataSets.id
-#        $endpoint = '{0}/upload/api/endpoint/{1}' -f ${env:CLUEDIN_ENDPOINT}, $guid
-#        Write-Host "New Endpoint created: $endPoint"
-#    }
-#}
+Write-Host "INFO: Importing Data Sources" -ForegroundColor 'Green'
+$dataSources = Get-ChildItem -Path $dataSourcesPath -Filter "*.json"
+
+foreach ($dataSource in $dataSources) {
+    $dataSourceJson = Get-Content -Path $dataSource.FullName | ConvertFrom-Json -Depth 20
+    $dataSourceObject = $dataSourceJson.data.inbound.dataSource
+    $dataSourceSetName = $dataSourceObject.dataSourceSet.name
+
+    $dataSourceSet = Get-CluedInDataSourceSet -Search $dataSourceSetName
+    $dataSourceSetMatch = $dataSourceSet.data.inbound.dataSourceSets.data | 
+        Where-Object {$_.name -match "^$dataSourceSetName$"}
+    if (!$dataSourceSetMatch) { Write-Warning "'$dataSourceSetName' was not found as a Data Source"; continue }
+    $dataSourceObject.dataSourceSet.id = $dataSourceSetMatch.id
+
+    Write-Host "Processing Data Source: $($dataSourceObject.name) ($($dataSourceObject.id))" -ForegroundColor 'Cyan'
+    $exists = (Get-CluedInDataSource -Search $dataSourceObject.name).data.inbound.dataSource
+    if (!$exists) {        
+        $dataSourceResult = New-CluedInDataSource -Object $dataSourceObject
+        checkResults($dataSourceResult)
+    }
+    else { Write-Warning "An entry already exists" }
+}
+
+Write-Host "INFO: Importing Data Sets" -ForegroundColor 'Green'
+$dataSets = Get-ChildItem -Path $dataSetsPath -Filter "*-DataSet.json"
+foreach ($dataSet in $dataSets) {
+    $dataSetJson = Get-Content -Path $dataSet.FullName | ConvertFrom-Json -Depth 20
+    $dataSetObject = $dataSetJson.data.inbound.dataSet
+    Write-Host "Processing Data Set: $($dataSetObject.name) ($($dataSetObject.id))" -ForegroundColor 'Cyan'
+
+    $dataSource = Get-CluedInDataSource -Search $dataSetObject.dataSource.name
+    if (!$dataSource) { Write-Warning "Data Source '$($dataSetObject.dataSource.name)' not found"; continue}
+    $dataSetObject.dataSource.id = $dataSource.data.inbound.dataSource.id
+
+    $exists = ($dataSetObject.name -in $dataSource.data.inbound.dataSource.dataSets.name)
+    if (!$exists) {        
+        $dataSetResult = New-CluedInDataSet -Object $dataSetObject
+        checkResults($dataSetResult)
+
+        if ($dataSetObject.dataSource.type -eq 'endpoint') {
+            $guid = $dataSetResult.data.inbound.createDataSets.id
+            $endpoint = '{0}/upload/api/endpoint/{1}' -f ${env:CLUEDIN_ENDPOINT}, $guid
+            Write-Host "New Endpoint created: $endPoint"
+        }
+    }
+    else { Write-Warning "An entry already exists" }
+}

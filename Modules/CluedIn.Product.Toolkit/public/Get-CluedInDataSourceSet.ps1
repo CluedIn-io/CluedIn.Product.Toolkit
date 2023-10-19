@@ -13,14 +13,16 @@ function Get-CluedInDataSourceSet {
     #>
 
     [CmdletBinding()]
-    param ()
+    param (
+        [string]$Search = ""
+    )
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'getAllDataSourceSet'
 
     $query = @{
         variables = @{
             pageSize = 10
-            searchName = ""
+            searchName = $Search
             page = 0
         }
         query = $queryContent

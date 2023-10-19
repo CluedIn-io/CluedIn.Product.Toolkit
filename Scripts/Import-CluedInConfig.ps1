@@ -100,33 +100,30 @@ if (!(Test-Path -Path $dataSourceSetsPath, $dataSourcesPath, $dataSetsPath -Path
 $dataSourceSets = Get-Content -Path (Join-Path -Path $dataSourceSetsPath -ChildPath 'DataSourceSet.json') | ConvertFrom-Json -Depth 20
 Write-Host "INFO: A total of $($dataSourceSets.data.inbound.datasourcesets.total) data source sets will be imported"
 
-$sourceSetHash = @{}
 foreach ($dataSourceSet in $dataSourceSets.data.inbound.dataSourceSets.data) {
     Write-Host "Processing Data Source Set: $($dataSourceSet.name) ($($dataSourceSet.id))"
     Write-Debug "$($dataSourceSet | Out-String)"
 
     $dataSourceSetResult = New-CluedInDataSourceSet -Object $dataSourceSet
     checkErrors($dataSourceSetResult)
-    $sourceSetHash += @{
-        $dataSourceSet.data.inbound.dataSourceSets.data.name = $dataSourceSetResult.data.inbound.createDataSourceSet
-    }
 }
 
 Write-Host "INFO: Importing Data Sources"
 $dataSources = Get-ChildItem -Path $dataSourcesPath -Filter "*.json"
 
-$sourceHash = @{}
 foreach ($dataSource in $dataSources) {
     $dataSourceJson = Get-Content -Path $dataSource.FullName | ConvertFrom-Json -Depth 20
     $dataSourceObject = $dataSourceJson.data.inbound.dataSource
-    $dataSourceObject.dataSourceSet.id = $sourceSetHash[$dataSourceObject.dataSourceSet.name]
+    $dataSourceSetName = $dataSourceObject.dataSourceSet.name
+
+    $dataSourceSet = Get-CluedInDataSourceSet -Search $dataSourceSetName
+    $dataSourceSetExact = $dataSourceSet.data.inbound.dataSourceSets.data | 
+        Where-Object {$_.name -match "^$dataSourceSetName$"}
+    $dataSourceObject.dataSourceSet.id = $dataSourceSetExact.id
 
     Write-Host "Processing Data Source: $($dataSourceObject.name) ($($dataSourceObject.id))"
     $dataSourceResult = New-CluedInDataSource -Object $dataSourceObject
     checkErrors($dataSourceResult)
-    $sourceHash += @{
-        $dataSourceObject.name = $dataSourceResult.data.inbound.createDataSource.id
-    }
 }
 
 Write-Host "INFO: Importing Data Sets"

@@ -65,21 +65,23 @@ foreach ($setting in $settings) {
 }
 
 # Vocabulary
-$vocabPath = Join-Path -Path $RestorePath -ChildPath 'Vocab'
-$vocabKeysPath = Join-Path -Path $vocabPath -ChildPath 'Keys'
-if (!(Test-Path -Path $vocabKeysPath -PathType Container)) { 
+$dataCatalogPath = Join-Path -Path $RestorePath -ChildPath 'DataCatalog'
+$vocabPath = Join-Path -Path $dataCatalogPath -ChildPath 'Vocab'
+$vocabKeysPath = Join-Path -Path $dataCatalogPath -ChildPath 'Keys'
+if (!(Test-Path -Path $vocabPath, $vocabKeysPath -PathType Container)) { 
     throw "There as an issue finding '$vocabPath' or sub-folders. Please investigate" 
 }
 
 Write-Host "INFO: Importing Vocabularies"
-$vocabularies = Get-Content -Path (Join-Path -Path $vocabPath -ChildPath 'Vocabularies.json') | ConvertFrom-Json -Depth 20
-Write-Host "INFO: A total of $($vocabularies.data.management.vocabularies.total) vocabularies will be imported"
+$vocabularies = Get-ChildItem -Path $vocabPath -Filter "*.json"
+foreach ($vocabulary in $vocabularies) {
+    $vocabJson = Get-Content -Path $vocabulary.FullName | ConvertFrom-Json -Depth 20
+    $vocabObject = $vocabJson.data.management.vocabulary
 
-foreach ($vocab in $vocabularies.data.management.vocabularies.data) {
-    Write-Host "Processing Vocab: $($vocab.vocabularyName) ($($vocab.vocabularyId))"
-    Write-Debug "$($vocab | Out-String)"
+    Write-Host "Processing Vocab: $($vocabObject.vocabularyName) ($($vocabObject.vocabularyId))"
+    Write-Debug "$($vocabObject | Out-String)"
 
-    $vocabResult = New-CluedInVocabulary -Object $vocab
+    $vocabResult = New-CluedInVocabulary -Object $vocabObject
     checkErrors($vocabResult)
 }
 

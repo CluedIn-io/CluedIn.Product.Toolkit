@@ -19,11 +19,33 @@ function New-CluedInVocabulary {
         [Parameter(ParameterSetName = 'Existing')][PSCustomObject]$Object
     )
 
-    if ($PsCmdlet.ParameterSetName -eq 'Existing') {
-        $DisplayName = $Object.vocabularyName
-        $EntityCode = $Object.grouping
-        $Provider = ''
-        $Prefix = $Object.keyPrefix
+    switch ($PsCmdlet.ParameterSetName) {
+        'Existing' {
+            $DisplayName = $Object.vocabularyName
+            $EntityCode = $Object.grouping
+            $Provider = ''
+            $Prefix = $Object.keyPrefix
+            $description = $object.description
+            $entityTypeConfiguration = $object.entityTypeConfiguration
+        }
+        default {
+            $entityTypeConfiguration = @{
+                new = $false
+                icon = 'Idea'
+                entityType = $EntityCode
+                displayName = ""
+            }
+            $description = @(
+                @{
+                    type = 'paragraph'
+                    children = @(
+                        @{
+                            text = 'Some random description that might be useful'
+                        }
+                    )
+                }
+            ) | ConvertTo-Json -Depth 20 -AsArray -Compress
+        }
     }
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'createVocabulary'
@@ -32,24 +54,10 @@ function New-CluedInVocabulary {
         variables = @{
             vocabulary = @{
                 vocabularyName = $DisplayName
-                entityTypeConfiguration = @{
-                    new = $false
-                    icon = 'Idea'
-                    entityType = $EntityCode
-                    displayName = ""
-                }
+                entityTypeConfiguration = $entityTypeConfiguration
                 providerId = $Provider
                 keyPrefix = $Prefix
-                description = @(
-                    @{
-                        type = 'paragraph'
-                        children = @(
-                            @{
-                                text = 'Some random description that might be useful'
-                            }
-                        )
-                    }
-                ) | ConvertTo-Json -Depth 20 -AsArray -Compress
+                description = $Description
             }
         }
         query = $queryContent

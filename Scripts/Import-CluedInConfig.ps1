@@ -79,9 +79,8 @@ foreach ($vocab in $vocabularies.data.management.vocabularies.data) {
     }
 }
 
-#Write-Host "INFO: Importing Vocabulary Keys"
-#
-#Write-Host "INFO: Importing Data Source Sets"
+Write-Host "INFO: Importing Data Source Sets"
+
 #
 #Write-Host "INFO: Importing Data Sources"
 #

@@ -60,27 +60,18 @@ $vocabularies = Get-Content -Path (Join-Path -Path $vocabPath -ChildPath 'Vocabu
 Write-Host "INFO: A total of $($vocabularies.data.management.vocabularies.total) vocabularies will be imported"
 
 foreach ($vocab in $vocabularies.data.management.vocabularies.data) {
-    $vocabName = $vocab.vocabularyName
-    $vocabId = $vocab.vocabularyId
-    $vocabGrouping = $vocab.grouping
-    $vocabPrefix = $vocab.keyPrefix
-    Write-Debug "vocabName: $vocabName; vocabId: $vocabId; vocabGrouping: $vocabGrouping; vocabPrefix: $vocabPrefix"
+    Write-Debug "Object:`n$($vocab | Out-String)"
 
-    Write-Host "Processing Vocab: $vocabName ($vocabId)"
-    # Perhaps we pass in more metadata here. icon, description, etc. but in the form of a hashtable?
-    $vocabResult = New-CluedInVocabulary -DisplayName $vocabName -EntityCode $vocabGrouping -Provider "" -Prefix $vocabPrefix
+    Write-Host "Processing Vocab: $($vocab.vocabularyName) ($($vocab.vocabularyId))"
+    $vocabResult = New-CluedInVocabulary -Object $vocab
     if ($vocabResult.errors) { Write-Warning "Failed: $($vocabResult.errors.message)" }
 
-    Write-Verbose "Fetching Keys for vocabId: $vocabId"
-    $vocabKeys = Get-Content -Path (Join-Path -Path $vocabKeysPath -ChildPath "$vocabId.json") | ConvertFrom-Json -Depth 20
+    Write-Verbose "Fetching Keys for vocabId: $($vocab.vocabularyId)"
+    $vocabKeys = Get-Content -Path (Join-Path -Path $vocabKeysPath -ChildPath "$($vocab.vocabularyId).json") | ConvertFrom-Json -Depth 20
     foreach ($vocabKey in $vocabKeys.data.management.vocabularyKeysFromVocabularyId.data) {
         Write-Host "Processing Vocab Key: $($vocabKey.displayName) ($($vocabKey.vocabularyKeyId))"
         $params = @{
-            DisplayName = $vocabKey.displayName
-            GroupName = $vocabKey.groupName
-            DataType = $vocabKey.dataType
-            Description = $vocabKey.description
-            Prefix = $vocabKey.name
+            Object = $vocabKey
             VocabId = $vocabResult.data.management.createVocabulary.vocabularyId
         }
         New-CluedInVocabularyKey @params

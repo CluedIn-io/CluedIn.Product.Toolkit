@@ -12,11 +12,19 @@ function New-CluedInVocabulary {
 
     [CmdletBinding()]
     param(
-        [string]$DisplayName,
-        [string]$EntityCode,
-        [string]$Provider,
-        [string]$Prefix
+        [Parameter(ParameterSetName = 'New')][string]$DisplayName,
+        [Parameter(ParameterSetName = 'New')][string]$EntityCode,
+        [Parameter(ParameterSetName = 'New')][string]$Provider,
+        [Parameter(ParameterSetName = 'New')][string]$Prefix,
+        [Parameter(ParameterSetName = 'Existing')][PSCustomObject]$Object
     )
+
+    if ($PsCmdlet.ParameterSetName -eq 'Existing') {
+        $DisplayName = $Object.vocabularyName
+        $EntityCode = $Object.grouping
+        $Provider = ''
+        $Prefix = $Object.keyPrefix
+    }
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'createVocabulary'
     

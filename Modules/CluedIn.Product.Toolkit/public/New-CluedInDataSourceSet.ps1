@@ -12,16 +12,24 @@ function New-CluedInDataSourceSet {
 
     [CmdletBinding()]
     param(
-        [int]$AuthorID,
-        [string]$DataSourceSetName 
+        [Parameter(ParameterSetName = 'New')][int]$AuthorID,
+        [Parameter(ParameterSetName = 'New')][string]$DisplayName,
+        [Parameter(ParameterSetName = 'Existing')][PSCustomObject]$Object
     )
+
+    $me = Get-CluedInMe
+
+    if ($PsCmdlet.ParameterSetName -eq 'Existing') {
+        $AuthorID = $me.data.administration.me.client.id
+        $DisplayName = $Object.name
+    }
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'createDataSourceSet'
 
     $query = @{
         variables =@{
             dataSourceSet = @{
-                name = $DataSourceSetName
+                name = $DisplayName
                 author = $AuthorID
             }
         }

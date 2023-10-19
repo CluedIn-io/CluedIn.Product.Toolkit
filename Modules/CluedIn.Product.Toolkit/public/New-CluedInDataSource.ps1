@@ -12,10 +12,21 @@ function New-CluedInDataSource {
 
     [CmdletBinding()]
     param(
-        [int]$DataSourceSetID,
-        [int]$AuthorID,
-        [string]$Name
+        [Parameter(ParameterSetName = 'New')][int]$DataSourceSetID,
+        [Parameter(ParameterSetName = 'New')][guid]$AuthorID,
+        [Parameter(ParameterSetName = 'New')][string]$Name,
+        [string]$SourceType,
+        [Parameter(ParameterSetName = 'Existing')][PSCustomObject]$Object
     )
+
+    $me = Get-CluedInMe
+
+    if ($PsCmdlet.ParameterSetName -eq 'Existing') {
+        $AuthorID = $me.data.administration.me.client.id
+        $DataSourceSetID = $Object.dataSourceSet.id
+        $Name = $Object.name
+        $SourceType = $Object.type
+    }
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'createDataSource'
 
@@ -24,7 +35,7 @@ function New-CluedInDataSource {
             dataSourceSetId = $DataSourceSetID
             dataSource = @{
                 author = $AuthorID
-                type = 'endpoint'
+                type = $SourceType
                 name = $Name
             }
         }

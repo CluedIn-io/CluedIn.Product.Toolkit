@@ -14,11 +14,12 @@ function New-CluedInDataSet {
 
     [CmdletBinding()]
     param(
-        [int]$DataSourceID,
-        [int]$AuthorID,
-        [string]$Name,
-        [string]$EntityType,
-        [string]$EnityTypeDisplayName
+        [Parameter(ParameterSetName = 'New')][int]$DataSourceID,
+        [Parameter(ParameterSetName = 'New')][int]$AuthorID,
+        [Parameter(ParameterSetName = 'New')][string]$Name,
+        [Parameter(ParameterSetName = 'New')][string]$EntityType,
+        [Parameter(ParameterSetName = 'New')][string]$EnityTypeDisplayName,
+        [Parameter(ParameterSetName = 'Existing')][PSCustomObject]$Object
     )
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'createDataSets'

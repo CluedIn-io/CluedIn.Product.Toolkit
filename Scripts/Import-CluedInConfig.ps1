@@ -27,6 +27,10 @@ param(
     [Parameter(Mandatory)][string]$RestorePath = 'C:\.dev\EXPORTTEST'
 )
 
+function checkErrors($result) {
+    if ($result.errors) { Write-Warning "Failed: $($result.errors.message)" }
+}
+
 Write-Verbose "Importing modules"
 Import-Module "$PSScriptRoot/../Modules/CluedIn.Product.Toolkit"
 
@@ -55,14 +59,17 @@ foreach ($setting in $settings) {
 Write-Host "INFO: Importing Vocabularies"
 $vocabPath = Join-Path -Path $RestorePath -ChildPath 'Vocab'
 $vocabKeysPath = Join-Path -Path $vocabPath -ChildPath 'Keys'
-if (!(Test-Path -Path $vocabPath -PathType Container)) { throw "There as an issue finding '$vocabPath'. Please ensuer it exists" }
+if (!(Test-Path -Path $vocabKeysPath -PathType Container)) { 
+    throw "There as an issue finding '$vocabPath' or sub-folders. Please investigate" 
+}
+
 $vocabularies = Get-Content -Path (Join-Path -Path $vocabPath -ChildPath 'Vocabularies.json') | ConvertFrom-Json -Depth 20
 Write-Host "INFO: A total of $($vocabularies.data.management.vocabularies.total) vocabularies will be imported"
 
 foreach ($vocab in $vocabularies.data.management.vocabularies.data) {
+    Write-Host "Processing Vocab: $($vocab.vocabularyName) ($($vocab.vocabularyId))"
     Write-Debug "$($vocab | Out-String)"
 
-    Write-Host "Processing Vocab: $($vocab.vocabularyName) ($($vocab.vocabularyId))"
     $vocabResult = New-CluedInVocabulary -Object $vocab
     if ($vocabResult.errors) { Write-Warning "Failed: $($vocabResult.errors.message)" }
 
@@ -70,18 +77,63 @@ foreach ($vocab in $vocabularies.data.management.vocabularies.data) {
     $vocabKeys = Get-Content -Path (Join-Path -Path $vocabKeysPath -ChildPath "$($vocab.vocabularyId).json") | ConvertFrom-Json -Depth 20
     foreach ($vocabKey in $vocabKeys.data.management.vocabularyKeysFromVocabularyId.data) {
         Write-Host "Processing Vocab Key: $($vocabKey.displayName) ($($vocabKey.vocabularyKeyId))"
+        Write-Debug "$($vocabKey | Out-String)"
+
         $params = @{
             Object = $vocabKey
             VocabId = $vocabResult.data.management.createVocabulary.vocabularyId
         }
         $vocabKeyResult = New-CluedInVocabularyKey @params
-        if ($vocabKeyResult.errors) { Write-Warning "Failed: $($vocabResult.errors.message)" }
+        checkErrors($vocabKeyResult)
     }
 }
 
 Write-Host "INFO: Importing Data Source Sets"
+$dataPath = Join-Path -Path $RestorePath -ChildPath 'Data'
+$dataSourceSetsPath = Join-Path -Path $dataPath -ChildPath 'SourceSets'
+$dataSourcesPath = Join-Path -Path $dataPath -ChildPath 'Sources'
+$dataSetsPath = Join-Path -Path $dataPath -ChildPath 'Sets'
+if (!(Test-Path -Path $dataSourceSetsPath, $dataSourcesPath, $dataSetsPath -PathType Container)) {
+    throw "There as an issue finding '$dataPath' or sub-folders. Please investigate" 
+}
 
-#
-#Write-Host "INFO: Importing Data Sources"
-#
-#Write-Host "INFO: Importing Data Sets"
+$dataSourceSets = Get-Content -Path (Join-Path -Path $dataSourceSetsPath -ChildPath 'DataSourceSet.json') | ConvertFrom-Json -Depth 20
+Write-Host "INFO: A total of $($dataSourceSets.data.inbound.datasourcesets.total) data source sets will be imported"
+
+$sourceSetHash = @{}
+foreach ($dataSourceSet in $dataSourceSets.data.inbound.dataSourceSets.data) {
+    Write-Host "Processing Data Source Set: $($dataSourceSet.name) ($($dataSourceSet.id))"
+    Write-Debug "$($dataSourceSet | Out-String)"
+
+    $dataSourceSetResult = New-CluedInDataSourceSet -Object $dataSourceSet
+    checkErrors($dataSourceSetResult)
+    $sourceSetHash += @{
+        $dataSourceSet.data.inbound.dataSourceSets.data.name = $dataSourceSetResult.data.inbound.createDataSourceSet
+    }
+}
+
+Write-Host "INFO: Importing Data Sources"
+$dataSources = Get-ChildItem -Path $dataSourcesPath -Filter "*.json"
+
+$sourceHash = @{}
+foreach ($dataSource in $dataSources) {
+    $dataSourceJson = Get-Content -Path $dataSource.FullName | ConvertFrom-Json -Depth 20
+    $dataSourceObject = $dataSourceJson.data.inbound.dataSource
+    $dataSourceObject.dataSourceSet.id = $sourceSetHash[$dataSourceObject.dataSourceSet.name]
+
+    Write-Host "Processing Data Source: $($dataSourceObject.name) ($($dataSourceObject.id))"
+    $dataSourceResult = New-CluedInDataSource -Object $dataSourceObject
+    checkErrors($dataSourceResult)
+    $sourceHash += @{
+        $dataSourceObject.name = $dataSourceResult.data.inbound.createDataSource.id
+    }
+}
+
+Write-Host "INFO: Importing Data Sets"
+$dataSets = Get-ChildItem -Path $dataSetsPath -Filter "*-DataSet.json"
+foreach ($dataSet in $dataSets) {
+    $dataSetJson = Get-Content -Path $dataSet.FullName | ConvertFrom-Json -Depth 20
+    $dataSetObject = $dataSetJson.data.inbound.dataSet
+
+
+}

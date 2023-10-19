@@ -15,7 +15,7 @@ function New-CluedInDataSource {
         [Parameter(ParameterSetName = 'New')][int]$DataSourceSetID,
         [Parameter(ParameterSetName = 'New')][guid]$AuthorID,
         [Parameter(ParameterSetName = 'New')][string]$Name,
-        [string]$SourceType,
+        [string]$SourceType = 'endpoint',
         [Parameter(ParameterSetName = 'Existing')][PSCustomObject]$Object
     )
 

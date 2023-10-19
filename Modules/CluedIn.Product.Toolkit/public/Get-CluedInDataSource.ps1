@@ -14,8 +14,16 @@ function Get-CluedInDataSource {
 
     [CmdletBinding()]
     param(
-        [int]$Id
+        [Parameter(ParameterSetName = 'Specified')][int]$Id,
+        [Parameter(ParameterSetName = 'Search')][string]$Search
     )
+
+    if ($PsCmdlet.ParameterSetName -eq 'Search') {
+        $dataSourceSets = Get-CluedInDataSourceSet
+        $dataSourceSetsObject = $dataSourceSets.data.inbound.dataSourceSets.data.dataSources
+        $Id = $dataSourceSetsObject | Where-Object {$_.name -match "^$Search$"} | Select-Object -ExpandProperty id
+        if (!$Id) { return }
+    }
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'getDataSourceById'
 

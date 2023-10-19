@@ -15,12 +15,38 @@ function New-CluedInDataSet {
     [CmdletBinding()]
     param(
         [Parameter(ParameterSetName = 'New')][int]$DataSourceID,
-        [Parameter(ParameterSetName = 'New')][int]$AuthorID,
+        [Parameter(ParameterSetName = 'New')][guid]$AuthorID,
         [Parameter(ParameterSetName = 'New')][string]$Name,
         [Parameter(ParameterSetName = 'New')][string]$EntityType,
         [Parameter(ParameterSetName = 'New')][string]$EnityTypeDisplayName,
         [Parameter(ParameterSetName = 'Existing')][PSCustomObject]$Object
     )
+
+    $me = Get-CluedInMe
+
+    if ($PsCmdlet.ParameterSetName -eq 'Existing') {
+        $DataSourceID = $Object.dataSource.id
+        $AuthorID = $me.data.administration.me.client.id
+        $Name = $Object.name
+        $Configuration = $Object.configuration
+        $type = $Object.dataSource.type
+    }
+    else {
+        $Configuration = @{
+            object = @{
+                endPointName = $Name
+                autoSubmit = $false
+                entityType = '/Employee'
+            }
+            entityTypeConfiguration = @{
+                new = $false
+                icon = 'Person'
+                entityType = $EntityType
+                displayName = $EnityTypeDisplayName
+            }
+        }
+        $type = 'endpoint'
+    }
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'createDataSets'
 
@@ -30,22 +56,10 @@ function New-CluedInDataSet {
             dataSets = @(
                 @{
                     author = $AuthorID
-                    store = 'true'
-                    type = 'endpoint'
+                    store = $true
+                    type = $type
                     name = $Name
-                    configuration = @{
-                        object = @{
-                            endPointName = $Name
-                            autoSubmit = 'false'
-                            entityType = '/Employee'
-                        }
-                        entityTypeConfiguration = @{
-                            new = 'false'
-                            icon = 'Person'
-                            entityType = $EntityType
-                            displayName = $EnityTypeDisplayName
-                        }
-                    }
+                    configuration = $Configuration
                 }
             )
         }

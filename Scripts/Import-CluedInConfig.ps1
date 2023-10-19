@@ -131,6 +131,15 @@ $dataSets = Get-ChildItem -Path $dataSetsPath -Filter "*-DataSet.json"
 foreach ($dataSet in $dataSets) {
     $dataSetJson = Get-Content -Path $dataSet.FullName | ConvertFrom-Json -Depth 20
     $dataSetObject = $dataSetJson.data.inbound.dataSet
+    $dataSource = Get-CluedInDataSource -Search $dataSetObject.dataSource.name
+    $dataSetObject.dataSource.id = $dataSource.data.inbound.dataSource.id
 
+    $dataSetResult = New-CluedInDataSet -Object $dataSetObject
+    checkErrors($dataSetResult)
 
+    if ($dataSetObject.dataSource.type -eq 'endpoint') {
+        $guid = $dataSetResult.data.inbound.createDataSets.id
+        $endpoint = 'https://{0}/upload/api/endpoint/{1}' -f ${env:CLUEDIN_ENDPOINT}, $guid
+        Write-Host "New Endpoint created: $endPoint"
+    }
 }

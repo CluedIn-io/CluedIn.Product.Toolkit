@@ -1,14 +1,28 @@
-function Get-CluedInOrganisationFeatures {
+function Get-CluedInRules {
     [CmdletBinding()]
-    param()
+    param(
+        [guid]$Id
+    )
 
-    $queryContent = Get-CluedInGQLQuery -OperationName 'getRules'
-
-    $query = @{ 
-        variables = @{
-            scope = 'Survivorship'
+    switch ($Id) {
+        '' {
+            $queryContent = Get-CluedInGQLQuery -OperationName 'getRules'
+            $query = @{ 
+                variables = @{
+                    scope = 'Survivorship'
+                }
+                query = $queryContent 
+            }
         }
-        query = $queryContent 
+        !'' {
+            $queryContent = Get-CluedInGQLQuery -OperationName 'getRule'
+            $query = @{ 
+                variables = @{
+                    id = $Id
+                }
+                query = $queryContent 
+            }
+        }
     }
 
     return Invoke-CluedInGraphQL -Query $query

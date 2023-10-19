@@ -13,7 +13,7 @@
 
     .PARAMETER Version
 
-    .PARAMETER BackupPath
+    .PARAMETER RestorePath
 
     .EXAMPLE
     PS> ./Export-CluedInConfig.ps1 -BaseURL 'cluedin.com' -Organisation 'dev' -Version '2023.07'

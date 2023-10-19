@@ -26,8 +26,8 @@ function Get-CluedInAPIToken {
 
     [CmdletBinding()]
     param(
-        [string]$BaseURL, # just format of dns, no https required. Lets add logic to check it's valid (regex)
-        [string]$Organisation, # this is in format of ie. jjr-dev
+        [string]$BaseURL,
+        [string]$Organisation,
         [string]$Username,
         [securestring]$Password
     )

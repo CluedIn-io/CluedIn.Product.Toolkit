@@ -34,40 +34,46 @@ function Connect-CluedInOrganisation {
         [string]$APIToken
     )
 
-    function NewJWT($token) {
+    function tokenOrganisation($token) {
+        $tokenProperties = ConvertFrom-JWToken -Token $token        
+        if ($Organisation -ne $tokenProperties.OrganizationName) { return $false }
+
+        return $true
+    }
+
+    function tokenExpired($token) {
         $tokenProperties = ConvertFrom-JWToken -Token $token
-        Write-Debug "Token Properties: $($tokenProperties | Out-String)"
-        if ($Organisation -ne $tokenProperties.OrganizationName) {
-            if ($APIToken) { throw "Please check you are using the correct API Token for the given Organisation" }
-
-            Write-Verbose "Current Token doesn't match requested Organisation"
-            return $false 
-        }
-
         $tokenExpire = (Get-Date 01.01.1970)+([System.TimeSpan]::fromseconds($tokenProperties.exp))
-        Write-Verbose "Token Expires: $tokenExpire"
         $refreshRequired = $tokenExpire -lt (Get-Date).AddMinutes(-3)
-        Write-Debug "Refresh Required: $refreshRequired"
 
         return $refreshRequired
     }
 
     [string]$envVersion = '{0}.{1}' -f $Version.Major, ([string]$Version.Minor).PadLeft(2, '0')
 
-    $existingToken = ${env:CLUEDIN_JWTOKEN}
-    if ($existingToken) {
+    if (${env:CLUEDIN_JWTOKEN}) {
         Write-Verbose "Checking existing token is still valid"
-        $skipToken = !(NewJWT($existingToken))
-        $tokenContent = ${env:CLUEDIN_JWTOKEN}
+        $skipToken = $true
+        $sameOrg = tokenOrganisation(${env:CLUEDIN_JWTOKEN})
+        if (!$sameOrg) { Write-Verbose "Organisation doesn't match"; $skipToken = $false }
+        
+        $refresh = tokenExpired(${env:CLUEDIN_JWTOKEN})
+        if ($refresh) { Write-Verbose "Token has expired"; $skipToken = $false }
+
+        if ($skipToken) {
+            $tokenContent = ${env:CLUEDIN_JWTOKEN}
+            Write-Verbose "TokenContent set to existing"
+        }              
     }
-    
+        
     if (!$skipToken) { 
         Write-Verbose "Getting JWT"
-
         if ($APIToken) { 
-            if (NewJWT($APIToken)) { Write-Error "Your API Token has expired. Please generate a new one" }
+            $sameOrg = tokenOrganisation($APIToken)
+            if (!$sameOrg) { throw "Organisation doesn't in specified API Token, please investigate"; return }
 
-            Write-Verbose "API Token passed validation"
+            $refresh = tokenExpired(${env:CLUEDIN_JWTOKEN})
+            if ($refresh) { throw "The specified API Token has expired, please investigate"; return }
             $tokenContent = $APIToken 
         }
         else {
@@ -85,12 +91,14 @@ function Connect-CluedInOrganisation {
             Write-Verbose "Token successfully obtained"
         }
     }
-    else { Write-Verbose "Skipping Token Regen as current one is valid" }
 
     ${env:CLUEDIN_ORGANISATION} = $Organisation
     ${env:CLUEDIN_CURRENTVERSION} = $envVersion
     ${env:CLUEDIN_ENDPOINT} = 'https://{0}.{1}' -f $Organisation, $BaseURL
     ${env:CLUEDIN_JWTOKEN} = $tokenContent
 
-    Write-Host "Connected to '$Organisation' successfully" -ForegroundColor 'Green'
+    if (Test-CluedInWebConnectivity) {
+        Write-Host "Connected to '${env:CLUEDIN_ENDPOINT}' successfully" -ForegroundColor 'Green'
+    }
+    else { Write-Host "Failure to connect to '${env:CLUEDIN_ENDPOINT}'" -ForegroundColor 'Red' }
 }

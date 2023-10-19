@@ -7,7 +7,7 @@ function Out-JsonFile {
     )
 
     $exportPath = Join-Path -Path $Path -ChildPath ('{0}.json' -f $Name)
-    $Object | ConvertTo-Json -Depth 99 | Out-File -FilePath $exportPath
+    $Object | ConvertTo-Json -Depth 20 | Out-File -FilePath $exportPath
 
     Write-Verbose "File exported '$exportPath'"
 }

@@ -19,7 +19,7 @@ function New-CluedInVocabularyKey {
         [guid]$VocabId
     )
 
-    $queryContent = Get-CluedInGQLQuery -OperationName 'createVocabularyKey' # This is technically `createVocabulary`
+    $queryContent = Get-CluedInGQLQuery -OperationName 'createVocabularyKey'
 
     $query = @{
         variables =@{
@@ -28,7 +28,7 @@ function New-CluedInVocabularyKey {
                 displayName = $DisplayName
                 name = $Prefix
                 groupName = $GroupName
-                isVisible = 'true'
+                isVisible = $true
                 dataType = $DataType
                 description = $Description
             }

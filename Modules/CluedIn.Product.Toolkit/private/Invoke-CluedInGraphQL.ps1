@@ -26,9 +26,9 @@ function Invoke-CluedInGraphQL {
     $endpoint = ${env:CLUEDIN_ENDPOINT} + "/graphql"
     Write-Debug "endpoint: $endpoint"
 
-    [string]$query = $Query | ConvertTo-Json -Compress
+    [string]$body = $Query | ConvertTo-Json -Compress -Depth 20
 
-    $response = Invoke-CluedInWebRequest -Uri $endpoint -Body $Query -Method 'POST'
+    $response = Invoke-CluedInWebRequest -Uri $endpoint -Body $body -Method 'POST'
     Write-Debug "status: $response"
 
     return $response

@@ -25,7 +25,7 @@ function New-CluedInVocabulary {
             vocabulary = @{
                 vocabularyName = $DisplayName
                 entityTypeConfiguration = @{
-                    new = 'false'
+                    new = $false
                     icon = 'Idea'
                     entityType = $EntityCode
                     displayName = ""
@@ -37,11 +37,11 @@ function New-CluedInVocabulary {
                         type = 'paragraph'
                         children = @(
                             @{
-                                text = 'desc'
+                                text = 'Some random description that might be useful'
                             }
                         )
                     }
-                )
+                ) | ConvertTo-Json -Depth 20 -Compress # Description needs to be in json format for GraphQL to accept
             }
         }
         query = $queryContent

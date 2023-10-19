@@ -33,7 +33,14 @@ fragment VocabularyKey on VocabularyKey {
   dataAnnotationsMaximumLength
   providerId
   compositeVocabularyId
+  compositeVocabulary {
+    name
+    displayName
+    dataType
+    __typename
+  }
   mapsToOtherKeyId
+  glossaryTermId
   createdAt
   createdBy
   mappedKey

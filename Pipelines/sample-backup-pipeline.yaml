@@ -22,11 +22,11 @@ resources:
   repositories:
   - repository: codeRepo # Friendly name for ADO to use
     type: github
-    endpoint: 'CluedIn-io' # Service connection
+    endpoint: 'CluedIn' # Service connection
     name: 'CluedIn-io/CluedIn.Product.Toolkit' # Actual GitHub repo name
   - repository: backupRepo
     type: github
-    endpoint: 'TestServiceConnection'
+    endpoint: 'CluedIn'
     name: 'jjrcluedin/jjr-testbackups'
 
 jobs:

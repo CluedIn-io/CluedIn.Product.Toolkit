@@ -1,0 +1,12 @@
+mutation createGlossaryTerm($term: InputGlossaryTerm) {
+  management {
+    id
+    createGlossaryTerm(term: $term) {
+      id
+      name
+      categoryId
+      __typename
+    }
+    __typename
+  }
+}

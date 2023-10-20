@@ -1,0 +1,11 @@
+mutation createTermCategory($category: InputGlossaryCategory) {
+  management {
+    id
+    createGlossaryCategory(category: $category) {
+      id
+      name
+      __typename
+    }
+    __typename
+  }
+}

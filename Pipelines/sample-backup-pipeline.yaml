@@ -52,6 +52,11 @@ jobs:
   #      -Version ${{ parameters.version }}
   #      -BackupPath $(System.DefaultWorkingDirectory)/Backups
   
-  #- pwsh: |
-  #    git checkout -b main
-  #  workingDirectory: $(System.DefaultWorkingDirectory)
+  - pwsh: |
+      git checkout -b main
+      "hi" | Out-File fake.txt
+      git add -A
+      git commit -m "Backup $(Build.BuildNumber)-$(Date:yyyyMMdd)"
+      git push --set-upstream origin main
+    displayName: Push to git
+    workingDirectory: $(System.DefaultWorkingDirectory)/jjr-testbackups

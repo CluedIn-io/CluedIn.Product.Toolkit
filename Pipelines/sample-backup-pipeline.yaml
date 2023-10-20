@@ -34,7 +34,7 @@ jobs:
   displayName: Backup Configuration
   steps:
   - pwsh: Get-ChildItem -Path ENV:\
-  - pwsh: Get-ChildItem -Path $(System.DefaultWorkingDirectory)
+  - pwsh: (Get-ChildItem -Path $(System.DefaultWorkingDirectory) -recurse | Out-String)
 
   #- task: AzureCLI@2
   #  displayName: 'Backup'

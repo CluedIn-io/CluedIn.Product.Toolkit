@@ -1,0 +1,60 @@
+query getAllConnectors(
+  $searchName: String
+  $itemsPerPage: Int
+  $pageNo: Int
+  $sortBy: String
+  $sortDirection: String
+  $status: String
+) {
+  inbound {
+    id
+    connectorConfigurations(
+      searchName: $searchName
+      itemsPerPage: $itemsPerPage
+      pageNo: $pageNo
+      sortBy: $sortBy
+      sortDirection: $sortDirection
+      status: $status
+    ) {
+      total
+      configurations {
+        id
+        name
+        accountDisplay
+        accountId
+        active
+        autoSync
+        codeName
+        configuration
+        createdDate
+        entityId
+        failingAuthentication
+        guide
+        isUnApproved
+        providerId
+        reAuthEndpoint
+        source
+        sourceQuality
+        stats
+        status
+        supportsAutomaticWebhookCreation
+        supportsConfiguration
+        supportsWebhooks
+        userId
+        userName
+        webhookManagementEndpoints
+        webhooks
+        streamModes
+        connector {
+          id
+          icon
+          name
+          __typename
+        }
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

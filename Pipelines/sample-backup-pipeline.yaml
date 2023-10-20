@@ -34,6 +34,7 @@ jobs:
   displayName: Backup Configuration
   steps:
   - pwsh: Get-ChildItem -Path ENV:\
+  - pwsh: Get-ChildItem -Path $(System.DefaultWorkingDirectory)
 
   #- task: AzureCLI@2
   #  displayName: 'Backup'
@@ -47,11 +48,6 @@ jobs:
   #      -Version ${{ parameters.version }}
   #      -BackupPath $(System.DefaultWorkingDirectory)/Backups
   
-  - pwsh: |
-      git checkout -b main
-
-
-
-
-
-    workingDirectory: $(System.DefaultWorkingDirectory)
+  #- pwsh: |
+  #    git checkout -b main
+  #  workingDirectory: $(System.DefaultWorkingDirectory)

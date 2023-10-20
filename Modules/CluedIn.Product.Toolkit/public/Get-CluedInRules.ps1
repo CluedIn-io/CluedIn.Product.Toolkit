@@ -1,24 +1,30 @@
 function Get-CluedInRules {
     [CmdletBinding()]
     param(
-        [guid]$Id
+        [guid]$Id,
+        [Parameter(Mandatory)][ValidateSet('Survivorship', 'DataPart', 'Entity')][string]$Scope
     )
 
-    $queryContent = Get-CluedInGQLQuery -OperationName 'getStreams'
-
-    $query = @{
-        variables = @{
-            sortBy = $null
-            sortDirection = $null
-            itemsPerPage = 20
-            pageNumber = 1
-            isActive = $null
-            searchName = $null
+    switch ($Id) {
+        '' {
+            $queryContent = Get-CluedInGQLQuery -OperationName 'getRules'
+            $query = @{ 
+                variables = @{
+                    scope = $Scope
+                }
+                query = $queryContent 
+            }
         }
-        query = $queryContent
+        default {
+            $queryContent = Get-CluedInGQLQuery -OperationName 'getRule'
+            $query = @{ 
+                variables = @{
+                    id = $Id
+                }
+                query = $queryContent 
+            }
+        }
     }
 
-    $result = Invoke-CluedInGraphQL -Query $query
-
-    return $result
+    return Invoke-CluedInGraphQL -Query $query
 }

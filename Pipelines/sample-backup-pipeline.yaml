@@ -56,7 +56,7 @@ jobs:
       git checkout -b main
       "hi" | Out-File fake.txt
       git add -A
-      git commit -m "Backup $(Build.BuildNumber)-$(Date:yyyyMMdd)"
+      git commit -m "Backup: $(Build.BuildNumber)"
       git push --set-upstream origin main
     displayName: Push to git
     workingDirectory: $(System.DefaultWorkingDirectory)/jjr-testbackups

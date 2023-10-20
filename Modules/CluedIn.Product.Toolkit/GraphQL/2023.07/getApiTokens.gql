@@ -1,0 +1,14 @@
+query getApiTokens {
+  administration {
+    id
+    apiTokens {
+      name
+      accessToken
+      id
+      expiryDate
+      expiresInDays
+      __typename
+    }
+    __typename
+  }
+}

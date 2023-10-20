@@ -1,0 +1,16 @@
+query getUsers {
+  administration {
+    users {
+      id
+      roles
+      logoUrl
+      accountId
+      entityId
+      lockoutEnabled
+      Account
+      Entity
+      __typename
+    }
+    __typename
+  }
+}

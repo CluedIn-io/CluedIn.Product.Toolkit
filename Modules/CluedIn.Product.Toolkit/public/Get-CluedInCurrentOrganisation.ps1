@@ -16,10 +16,7 @@ function Get-CluedInCurrentOrganisation {
     param()
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'getCurrentOrg'
-
-    $query = @{
-        query = $queryContent
-    }
+    $query = @{ query = $queryContent }
     
     return Invoke-CluedInGraphQL -Query $query
 }

@@ -6,13 +6,13 @@ name: ${{ parameters.organisation }}.${{ parameters.baseURL }} Backup ($(Date:yy
 
 parameters:
 - name: baseURL
-  displayName: 'Clued In Base URL'
+  displayName: 'CluedIn Base URL'
   type: string
 - name: organisation
-  displayName: 'Clued In Organisation'
+  displayName: 'CluedIn Organisation'
   type: string
 - name: version
-  displayName: 'Clued In Environment Version'
+  displayName: 'CluedIn Environment Version'
   type: string
 
 #variables:

@@ -43,7 +43,7 @@ function Connect-CluedInOrganisation {
 
     function tokenExpired($token) {
         $tokenProperties = ConvertFrom-JWToken -Token $token
-        $tokenExpire = (Get-Date 01.01.1970)+([System.TimeSpan]::fromseconds($tokenProperties.exp))
+        $tokenExpire = Get-Date -UnixTimeSeconds $tokenProperties.exp
         Write-Debug "tokenExpire: $tokenExpire"
         $refreshRequired = $tokenExpire -lt (Get-Date).AddMinutes(-3)
 

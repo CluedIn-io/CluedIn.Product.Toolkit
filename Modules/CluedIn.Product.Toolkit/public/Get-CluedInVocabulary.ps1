@@ -32,14 +32,6 @@ function Get-CluedInVocabulary {
     }
 
     $result = Invoke-CluedInGraphQL -Query $query
-    $total = $result.data.management.vocabularies.total
-    
-    while ($true) {
-        $query['variables']['pageNumber']++
-        $nextPage = Invoke-CluedInGraphQL -Query $query
-        $result.data.management.vocabularies.data += $nextPage.data.management.vocabularies.data
-        if ($result.data.management.vocabularies.data.count -ge $total) { break }
-    }
 
     # This is cleanup from client side. Our GraphQL may not support filtering at runtime
     # Something to look into?

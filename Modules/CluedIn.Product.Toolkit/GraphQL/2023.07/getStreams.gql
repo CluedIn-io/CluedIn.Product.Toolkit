@@ -1,0 +1,56 @@
+query getStreams(
+  $searchName: String
+  $isActive: Boolean
+  $itemsPerPage: Int
+  $pageNumber: Int
+  $sortBy: String
+  $sortDirection: String
+  $exportTargetId: ID
+) {
+  consume {
+    id
+    streams(
+      searchName: $searchName
+      isActive: $isActive
+      itemsPerPage: $itemsPerPage
+      pageNumber: $pageNumber
+      sortBy: $sortBy
+      sortDirection: $sortDirection
+      exportTargetId: $exportTargetId
+    ) {
+      total
+      data {
+        ...Stream
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}
+
+fragment Stream on Stream {
+  id
+  name
+  isActive
+  createdBy
+  modifiedBy
+  type
+  modifiedAt
+  createdAt
+  ownedBy
+  condition
+  rules
+  numberOfRecords
+  rulesApplied
+  containerName
+  mode
+  exportOutgoingEdges
+  exportIncomingEdges
+  author {
+    id
+    username
+    __typename
+  }
+  __typename
+}

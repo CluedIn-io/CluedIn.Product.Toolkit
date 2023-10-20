@@ -29,6 +29,27 @@ function Invoke-CluedInGraphQL {
     [string]$body = $Query | ConvertTo-Json -Compress -Depth 20
 
     $response = Invoke-CluedInWebRequest -Uri $endpoint -Body $body -Method 'POST'
+
+    if ($query['variables']['pageNumber']) {
+        Write-Verbose "Pagination required as variable 'pageNumber' was detected"
+
+        $exclusionList = @( 'id', '__typename' )
+        $propertyA = $response.data.psobject.Properties.name
+        $propertyB = $response.data.$propertyA.psobject.Properties.name | Where-Object { $_ -notin $exclusionList }
+        $total = $response.data.$propertyA.$propertyB.total
+
+        if ($total -gt $query['variables']['itemsPerPage']) {
+            while ($true) {
+                Write-Verbose "Paginating: Page '$($query['variables']['pageNumber'])'"
+
+                $query['variables']['pageNumber']++
+                [string]$body = $Query | ConvertTo-Json -Compress -Depth 20
+                $nextPage = Invoke-CluedInWebRequest -Uri $endpoint -Body $body -Method 'POST'
+                $response.data.$propertyA.$propertyB.data += $nextPage.data.$propertyA.$propertyB.data
+                if ($response.data.$propertyA.$propertyB.data.count -ge $total) { break }
+            }
+        }
+    }
     Write-Debug "status: $response"
 
     return $response

@@ -22,7 +22,7 @@ function Set-CluedInAdminSettings {
 
     $query = @{
         variables =@{
-            id = $id
+            organizationId = $id
             key = $AdminSettingName
             value = $AdminSettingValue
         }

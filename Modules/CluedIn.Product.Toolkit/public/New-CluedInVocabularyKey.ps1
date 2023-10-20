@@ -11,15 +11,24 @@ function New-CluedInVocabularyKey {
     #>
 
     param(
-        [string]$DisplayName, 
-        [string]$GroupName,
-        [string]$DataType,
-        [string]$Description,
-        [string]$Prefix,
-        [int]$VocabId
+        [Parameter(ParameterSetName = 'New')][string]$DisplayName, 
+        [Parameter(ParameterSetName = 'New')][string]$GroupName,
+        [Parameter(ParameterSetName = 'New')][string]$DataType,
+        [Parameter(ParameterSetName = 'New')][string]$Description,
+        [Parameter(ParameterSetName = 'New')][string]$Prefix,
+        [Parameter(Mandatory)][guid]$VocabId,
+        [Parameter(ParameterSetName = 'Existing')][PSCustomObject]$Object
     )
 
-    $queryContent = Get-CluedInGQLQuery -OperationName 'createVocabularyKey' # This is technically `createVocabulary`
+    if ($PsCmdlet.ParameterSetName -eq 'Existing') {
+        $DisplayName = $Object.displayName
+        $GroupName = $Object.groupName
+        $DataType = $Object.dataType
+        $Description = $Object.description
+        $Prefix = $Object.name
+    }
+
+    $queryContent = Get-CluedInGQLQuery -OperationName 'createVocabularyKey'
 
     $query = @{
         variables =@{
@@ -28,7 +37,7 @@ function New-CluedInVocabularyKey {
                 displayName = $DisplayName
                 name = $Prefix
                 groupName = $GroupName
-                isVisible = 'true'
+                isVisible = $true
                 dataType = $DataType
                 description = $Description
             }

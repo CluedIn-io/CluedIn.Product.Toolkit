@@ -16,7 +16,7 @@ function Test-CluedInWebConnectivity {
     $status = Invoke-CluedInWebRequest -Uri $endpoint
     Write-Debug "status: $status"
     
-    $result = ($status.ServiceStatus -eq 'Green') ? "Success" : "Fail"
+    $result = ($status.ServiceStatus -eq 'Green') ? $true : $false
 
     return $result
 }

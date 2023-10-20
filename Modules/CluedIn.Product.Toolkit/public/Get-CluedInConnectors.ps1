@@ -30,4 +30,4 @@ function Get-CluedInConnectors {
     }
 
     return Invoke-CluedInGraphQL -Query $query
-}  
+}

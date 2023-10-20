@@ -35,10 +35,10 @@ function Get-CluedInVocabulary {
 
     # This is cleanup from client side. Our GraphQL may not support filtering at runtime
     # Something to look into?
-    $result.data.management.vocabularies.data = $result.data.management.vocabularies.data | 
+    $result.data.management.vocabularies.data = $result.data.management.vocabularies.data |
         Where-Object {$_.isCluedInCore -eq $false}
     $result.data.management.vocabularies.total = $result.data.management.vocabularies.data.count
     #
-    
+
     return $result
 }

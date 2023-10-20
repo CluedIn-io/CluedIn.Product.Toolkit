@@ -28,12 +28,12 @@ param(
 )
 
 function checkResults($result) {
-    if ($result.errors) { 
+    if ($result.errors) {
         switch ($result.errors.message) {
             {$_ -match '409'} { Write-Warning "An entry already exists" }
             {$_ -match '400'} { Write-Warning "Invalid" }
             default { Write-Warning "Failed: $($result.errors.message)" }
-        }         
+        }
     }
 }
 
@@ -66,8 +66,8 @@ foreach ($setting in $settings) {
 $dataCatalogPath = Join-Path -Path $RestorePath -ChildPath 'DataCatalog'
 $vocabPath = Join-Path -Path $dataCatalogPath -ChildPath 'Vocab'
 $vocabKeysPath = Join-Path -Path $dataCatalogPath -ChildPath 'Keys'
-if (!(Test-Path -Path $vocabPath, $vocabKeysPath -PathType Container)) { 
-    throw "There as an issue finding '$vocabPath' or sub-folders. Please investigate" 
+if (!(Test-Path -Path $vocabPath, $vocabKeysPath -PathType Container)) {
+    throw "There as an issue finding '$vocabPath' or sub-folders. Please investigate"
 }
 
 Write-Host "INFO: Importing Vocabularies" -ForegroundColor 'Green'
@@ -101,7 +101,7 @@ foreach ($vocabKey in $vocabKeys) {
         }
         $vocabKeyResult = New-CluedInVocabularyKey @params
         checkResults($vocabKeyResult)
-    }    
+    }
 }
 
 # Data Sources
@@ -111,7 +111,7 @@ $dataSourceSetsPath = Join-Path -Path $dataPath -ChildPath 'SourceSets'
 $dataSourcesPath = Join-Path -Path $dataPath -ChildPath 'Sources'
 $dataSetsPath = Join-Path -Path $dataPath -ChildPath 'Sets'
 if (!(Test-Path -Path $dataSourceSetsPath, $dataSourcesPath, $dataSetsPath -PathType Container)) {
-    throw "There as an issue finding '$dataPath' or sub-folders. Please investigate" 
+    throw "There as an issue finding '$dataPath' or sub-folders. Please investigate"
 }
 
 $dataSourceSets = Get-Content -Path (Join-Path -Path $dataSourceSetsPath -ChildPath 'DataSourceSet.json') | ConvertFrom-Json -Depth 20
@@ -137,14 +137,14 @@ foreach ($dataSource in $dataSources) {
     $dataSourceSetName = $dataSourceObject.dataSourceSet.name
 
     $dataSourceSet = Get-CluedInDataSourceSet -Search $dataSourceSetName
-    $dataSourceSetMatch = $dataSourceSet.data.inbound.dataSourceSets.data | 
+    $dataSourceSetMatch = $dataSourceSet.data.inbound.dataSourceSets.data |
         Where-Object {$_.name -match "^$dataSourceSetName$"}
     if (!$dataSourceSetMatch) { Write-Warning "'$dataSourceSetName' was not found as a Data Source"; continue }
     $dataSourceObject.dataSourceSet.id = $dataSourceSetMatch.id
 
     Write-Host "Processing Data Source: $($dataSourceObject.name) ($($dataSourceObject.id))" -ForegroundColor 'Cyan'
     $exists = (Get-CluedInDataSource -Search $dataSourceObject.name).data.inbound.dataSource
-    if (!$exists) {        
+    if (!$exists) {
         $dataSourceResult = New-CluedInDataSource -Object $dataSourceObject
         checkResults($dataSourceResult)
     }
@@ -163,7 +163,7 @@ foreach ($dataSet in $dataSets) {
     $dataSetObject.dataSource.id = $dataSource.data.inbound.dataSource.id
 
     $exists = ($dataSetObject.name -in $dataSource.data.inbound.dataSource.dataSets.name)
-    if (!$exists) {        
+    if (!$exists) {
         $dataSetResult = New-CluedInDataSet -Object $dataSetObject
         checkResults($dataSetResult)
 

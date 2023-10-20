@@ -78,7 +78,7 @@ Write-Host "INFO: Exporting Vocabularies"
 $dataCatalogPath = Join-Path -Path $BackupPath -ChildPath 'DataCatalog'
 $vocabPath = Join-Path -Path $dataCatalogPath -ChildPath 'Vocab'
 if (!(Test-Path -Path $vocabPath -PathType Container)) { New-Item $vocabPath -ItemType Directory | Out-Null }
-$vocabularies = Get-CluedInVocabulary 
+$vocabularies = Get-CluedInVocabulary
 $vocabularies | Out-JsonFile -Path $dataCatalogPath -Name 'VocabulariesManifest'
 foreach ($vocab in $vocabularies.data.management.vocabularies.data) {
     Get-CluedInVocabularyById -Id $vocab.vocabularyId | Out-JsonFile -Path $vocabPath -Name $vocab.vocabularyId

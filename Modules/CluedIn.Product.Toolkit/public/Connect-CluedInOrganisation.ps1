@@ -22,7 +22,7 @@ function Connect-CluedInOrganisation {
 
         .EXAMPLE
         PS> Connect-CluedInOrganisation -BaseURL 'customer.com' -Orgnisation 'org'
-        
+
         This will attempt to connect to https://org.customer.com and authenticate
     #>
 
@@ -35,7 +35,7 @@ function Connect-CluedInOrganisation {
     )
 
     function tokenOrganisation($token) {
-        $tokenProperties = ConvertFrom-JWToken -Token $token        
+        $tokenProperties = ConvertFrom-JWToken -Token $token
         if ($Organisation -ne $tokenProperties.OrganizationName) { return $false }
 
         return $true
@@ -57,33 +57,33 @@ function Connect-CluedInOrganisation {
         $skipToken = $true
         $sameOrg = tokenOrganisation(${env:CLUEDIN_JWTOKEN})
         if (!$sameOrg) { Write-Verbose "Organisation doesn't match"; $skipToken = $false }
-        
+
         $refresh = tokenExpired(${env:CLUEDIN_JWTOKEN})
         if ($refresh) { Write-Verbose "Token has expired"; $skipToken = $false }
 
         if ($skipToken) {
             $tokenContent = ${env:CLUEDIN_JWTOKEN}
             Write-Verbose "TokenContent set to existing"
-        }              
+        }
     }
-        
-    if (!$skipToken) { 
+
+    if (!$skipToken) {
         Write-Verbose "Getting JWT"
-        if ($APIToken) { 
+        if ($APIToken) {
             $sameOrg = tokenOrganisation($APIToken)
             if (!$sameOrg) { throw "Organisation doesn't in specified API Token, please investigate"; return }
 
             $refresh = tokenExpired(${env:CLUEDIN_JWTOKEN})
             if ($refresh) { throw "The specified API Token has expired, please investigate"; return }
-            $tokenContent = $APIToken 
+            $tokenContent = $APIToken
         }
         else {
             Write-Verbose "Generating JWT based on credentials"
             $cluedInCredentials = Get-Credential -Title 'CluedIn Organisation Login'
             $tokenParams = @{
-                BaseURL = $BaseURL 
-                Organisation = $Organisation 
-                Username = $cluedInCredentials.UserName 
+                BaseURL = $BaseURL
+                Organisation = $Organisation
+                Username = $cluedInCredentials.UserName
                 Password = $cluedInCredentials.Password
             }
             Write-Debug "Params: $($tokenParams | Out-String)"

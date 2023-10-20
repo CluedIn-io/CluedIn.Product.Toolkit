@@ -51,7 +51,7 @@ jobs:
   #      -Organisation ${{ parameters.organisation }}
   #      -Version ${{ parameters.version }}
   #      -BackupPath $(System.DefaultWorkingDirectory)/Backups
-  
+
   - pwsh: |
       git config --global user.email "ado@azurepipelines.com"
       git config --global user.name "ADO Pipeline ($(Build.DefinitionName))"

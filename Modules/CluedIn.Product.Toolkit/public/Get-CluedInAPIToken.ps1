@@ -7,7 +7,7 @@ function Get-CluedInAPITokens {
         GraphQL Query: Gets a list of all API Tokens for logged in user
 
         .EXAMPLE
-        PS> Get-CluedInAPITokens        
+        PS> Get-CluedInAPITokens
     #>
 
     [CmdletBinding()]
@@ -17,4 +17,4 @@ function Get-CluedInAPITokens {
     $query = @{ query = $queryContent }
 
     return Invoke-CluedInGraphQL -Query $query
-}  
+}

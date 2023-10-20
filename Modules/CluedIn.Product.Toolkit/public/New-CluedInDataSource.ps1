@@ -1,10 +1,10 @@
 function New-CluedInDataSource {
     <#
         .SYNOPSIS
-        GraphQL Query: Creates a New DataSource 
+        GraphQL Query: Creates a New DataSource
 
         .DESCRIPTION
-        GraphQL Query: Creates a New DataSource 
+        GraphQL Query: Creates a New DataSource
 
         .EXAMPLE
         PS> New-CluedInDataSource

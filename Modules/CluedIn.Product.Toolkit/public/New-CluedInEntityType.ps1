@@ -31,7 +31,7 @@ function New-CluedInEntityType {
             }
         }
         query = $queryContent
-    }    
+    }
 
     return Invoke-CluedInGraphQL -Query $query
 }

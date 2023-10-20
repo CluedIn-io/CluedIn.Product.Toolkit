@@ -24,7 +24,7 @@ function New-CluedInAPIToken {
             expiredInHours = $ExpiredInHours
         }
         query = $queryContent
-    }   
-    
+    }
+
     return Invoke-CluedInGraphQL -Query $query
 }

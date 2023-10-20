@@ -8,20 +8,20 @@ function Get-CluedInRules {
     switch ($Id) {
         '' {
             $queryContent = Get-CluedInGQLQuery -OperationName 'getRules'
-            $query = @{ 
+            $query = @{
                 variables = @{
                     scope = $Scope
                 }
-                query = $queryContent 
+                query = $queryContent
             }
         }
         default {
             $queryContent = Get-CluedInGQLQuery -OperationName 'getRule'
-            $query = @{ 
+            $query = @{
                 variables = @{
                     id = $Id
                 }
-                query = $queryContent 
+                query = $queryContent
             }
         }
     }

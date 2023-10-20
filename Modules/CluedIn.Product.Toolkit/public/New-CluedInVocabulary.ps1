@@ -49,7 +49,7 @@ function New-CluedInVocabulary {
     }
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'createVocabulary'
-    
+
     $query = @{
         variables = @{
             vocabulary = @{

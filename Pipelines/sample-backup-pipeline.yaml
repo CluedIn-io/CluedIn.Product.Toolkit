@@ -6,31 +6,60 @@ name: ${{ parameters.organisation }}.${{ parameters.baseURL }} Backup ($(Date:yy
 
 parameters:
 - name: baseURL
-  displayName: 'Clued In Base URL'
+  displayName: 'CluedIn Base URL'
   type: string
 - name: organisation
-  displayName: 'Clued In Organisation'
+  displayName: 'CluedIn Organisation'
   type: string
 - name: version
-  displayName: 'Clued In Environment Version'
+  displayName: 'CluedIn Environment Version'
   type: string
 
 #variables:
 #- template: vars/vars.yaml
 
+resources:
+  repositories:
+  - repository: codeRepo # Friendly name for ADO to use
+    type: github
+    endpoint: 'CluedIn' # Service connection
+    name: 'CluedIn-io/CluedIn.Product.Toolkit' # Actual GitHub repo name
+  - repository: backupRepo
+    type: github
+    endpoint: 'CluedIn'
+    name: 'jjrcluedin/jjr-testbackups'
+
 jobs:
 - job: backupConfiguration
   displayName: Backup Configuration
-  steps:  
-  - task: AzureCLI@2
-    displayName: 'Backup'
-    inputs:
-      azureSubscription: 'Your ADO Subscription Here'
-      scriptType: pscore
-      scriptPath: Scripts/Export-CluedInConfig.ps1
-      scriptArguments: >-
-        -BaseURL ${{ parameters.baseURL }}
-        -Organisation ${{ parameters.organisation }}
-        -Version ${{ parameters.version }}
+  steps:
+  - checkout: codeRepo
+  - checkout: backupRepo
+    persistCredentials: true
+
+  - pwsh: Get-ChildItem -Path ENV:\
+  - pwsh: (Get-ChildItem -Path $(System.DefaultWorkingDirectory) -recurse | Out-String)
+
+  #- task: AzureCLI@2
+  #  displayName: 'Backup'
+  #  inputs:
+  #    azureSubscription: 'Your ADO Subscription Here'
+  #    scriptType: pscore
+  #    scriptPath: Scripts/Export-CluedInConfig.ps1
+  #    scriptArguments: >-
+  #      -BaseURL ${{ parameters.baseURL }}
+  #      -Organisation ${{ parameters.organisation }}
+  #      -Version ${{ parameters.version }}
+  #      -BackupPath $(System.DefaultWorkingDirectory)/Backups
   
-  - task: SyncWithGitRepo # Update me
+  - pwsh: |
+      git config --global user.email "ado@azurepipelines.com"
+      git config --global user.name "ADO Pipeline ($(Build.DefinitionName))"
+
+      git checkout -b main
+      "hi" | Out-File fake.txt
+      git add -A
+      git commit -m "Backup: $(Build.BuildNumber)"
+      git push --set-upstream origin main
+    displayName: Push to git
+    workingDirectory: $(System.DefaultWorkingDirectory)/jjr-testbackups

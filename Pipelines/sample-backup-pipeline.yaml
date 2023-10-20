@@ -18,19 +18,40 @@ parameters:
 #variables:
 #- template: vars/vars.yaml
 
+resources:
+  repositories:
+  - repository: codeRepo # Friendly name for ADO to use
+    type: github
+    endpoint: 'CluedIn-io' # Service connection
+    name: 'CluedIn-io/CluedIn.Product.Toolkit' # Actual GitHub repo name
+  - repository: backupRepo
+    type: github
+    endpoint: 'CluedIn-io'
+    name: 'jjrcluedin/jjr-testbackups'
+
 jobs:
 - job: backupConfiguration
   displayName: Backup Configuration
-  steps:  
-  - task: AzureCLI@2
-    displayName: 'Backup'
-    inputs:
-      azureSubscription: 'Your ADO Subscription Here'
-      scriptType: pscore
-      scriptPath: Scripts/Export-CluedInConfig.ps1
-      scriptArguments: >-
-        -BaseURL ${{ parameters.baseURL }}
-        -Organisation ${{ parameters.organisation }}
-        -Version ${{ parameters.version }}
+  steps:
+  - pwsh: Get-ChildItem -Path ENV:\
+
+  #- task: AzureCLI@2
+  #  displayName: 'Backup'
+  #  inputs:
+  #    azureSubscription: 'Your ADO Subscription Here'
+  #    scriptType: pscore
+  #    scriptPath: Scripts/Export-CluedInConfig.ps1
+  #    scriptArguments: >-
+  #      -BaseURL ${{ parameters.baseURL }}
+  #      -Organisation ${{ parameters.organisation }}
+  #      -Version ${{ parameters.version }}
+  #      -BackupPath $(System.DefaultWorkingDirectory)/Backups
   
-  - task: SyncWithGitRepo # Update me
+  - pwsh: |
+      git checkout -b main
+
+
+
+
+
+    workingDirectory: $(System.DefaultWorkingDirectory)

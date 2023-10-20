@@ -33,6 +33,10 @@ jobs:
 - job: backupConfiguration
   displayName: Backup Configuration
   steps:
+  - checkout: codeRepo
+  - checkout: backupRepo
+    persistCredentials: true
+
   - pwsh: Get-ChildItem -Path ENV:\
   - pwsh: (Get-ChildItem -Path $(System.DefaultWorkingDirectory) -recurse | Out-String)
 

@@ -93,7 +93,7 @@ foreach ($vocabulary in $vocabularies) {
     # Check if entity Type exists and create if not found
     $entityTypeResult = Get-CluedInEntityType -Search $($vocabObject.entityTypeConfiguration.displayName)
     if ($entityTypeResult.data.management.entityTypeConfigurations.total -ne 1) {
-        New-CluedInEntityType
+        New-CluedInEntityType -Object $vocabObject.entityTypeConfiguration
     }
 
     $vocabResult = New-CluedInVocabulary -Object $vocabObject

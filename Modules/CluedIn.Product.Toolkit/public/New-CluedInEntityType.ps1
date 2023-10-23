@@ -12,11 +12,17 @@ function New-CluedInEntityType {
 
     [CmdletBinding()]
     param(
-        [string]$DisplayName,
-        [int]$TypeCode,
-        [string]$TypeIcon,
-        [int]$TypeRoute
+        [Parameter(ParameterSetName = 'New')][string]$DisplayName,
+        [Parameter(ParameterSetName = 'New')][string]$TypeCode,
+        [Parameter(ParameterSetName = 'New')][string]$TypeIcon,
+        [Parameter(ParameterSetName = 'Existing')][PSCustomObject]$Object
     )
+
+    if ($PsCmdlet.ParameterSetName -eq 'Existing') {
+        $DisplayName = $Object.displayName
+        $TypeCode = $Object.entityType
+        $TypeIcon = $Object.icon
+    }
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'createEntityTypeConfiguration'
 
@@ -27,14 +33,12 @@ function New-CluedInEntityType {
                 active = $true
                 displayName = $DisplayName
                 icon = $TypeIcon
-                route = $displayName.ToLower().Replace(' ','')
+                route = $DisplayName.ToLower().Replace(' ','')
                 pageTemplateId = ""
             } | ConvertTo-Json -Compress
         }
         query = $queryContent
     }
-
-    "entityTypeConfiguration": "{\"type\":\"/fake\",\"active\":true,\"displayName\":\"fake\",\"icon\":\"Googleplus\",\"route\":\"fake\",\"pageTemplateId\":\"\"}"
 
     return Invoke-CluedInGraphQL -Query $query
 }

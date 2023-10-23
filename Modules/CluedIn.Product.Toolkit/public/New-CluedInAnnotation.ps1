@@ -26,7 +26,7 @@ function New-CluedInAnnotation {
             mappingConfiguration = @{
                 entityTypeConfiguration = @{
                     new = $false
-                    icon = $Object.entityTypeConfiguration.icoon
+                    icon = $Object.entityTypeConfiguration.icon
                     entityType = $Object.entityTypeConfiguration.entityType
                     displayName = $Object.entityTypeConfiguration.displayName
                 }

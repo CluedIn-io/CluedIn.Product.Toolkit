@@ -52,11 +52,19 @@ $dataPath = Join-Path -Path $RestorePath -ChildPath 'Data'
 $dataSourceSetsPath = Join-Path -Path $dataPath -ChildPath 'SourceSets'
 $dataSourcesPath = Join-Path -Path $dataPath -ChildPath 'Sources'
 $dataSetsPath = Join-Path -Path $dataPath -ChildPath 'Sets'
+$generalPath = Join-Path -Path $RestorePath -ChildPath 'General'
+
+# Test Paths
+if (!(Test-Path -Path $generalPath -PathType Container)) { throw "'$generalPath' could not be found. Please investigate" }
+if (!(Test-Path -Path $vocabPath, $vocabKeysPath -PathType Container)) {
+    throw "There as an issue finding '$vocabPath' or sub-folders. Please investigate"
+}
+if (!(Test-Path -Path $dataSourceSetsPath, $dataSourcesPath, $dataSetsPath -PathType Container)) {
+    throw "There as an issue finding '$dataPath' or sub-folders. Please investigate"
+}
 
 # Settings
 Write-Host "INFO: Importing Admin Settings" -ForegroundColor 'Green'
-$generalPath = Join-Path -Path $RestorePath -ChildPath 'General'
-if (!(Test-Path -Path $generalPath -PathType Container)) { throw "'$generalPath' could not be found. Please investigate" }
 $adminSetting = Get-Content -Path (Join-Path -Path $generalPath -ChildPath 'AdminSetting.json') | ConvertFrom-Json -Depth 20
 
 $settings = ($adminSetting.data.administration.configurationSettings).psobject.properties.name
@@ -73,10 +81,6 @@ foreach ($setting in $settings) {
 }
 
 # Vocabulary
-if (!(Test-Path -Path $vocabPath, $vocabKeysPath -PathType Container)) {
-    throw "There as an issue finding '$vocabPath' or sub-folders. Please investigate"
-}
-
 Write-Host "INFO: Importing Vocabularies" -ForegroundColor 'Green'
 $vocabularies = Get-ChildItem -Path $vocabPath -Filter "*.json"
 foreach ($vocabulary in $vocabularies) {
@@ -85,6 +89,12 @@ foreach ($vocabulary in $vocabularies) {
 
     Write-Host "Processing Vocab: $($vocabObject.vocabularyName) ($($vocabObject.vocabularyId))" -ForegroundColor Cyan
     Write-Debug "$($vocabObject | Out-String)"
+
+    # Check if entity Type exists and create if not found
+    $entityTypeResult = Get-CluedInEntityType -Search $($vocabObject.entityTypeConfiguration.displayName)
+    if ($entityTypeResult.data.management.entityTypeConfigurations.total -ne 1) {
+        New-CluedInEntityType
+    }
 
     $vocabResult = New-CluedInVocabulary -Object $vocabObject
     checkResults($vocabResult)
@@ -113,9 +123,6 @@ foreach ($vocabKey in $vocabKeys) {
 
 # Data Sources
 Write-Host "INFO: Importing Data Source Sets" -ForegroundColor 'Green'
-if (!(Test-Path -Path $dataSourceSetsPath, $dataSourcesPath, $dataSetsPath -PathType Container)) {
-    throw "There as an issue finding '$dataPath' or sub-folders. Please investigate"
-}
 
 $dataSourceSets = Get-Content -Path (Join-Path -Path $dataSourceSetsPath -ChildPath 'DataSourceSet.json') | ConvertFrom-Json -Depth 20
 foreach ($dataSourceSet in $dataSourceSets.data.inbound.dataSourceSets.data) {

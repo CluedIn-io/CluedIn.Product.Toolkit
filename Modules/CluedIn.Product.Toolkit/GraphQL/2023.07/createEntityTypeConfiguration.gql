@@ -1,29 +1,8 @@
-mutation createEntityTypeConfiguration(
-  $entityTypeConfiguration: InputEntityTypeLayoutConfiguration!
-) {
+mutation createEntityTypeConfigurationV2($entityTypeConfiguration: String!) {
   management {
-    id
-    createEntityTypeConfiguration(
+    createEntityTypeConfigurationV2(
       entityTypeConfiguration: $entityTypeConfiguration
-    ) {
-      ...EntityTypeConfiguration
-      __typename
-    }
+    )
     __typename
   }
-}
-
-fragment EntityTypeConfiguration on EntityTypeLayoutConfiguration {
-  activ
-  displayName
-  entityType
-  icon
-  id
-  layoutConfiguration
-  pageTemplateId
-  path
-  route
-  template
-  type
-  __typename
 }

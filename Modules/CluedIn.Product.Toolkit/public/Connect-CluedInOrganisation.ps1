@@ -31,7 +31,8 @@ function Connect-CluedInOrganisation {
         [Parameter(Mandatory)][string]$BaseURL,
         [Parameter(Mandatory)][string]$Organisation,
         [Parameter(Mandatory)][version]$Version,
-        [string]$APIToken
+        [string]$APIToken,
+        [switch]$Force
     )
 
     function tokenOrganisation($token) {
@@ -52,18 +53,20 @@ function Connect-CluedInOrganisation {
 
     [string]$envVersion = '{0}.{1}' -f $Version.Major, ([string]$Version.Minor).PadLeft(2, '0')
 
-    if (${env:CLUEDIN_JWTOKEN}) {
-        Write-Verbose "Checking existing token is still valid"
-        $skipToken = $true
-        $sameOrg = tokenOrganisation(${env:CLUEDIN_JWTOKEN})
-        if (!$sameOrg) { Write-Verbose "Organisation doesn't match"; $skipToken = $false }
+    if (!$Force) {
+        if (${env:CLUEDIN_JWTOKEN}) {
+            Write-Verbose "Checking existing token is still valid"
+            $skipToken = $true
+            $sameOrg = tokenOrganisation(${env:CLUEDIN_JWTOKEN})
+            if (!$sameOrg) { Write-Verbose "Organisation doesn't match"; $skipToken = $false }
 
-        $refresh = tokenExpired(${env:CLUEDIN_JWTOKEN})
-        if ($refresh) { Write-Verbose "Token has expired"; $skipToken = $false }
+            $refresh = tokenExpired(${env:CLUEDIN_JWTOKEN})
+            if ($refresh) { Write-Verbose "Token has expired"; $skipToken = $false }
 
-        if ($skipToken) {
-            $tokenContent = ${env:CLUEDIN_JWTOKEN}
-            Write-Verbose "TokenContent set to existing"
+            if ($skipToken) {
+                $tokenContent = ${env:CLUEDIN_JWTOKEN}
+                Write-Verbose "TokenContent set to existing"
+            }
         }
     }
 

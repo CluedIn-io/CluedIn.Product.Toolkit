@@ -27,7 +27,7 @@ function New-CluedInVocabulary {
             $Prefix = $Object.keyPrefix
             $description = $Object.description
             $entityTypeConfiguration = @{
-                new = $false
+                new = $false # We create entities in a prior step
                 icon = $object.entityTypeConfiguration.icon
                 entityType = $object.entityTypeConfiguration.entityType
                 displayName = $object.entityTypeConfiguration.displayName

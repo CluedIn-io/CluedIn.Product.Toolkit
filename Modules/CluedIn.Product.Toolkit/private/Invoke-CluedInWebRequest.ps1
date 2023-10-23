@@ -8,7 +8,7 @@ function Invoke-CluedInWebRequest {
 
         .EXAMPLE
         PS> Invoke-CluedInWebRequest -Uri 'https://customer.cluedin.com/api/graphql' -Method 'POST' -Body $body
-        
+
         This will query the endpoint with a GraphQL body.
     #>
 
@@ -26,8 +26,8 @@ function Invoke-CluedInWebRequest {
         'Authorization' = 'Bearer {0}' -f ${env:CLUEDIN_JWTOKEN}
     }
 
-    Try { $result = Invoke-RestMethod -Method $Method -Uri $Uri -Headers $headers -Body $Body -UseBasicParsing } 
-    Catch { Write-Debug $_ }
-
-    return $result
+    Try {
+        return Invoke-RestMethod -Method $Method -Uri $Uri -Headers $headers -Body $Body -UseBasicParsing
+    }
+    Catch { Write-Error "Issue with invoke $_"; return }
 }

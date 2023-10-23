@@ -13,7 +13,7 @@ function Send-CluedInIngestionData {
 
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory, ValueFromPipeline)][string]$Json,
+        [Parameter(Mandatory)][string]$Json,
         [guid]$IngestionEndpoint
     )
 

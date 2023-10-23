@@ -19,19 +19,31 @@ function Get-CluedInVocabularyKey {
 
     [CmdletBinding()]
     param (
-        [guid]$Id
+        [Parameter(ParameterSetName = 'Id')][guid]$Id,
+        [Parameter(ParameterSetName = 'Search')][string]$Search
     )
 
-    $queryContent = Get-CluedInGQLQuery -OperationName 'getVocabularyKeysFromVocabularyId'
+    switch ($PsCmdlet.ParameterSetName) {
+        'Id' {
+            $queryContent = Get-CluedInGQLQuery -OperationName 'getVocabularyKeysFromVocabularyId'
+            $variables = @{
+                id = $Id
+                searchName = $null
+                dataType = $null
+                classification = $null
+                filterIsObsolete = 'All'
+            }
+        }
+        'Search' {
+            $queryContent = Get-CluedInGQLQuery -OperationName 'getVocabularyKey'
+            $variables = @{
+                key = $Search
+            }
+        }
+    }
 
     $query = @{
-        variables = @{
-            id = $Id
-            searchName = $null
-            dataType = $null
-            classification = $null
-            filterIsObsolete = 'All'
-        }
+        variables = $variables
         query = $queryContent
     }
 

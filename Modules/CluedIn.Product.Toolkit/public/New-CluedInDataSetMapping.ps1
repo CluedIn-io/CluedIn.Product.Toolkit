@@ -1,4 +1,4 @@
-function New-CluedInAnnotationMapping {
+function New-CluedInDataSetMapping {
     <#
         .SYNOPSIS
         GraphQL Query: Adds an annotation mapping
@@ -21,7 +21,7 @@ function New-CluedInAnnotationMapping {
         variables =@{
             dataSetId = $Object.dataSetId
             propertyMappingConfiguration = @{
-                originalField = ''
+                originalField = $Object.originalField
                 useAsAlias = $false
                 useAsEntityCode = $false
                 vocabularyKeyConfiguration = @{

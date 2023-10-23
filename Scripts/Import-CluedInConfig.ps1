@@ -164,6 +164,7 @@ foreach ($dataSource in $dataSources) {
 
 Write-Host "INFO: Importing Data Sets" -ForegroundColor 'Green'
 $dataSets = Get-ChildItem -Path $dataSetsPath -Filter "*-DataSet.json"
+
 foreach ($dataSet in $dataSets) {
     $dataSetJson = Get-Content -Path $dataSet.FullName | ConvertFrom-Json -Depth 20
     $dataSetObject = $dataSetJson.data.inbound.dataSet
@@ -206,10 +207,10 @@ foreach ($dataSet in $dataSets) {
                 $annotationResult = New-CluedInAnnotation -Object $annotationObject
                 checkResults($annotationResult)
 
-                foreach ($annotationProperty in $annotationObject.annotationProperties) {
-                    $annotationProperty | Add-Member -Name dataSetId -Value $dataSetId -MemberType NoteProperty
-
-                    # Set the properties?
+                Write-Verbose "Setting Mappings"
+                foreach ($mapping in $dataSetObject.fieldMappings) {
+                    $Vocabularies = Get-CluedInVocabulary -Id
+                    New-CluedInAnnotationMapping -Object $mapping
                 }
             }
             catch {

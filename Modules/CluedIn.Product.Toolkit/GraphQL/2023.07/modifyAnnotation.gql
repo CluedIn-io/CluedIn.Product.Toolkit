@@ -1,0 +1,6 @@
+mutation modifyAnnotation($annotation: InputEntityAnnotation) {
+  preparation {
+    modifyAnnotation(annotation: $annotation)
+    __typename
+  }
+}

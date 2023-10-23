@@ -207,10 +207,27 @@ foreach ($dataSet in $dataSets) {
                 $annotationResult = New-CluedInAnnotation -Object $annotationObject
                 checkResults($annotationResult)
 
-                Write-Verbose "Setting Mappings"
+                Write-Verbose "Setting Annotation Configuration"
+                $annotationId = (Get-CluedInDataSet -id $dataSetId).data.inbound.dataSet.annotationId # Doesn't come from result
+                $settings = @{
+                    useDefaultSourceCode = $annotationObject.useDefaultSourceCode
+                    useStrictEdgeCode = $annotationObject.useStrictEdgeCode
+                    descriptionKey = $annotationObject.descriptionKey
+                    nameKey = $annotationObject.nameKey
+                }
+                $setAnnotationResult = Set-CluedInAnnotation -Id $annotationId -Settings $settings
+                checkResults($setAnnotationResult)
+
+                Write-Verbose "Configuring Mappings"
                 foreach ($mapping in $dataSetObject.fieldMappings) {
-                    $Vocabularies = Get-CluedInVocabulary -Id
-                    New-CluedInAnnotationMapping -Object $mapping
+                    $vocabularyKey = Get-CluedInVocabularyKey -Search $mapping.key
+                    $vocabularyKeyObject = $vocabularyKey.data.management.vocabularyPerKey
+                    $mapping | Add-Member -MemberType 'NoteProperty' -Name 'dataSetId' -Value $dataSetId
+                    $mapping | Add-Member -MemberType 'NoteProperty' -Name 'vocabularyId' -Value $vocabularyKeyObject.vocabularyId
+                    $mapping | Add-Member -MemberType 'NoteProperty' -Name 'vocabularyKeyId' -Value $vocabularyKeyObject.vocabularyKeyId
+
+                    $dataSetMappingResult = New-CluedInDataSetMapping -Object $mapping
+                    checkResults($dataSetMappingResult)
                 }
             }
             catch {

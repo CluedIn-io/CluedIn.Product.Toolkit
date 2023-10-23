@@ -26,8 +26,8 @@ function New-CluedInDataSetMapping {
                 useAsEntityCode = $false
                 vocabularyKeyConfiguration = @{
                     new = $false
-                    vocabularyId = 'b63f1890-8535-0bb9-b0d3-8f4dea287e5c'
-                    vocabularyKeyId = 'af5a88b3-0203-97e7-9ebd-d3e266291cc2'
+                    vocabularyId = $Object.vocabularyId
+                    vocabularyKeyId = $Object.vocabularyKeyId
                 }
             }
         }

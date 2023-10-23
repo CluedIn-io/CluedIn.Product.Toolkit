@@ -25,8 +25,13 @@ function New-CluedInVocabulary {
             $EntityCode = $Object.grouping
             $Provider = ''
             $Prefix = $Object.keyPrefix
-            $description = $object.description
-            $entityTypeConfiguration = $object.entityTypeConfiguration
+            $description = $Object.description
+            $entityTypeConfiguration = @{
+                new = $false
+                icon = $object.entityTypeConfiguration.icon
+                entityType = $object.entityTypeConfiguration.entityType
+                displayName = $object.entityTypeConfiguration.displayName
+            }
         }
         default {
             $entityTypeConfiguration = @{

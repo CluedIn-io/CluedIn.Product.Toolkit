@@ -43,6 +43,16 @@ Import-Module "$PSScriptRoot/../Modules/CluedIn.Product.Toolkit"
 Write-Host "INFO: Connecting to 'https://$Organisation.$BaseURL'"
 Connect-CluedInOrganisation -BaseURL $BaseURL -Organisation $Organisation -Version $Version
 
+# Variables
+Write-Verbose "Setting Script Variables"
+$dataCatalogPath = Join-Path -Path $RestorePath -ChildPath 'DataCatalog'
+$vocabPath = Join-Path -Path $dataCatalogPath -ChildPath 'Vocab'
+$vocabKeysPath = Join-Path -Path $dataCatalogPath -ChildPath 'Keys'
+$dataPath = Join-Path -Path $RestorePath -ChildPath 'Data'
+$dataSourceSetsPath = Join-Path -Path $dataPath -ChildPath 'SourceSets'
+$dataSourcesPath = Join-Path -Path $dataPath -ChildPath 'Sources'
+$dataSetsPath = Join-Path -Path $dataPath -ChildPath 'Sets'
+
 # Settings
 Write-Host "INFO: Importing Admin Settings" -ForegroundColor 'Green'
 $generalPath = Join-Path -Path $RestorePath -ChildPath 'General'
@@ -63,9 +73,6 @@ foreach ($setting in $settings) {
 }
 
 # Vocabulary
-$dataCatalogPath = Join-Path -Path $RestorePath -ChildPath 'DataCatalog'
-$vocabPath = Join-Path -Path $dataCatalogPath -ChildPath 'Vocab'
-$vocabKeysPath = Join-Path -Path $dataCatalogPath -ChildPath 'Keys'
 if (!(Test-Path -Path $vocabPath, $vocabKeysPath -PathType Container)) {
     throw "There as an issue finding '$vocabPath' or sub-folders. Please investigate"
 }
@@ -106,10 +113,6 @@ foreach ($vocabKey in $vocabKeys) {
 
 # Data Sources
 Write-Host "INFO: Importing Data Source Sets" -ForegroundColor 'Green'
-$dataPath = Join-Path -Path $RestorePath -ChildPath 'Data'
-$dataSourceSetsPath = Join-Path -Path $dataPath -ChildPath 'SourceSets'
-$dataSourcesPath = Join-Path -Path $dataPath -ChildPath 'Sources'
-$dataSetsPath = Join-Path -Path $dataPath -ChildPath 'Sets'
 if (!(Test-Path -Path $dataSourceSetsPath, $dataSourcesPath, $dataSetsPath -PathType Container)) {
     throw "There as an issue finding '$dataPath' or sub-folders. Please investigate"
 }
@@ -168,9 +171,38 @@ foreach ($dataSet in $dataSets) {
         checkResults($dataSetResult)
 
         if ($dataSetObject.dataSource.type -eq 'endpoint') {
-            $guid = $dataSetResult.data.inbound.createDataSets.id
-            $endpoint = '{0}/upload/api/endpoint/{1}' -f ${env:CLUEDIN_ENDPOINT}, $guid
+            $dataSetId = $dataSetResult.data.inbound.createDataSets.id
+            $endpoint = '{0}/upload/api/endpoint/{1}' -f ${env:CLUEDIN_ENDPOINT}, $dataSetId
             Write-Host "New Endpoint created: $endPoint"
+
+            # If the dataSet already exists, we need to assume the annotations were also restored.
+            # So we only run this in the !exists block
+            Write-Verbose "Importing Annotations"
+            $annotationPath = Join-Path -Path $dataSetsPath -ChildPath ('{0}-Annotation.json' -f $dataSetObject.id)
+            Try {
+                $annotationJson = Get-Content -Path $annotationPath | ConvertFrom-Json -Depth 20
+                $annotationObject = $annotationJson.data.preparation.annotation
+                $annotationObject | Add-Member -Name dataSetId -Value $dataSetId -MemberType NoteProperty
+                $annotationObject | Add-Member -Name type -Value 'endpoint' -MemberType NoteProperty
+
+                $vocabName = $annotationObject.vocabulary.vocabularyName
+                $vocabSearchResult = Get-CluedInVocabulary -Search $vocabName -IncludeCore
+                $vocabObject = $vocabSearchResult.data.management.vocabularies
+                if (!$vocabObject.total -eq 1) {
+                    Write-Error "There was an issue getting vocab '${vocabName}'"
+                    Write-Debug $($vocabObject | Out-String)
+                    continue
+                }
+                $annotationObject.vocabulary.vocabularyId = $vocabObject.data.vocabularyId
+
+                $annotationResult = New-CluedInAnnotation -Object $annotationObject
+                checkResults($annotationResult)
+            }
+            catch {
+                Write-Verbose "Annotation file '$annotationPath' not found or error occured during run"
+                Write-Debug $_
+                continue
+            }
         }
     }
     else { Write-Warning "An entry already exists" }

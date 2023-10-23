@@ -1,0 +1,41 @@
+mutation createManualAnnotation(
+  $dataSetId: ID!
+  $type: String!
+  $mappingConfiguration: InputMappingConfiguration
+  $isDynamicVocab: Boolean
+) {
+  management {
+    createManualAnnotation(
+      dataSetId: $dataSetId
+      type: $type
+      mappingConfiguration: $mappingConfiguration
+      isDynamicVocab: $isDynamicVocab
+    ) {
+      id
+      __typename
+    }
+    __typename
+  }
+}
+
+### VARIABLES
+{
+  "dataSetId": "6FA3D0D8-2021-4C8F-8576-CE9F105AE956",
+  "type": "endpoint",
+  "mappingConfiguration": {
+    "entityTypeConfiguration": {
+      "new": false,
+      "icon": "Process",
+      "entityType": "/Account",
+      "displayName": "Account"
+    },
+    "ignoredFields": [],
+    "vocabularyConfiguration": {
+      "new": false,
+      "vocabularyName": "Person",
+      "keyPrefix": "person",
+      "vocabularyId": "be162553-a8c2-fd4c-6057-965ccacc12e6"
+    }
+  },
+  "isDynamicVocab": true
+}

@@ -1,0 +1,21 @@
+mutation createPartialAutoAnnotation(
+  $dataSetId: ID!
+  $originalFields: [String]
+) {
+  management {
+    createPartialAutoAnnotation(
+      dataSetId: $dataSetId
+      originalFields: $originalFields
+    )
+    __typename
+  }
+}
+
+### VARIABLES
+
+{
+  "dataSetId": "6FA3D0D8-2021-4C8F-8576-CE9F105AE956",
+  "originalFields": [
+    "BusinessEntityID"
+  ]
+}

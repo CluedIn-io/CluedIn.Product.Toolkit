@@ -13,18 +13,18 @@ Describe "Unit Testing" {
             $path = Join-Path -Path $moduleDirectory -ChildPath "$moduleName.psm1"
             $path | Should -Exist
         }
-    
+
         It "<moduleName>.psd exists" {
             $path = Join-Path -Path $moduleDirectory -ChildPath "$moduleName.psd"
             $path | Should -Exist
         }
-    
+
         It "has private functions" {
             $privateFunc = Join-Path -Path $moduleDirectory -ChildPath 'private'
             $funcs = Get-ChildItem -Path $privateFunc -Filter *.ps1
             $funcs.count | Should -BeGreaterThan 0
         }
-    
+
         It "has public functions" {
             $publicFunc = Join-Path -Path $moduleDirectory -ChildPath 'public'
             $funcs = Get-ChildItem -Path $publicFunc -Filter *.ps1
@@ -53,11 +53,15 @@ Describe "Unit Testing" {
             ) {
                 Get-Command -Name $_ -Module $moduleName -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
             }
+
+            It "Variables key exists" {
+                throw
+            }
         }
-        
+
         Context "GraphQL" {
             It "<_.basename> matches cmdlet name" -forEach $GraphQLFunctions {
-                Get-Command -Name $_.basename -Module $moduleName -ErrorAction SilentlyContinue | 
+                Get-Command -Name $_.basename -Module $moduleName -ErrorAction SilentlyContinue |
                     Should -Not -BeNullOrEmpty
             }
         }

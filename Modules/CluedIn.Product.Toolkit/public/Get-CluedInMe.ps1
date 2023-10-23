@@ -3,7 +3,10 @@ function Get-CluedInMe {
     param()
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'me'
-    $query = @{ query = $queryContent }
+    $query = @{
+        variables = @{}
+        query = $queryContent
+    }
 
     return Invoke-CluedInGraphQL -Query $query
 }

@@ -1,0 +1,18 @@
+query annotations($pageSize: Int, $page: Int) {
+  preparation {
+    annotations(pageSize: $pageSize, page: $page) {
+      total
+      data {
+        id
+        name
+        entityType
+        author
+        createdAt
+        updatedAt
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

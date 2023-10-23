@@ -14,7 +14,10 @@ function Get-CluedInAPITokens {
     param()
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'getApiTokens'
-    $query = @{ query = $queryContent }
+    $query = @{
+        variables = @{}
+        query = $queryContent
+    }
 
     return Invoke-CluedInGraphQL -Query $query
 }

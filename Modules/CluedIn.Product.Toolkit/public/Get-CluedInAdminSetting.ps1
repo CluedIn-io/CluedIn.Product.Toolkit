@@ -10,7 +10,7 @@ function Get-CluedInAdminSetting {
 
         .EXAMPLE
         PS> Get-CluedInAdminSetting
-        
+
         This will query the endpoint with a GraphQL body and return a powershell object which contains data you can use.
     #>
 
@@ -29,4 +29,4 @@ function Get-CluedInAdminSetting {
     }
 
     return Invoke-CluedInGraphQL -Query $query
-}  
+}

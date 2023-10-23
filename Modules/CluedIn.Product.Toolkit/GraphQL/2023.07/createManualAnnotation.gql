@@ -1,0 +1,19 @@
+mutation createManualAnnotation(
+  $dataSetId: ID!
+  $type: String!
+  $mappingConfiguration: InputMappingConfiguration
+  $isDynamicVocab: Boolean
+) {
+  management {
+    createManualAnnotation(
+      dataSetId: $dataSetId
+      type: $type
+      mappingConfiguration: $mappingConfiguration
+      isDynamicVocab: $isDynamicVocab
+    ) {
+      id
+      __typename
+    }
+    __typename
+  }
+}

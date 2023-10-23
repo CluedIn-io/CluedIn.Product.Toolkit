@@ -63,14 +63,19 @@ for ($i = 0; $i -lt $dataSources.count; $i++) {
     }
 }
 
-Write-Host "INFO: Exporting Data Sets"
+Write-Host "INFO: Exporting Data Sets and Annotations"
 $path = Join-Path -Path $BackupPath -ChildPath 'Data/Sets'
 if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
 foreach ($dataSet in $dataSetProcess) {
-    Get-CluedInDataSet -id $dataSet.id | Out-JsonFile -Path $path -Name ('{0}-DataSet' -f $dataSet.id)
+    $set = Get-CluedInDataSet -id $dataSet.id
+    $set | Out-JsonFile -Path $path -Name ('{0}-DataSet' -f $dataSet.id)
     if ($dataSet.type -eq 'file') {
         Get-CluedInDataSetContent -id $dataSet.id | Out-JsonFile -Path $path -Name ('{0}-DataSetContent' -f $dataSet.id)
     }
+
+    Write-Verbose "INFO: Exporting Annotation"
+    $annotationId = $set.data.inbound.dataSet.annotationId
+    Get-CluedInAnnotations -id $annotationId | Out-JsonFile -Path $path -Name ('{0}-Annotation' -f $dataSet.id)
 }
 
 # Vocabulary
@@ -78,7 +83,7 @@ Write-Host "INFO: Exporting Vocabularies"
 $dataCatalogPath = Join-Path -Path $BackupPath -ChildPath 'DataCatalog'
 $vocabPath = Join-Path -Path $dataCatalogPath -ChildPath 'Vocab'
 if (!(Test-Path -Path $vocabPath -PathType Container)) { New-Item $vocabPath -ItemType Directory | Out-Null }
-$vocabularies = Get-CluedInVocabulary 
+$vocabularies = Get-CluedInVocabulary
 $vocabularies | Out-JsonFile -Path $dataCatalogPath -Name 'VocabulariesManifest'
 foreach ($vocab in $vocabularies.data.management.vocabularies.data) {
     Get-CluedInVocabularyById -Id $vocab.vocabularyId | Out-JsonFile -Path $vocabPath -Name $vocab.vocabularyId

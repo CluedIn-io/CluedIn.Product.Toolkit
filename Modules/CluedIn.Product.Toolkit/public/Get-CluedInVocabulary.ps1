@@ -6,13 +6,20 @@ function Get-CluedInVocabulary {
         .DESCRIPTION
         GraphQL Query: Gets all vocabularies
 
+        .PARAMETER Search
+
+        .PARAMETER IncludeCore
+        By default, all CluedIn base vocabularies will be filtered out. If this is set to $true
+        it will return all results without any filtering
+
         .EXAMPLE
         PS> Get-CluedInVocabulary
     #>
 
     [CmdletBinding()]
     param(
-        [string]$Search = ""
+        [string]$Search = "",
+        [switch]$IncludeCore
     )
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'getAllVocabularies'
@@ -33,12 +40,11 @@ function Get-CluedInVocabulary {
 
     $result = Invoke-CluedInGraphQL -Query $query
 
-    # This is cleanup from client side. Our GraphQL may not support filtering at runtime
-    # Something to look into?
-    $result.data.management.vocabularies.data = $result.data.management.vocabularies.data | 
-        Where-Object {$_.isCluedInCore -eq $false}
-    $result.data.management.vocabularies.total = $result.data.management.vocabularies.data.count
-    #
-    
+    if (!$IncludeCore) {
+        $result.data.management.vocabularies.data = $result.data.management.vocabularies.data |
+            Where-Object {$_.isCluedInCore -eq $false}
+        $result.data.management.vocabularies.total = $result.data.management.vocabularies.data.count
+    }
+
     return $result
 }

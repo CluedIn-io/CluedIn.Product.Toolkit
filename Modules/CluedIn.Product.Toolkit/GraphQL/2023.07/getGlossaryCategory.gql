@@ -1,0 +1,11 @@
+query getGlossaryCategory {
+  management {
+    id
+    glossaryCategories {
+      id
+      name
+      __typename
+    }
+    __typename
+  }
+}

@@ -22,7 +22,7 @@ function Get-CluedInVocabularyById {
             id = $Id
         }
         query = $queryContent
-    }   
-    
+    }
+
     return Invoke-CluedInGraphQL -Query $query
 }

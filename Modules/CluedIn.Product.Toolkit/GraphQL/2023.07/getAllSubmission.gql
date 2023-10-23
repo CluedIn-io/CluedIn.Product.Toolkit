@@ -1,0 +1,28 @@
+query getAllSubmission($id: ID, $dataSetId: ID, $page: Int, $pageSize: Int) {
+  preparation {
+    getAnnotationSubmissions(
+      id: $id
+      dataSetId: $dataSetId
+      page: $page
+      pageSize: $pageSize
+    ) {
+      total
+      data {
+        id
+        updatedAt
+        createdAt
+        total
+        expectedTotal
+        success
+        failed
+        dataSetId
+        cleanProjectId
+        status
+        quarantine
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

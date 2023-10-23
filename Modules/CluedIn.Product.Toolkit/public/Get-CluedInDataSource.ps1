@@ -8,7 +8,7 @@ function Get-CluedInDataSource {
 
         .EXAMPLE
         PS> Get-CluedInDataSet -Id 10
-        
+
         This will query will return data source id '10' for the connected CluedIn Organisation
     #>
 

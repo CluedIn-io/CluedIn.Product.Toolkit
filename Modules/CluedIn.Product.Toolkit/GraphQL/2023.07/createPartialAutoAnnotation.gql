@@ -1,0 +1,12 @@
+mutation createPartialAutoAnnotation(
+  $dataSetId: ID!
+  $originalFields: [String]
+) {
+  management {
+    createPartialAutoAnnotation(
+      dataSetId: $dataSetId
+      originalFields: $originalFields
+    )
+    __typename
+  }
+}

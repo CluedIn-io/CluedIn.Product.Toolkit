@@ -4,11 +4,11 @@ function Get-CluedInDataSourceSet {
         GraphQL Query: Returns all Data Source Sets
 
         .DESCRIPTION
-        GraphQL Query: Returns all Data Source Sets  
+        GraphQL Query: Returns all Data Source Sets
 
         .EXAMPLE
-        PS> Get-CluedInDataSourceGroup 
-        
+        PS> Get-CluedInDataSourceGroup
+
         This will query will all Data Source Sets
     #>
 

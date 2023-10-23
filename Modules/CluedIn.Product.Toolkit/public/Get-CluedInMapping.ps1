@@ -1,19 +1,19 @@
 function Get-CluedInMapping {
     <#
         .SYNOPSIS
-        GraphQL Query: Returns all mappings 
+        GraphQL Query: Returns all mappings
 
         .DESCRIPTION
-        GraphQL Query: Returns all mappings 
+        GraphQL Query: Returns all mappings
 
         .EXAMPLE
         PS> Get-CluedInMapping -Id 10
-        
+
         This will query will return mapping id '10' for the connected CluedIn Organisation
 
         .EXAMPLE
         PS> Get-CluedInMapping
-        
+
         This will query will return all mappings for the connected CluedIn Organisation
     #>
 

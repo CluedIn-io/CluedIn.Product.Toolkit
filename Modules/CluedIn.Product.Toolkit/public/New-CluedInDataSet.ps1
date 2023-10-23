@@ -1,14 +1,14 @@
 function New-CluedInDataSet {
     <#
         .SYNOPSIS
-        GraphQL Query: Creates a New Dataset 
+        GraphQL Query: Creates a New Dataset
 
         .DESCRIPTION
-        GraphQL Query: Creates a New Dataset 
+        GraphQL Query: Creates a New Dataset
 
         .EXAMPLE
         PS> New-CluedInDataSet -Id 10
-        
+
         This will query will return mapping id '10' for the connected CluedIn Organisation
     #>
 

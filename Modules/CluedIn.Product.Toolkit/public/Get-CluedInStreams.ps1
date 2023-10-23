@@ -2,7 +2,7 @@ function Get-CluedInStreams {
     [CmdletBinding()]
     param(
         [guid]$Id
-        
+
     )
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'getStreams'

@@ -11,7 +11,7 @@ function New-CluedInVocabularyKey {
     #>
 
     param(
-        [Parameter(ParameterSetName = 'New')][string]$DisplayName, 
+        [Parameter(ParameterSetName = 'New')][string]$DisplayName,
         [Parameter(ParameterSetName = 'New')][string]$GroupName,
         [Parameter(ParameterSetName = 'New')][string]$DataType,
         [Parameter(ParameterSetName = 'New')][string]$Description,

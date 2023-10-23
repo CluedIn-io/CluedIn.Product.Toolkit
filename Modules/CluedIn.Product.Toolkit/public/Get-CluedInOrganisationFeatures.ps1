@@ -3,8 +3,10 @@ function Get-CluedInOrganisationFeatures {
     param()
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'getOrganizationFeatures'
-
-    $query = @{ query = $queryContent }
+    $query = @{
+        variables = @{}
+        query = $queryContent
+    }
 
     return Invoke-CluedInGraphQL -Query $query
 }

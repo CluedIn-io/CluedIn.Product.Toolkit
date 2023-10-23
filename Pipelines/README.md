@@ -6,7 +6,7 @@ For this example, we will be using GitHub as our git repository destination, but
 # Prerequisites
 1. Access to Azure DevOps pipelines with the ability to create a new pipeline.
 2. An empty git repository to use as backup destination. We don't recommend using the same repo the pipeline and code exists in, but the choice is yours.
-3. The ADO agent must be able to access the frontend of your CluedIn instance. 
+3. The ADO agent must be able to access the frontend of your CluedIn instance.
 
 # Process
 ## ADO

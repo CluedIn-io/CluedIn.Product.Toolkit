@@ -25,8 +25,13 @@ function New-CluedInVocabulary {
             $EntityCode = $Object.grouping
             $Provider = ''
             $Prefix = $Object.keyPrefix
-            $description = $object.description
-            $entityTypeConfiguration = $object.entityTypeConfiguration
+            $description = $Object.description
+            $entityTypeConfiguration = @{
+                new = $false # We create entities in a prior step
+                icon = $object.entityTypeConfiguration.icon
+                entityType = $object.entityTypeConfiguration.entityType
+                displayName = $object.entityTypeConfiguration.displayName
+            }
         }
         default {
             $entityTypeConfiguration = @{
@@ -49,7 +54,7 @@ function New-CluedInVocabulary {
     }
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'createVocabulary'
-    
+
     $query = @{
         variables = @{
             vocabulary = @{

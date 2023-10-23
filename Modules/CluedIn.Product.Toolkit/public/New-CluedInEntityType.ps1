@@ -12,26 +12,33 @@ function New-CluedInEntityType {
 
     [CmdletBinding()]
     param(
-        [string]$DisplayName,
-        [int]$TypeCode,
-        [string]$TypeIcon,
-        [int]$TypeRoute
+        [Parameter(ParameterSetName = 'New')][string]$DisplayName,
+        [Parameter(ParameterSetName = 'New')][string]$TypeCode,
+        [Parameter(ParameterSetName = 'New')][string]$TypeIcon,
+        [Parameter(ParameterSetName = 'Existing')][PSCustomObject]$Object
     )
+
+    if ($PsCmdlet.ParameterSetName -eq 'Existing') {
+        $DisplayName = $Object.displayName
+        $TypeCode = $Object.entityType
+        $TypeIcon = $Object.icon
+    }
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'createEntityTypeConfiguration'
 
     $query = @{
         variables = @{
             entityTypeConfiguration = @{
+                type = $TypeCode
+                active = $true
                 displayName = $DisplayName
-                entityType = "/$TypeCode"
                 icon = $TypeIcon
-                route = $TypeRoute
+                route = $DisplayName.ToLower().Replace(' ','')
                 pageTemplateId = ""
-            }
+            } | ConvertTo-Json -Compress
         }
         query = $queryContent
-    }    
+    }
 
     return Invoke-CluedInGraphQL -Query $query
 }

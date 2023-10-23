@@ -8,7 +8,7 @@ function Get-CluedInCurrentOrganisation {
 
         .EXAMPLE
         PS> Get-CluedInCurrentOrganisation
-        
+
         This will query the endpoint with a GraphQL body and return a powershell object which contains data you can use.
     #>
 
@@ -16,10 +16,10 @@ function Get-CluedInCurrentOrganisation {
     param()
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'getCurrentOrg'
-
     $query = @{
+        variables = @{}
         query = $queryContent
     }
-    
+
     return Invoke-CluedInGraphQL -Query $query
 }

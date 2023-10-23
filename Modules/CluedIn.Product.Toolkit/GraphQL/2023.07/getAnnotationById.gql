@@ -42,6 +42,49 @@ query getAnnotationById($id: ID) {
         entityCodeOrigin
         vocabularyKeyId
         type
+        annotationEdges {
+          id
+          key
+          edgeType
+          entityTypeConfiguration {
+            icon
+            displayName
+            entityType
+            __typename
+          }
+          origin
+          dataSourceGroupId
+          dataSourceId
+          dataSetId
+          direction
+          edgeProperties {
+            id
+            annotationEdgeId
+            originalField
+            vocabularyKey {
+              displayName
+              vocabularyKeyId
+              isCluedInCore
+              isDynamic
+              isObsolete
+              isProvider
+              vocabularyId
+              name
+              isVisible
+              key
+              mappedKey
+              groupName
+              dataClassificationCode
+              dataType
+              description
+              providerId
+              mapsToOtherKeyId
+              __typename
+            }
+            __typename
+          }
+          __typename
+        }
         vocabularyKey {
           displayName
           vocabularyKeyId
@@ -60,12 +103,6 @@ query getAnnotationById($id: ID) {
           description
           providerId
           mapsToOtherKeyId
-          __typename
-        }
-        edges {
-          entityType
-          edgeType
-          origin
           __typename
         }
         validations {

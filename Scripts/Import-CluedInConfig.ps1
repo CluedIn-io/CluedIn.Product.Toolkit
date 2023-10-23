@@ -93,7 +93,8 @@ foreach ($vocabulary in $vocabularies) {
     # Check if entity Type exists and create if not found
     $entityTypeResult = Get-CluedInEntityType -Search $($vocabObject.entityTypeConfiguration.displayName)
     if ($entityTypeResult.data.management.entityTypeConfigurations.total -ne 1) {
-        New-CluedInEntityType -Object $vocabObject.entityTypeConfiguration
+        $entityResult = New-CluedInEntityType -Object $vocabObject.entityTypeConfiguration
+        checkResults($entityResult)
     }
 
     $vocabResult = New-CluedInVocabulary -Object $vocabObject
@@ -204,6 +205,12 @@ foreach ($dataSet in $dataSets) {
 
                 $annotationResult = New-CluedInAnnotation -Object $annotationObject
                 checkResults($annotationResult)
+
+                foreach ($annotationProperty in $annotationObject.annotationProperties) {
+                    $annotationProperty | Add-Member -Name dataSetId -Value $dataSetId -MemberType NoteProperty
+
+                    # Set the properties?
+                }
             }
             catch {
                 Write-Verbose "Annotation file '$annotationPath' not found or error occured during run"

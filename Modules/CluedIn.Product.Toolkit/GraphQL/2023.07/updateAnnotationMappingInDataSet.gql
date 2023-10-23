@@ -1,0 +1,12 @@
+mutation updateAnnotationMappingInDataSet(
+  $dataSetId: ID
+  $fieldMappings: [InputPropertyMapping]
+) {
+  inbound {
+    updateAnnotationMappingInDataSet(
+      dataSetId: $dataSetId
+      fieldMappings: $fieldMappings
+    )
+    __typename
+  }
+}

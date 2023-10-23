@@ -1,0 +1,14 @@
+mutation addPropertyMappingToCluedMappingConfiguration(
+  $dataSetId: ID!
+  $propertyMappingConfiguration: InputPropertyMappingConfiguration
+  $extra: Boolean
+) {
+  management {
+    addPropertyMappingToCluedMappingConfiguration(
+      dataSetId: $dataSetId
+      propertyMappingConfiguration: $propertyMappingConfiguration
+      extra: $extra
+    )
+    __typename
+  }
+}

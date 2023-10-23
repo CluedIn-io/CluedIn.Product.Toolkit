@@ -30,7 +30,7 @@ function New-CluedInAnnotation {
                     entityType = $Object.entityTypeConfiguration.entityType
                     displayName = $Object.entityTypeConfiguration.displayName
                 }
-                ignoreFields = @()
+                ignoredFields = @()
                 vocabularyConfiguration = @{
                     new = $false
                     vocabularyName = $Object.vocabulary.vocabularyName

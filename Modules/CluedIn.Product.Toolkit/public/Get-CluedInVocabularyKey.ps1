@@ -20,7 +20,8 @@ function Get-CluedInVocabularyKey {
     [CmdletBinding()]
     param (
         [Parameter(ParameterSetName = 'Id')][guid]$Id,
-        [Parameter(ParameterSetName = 'Search')][string]$Search
+        [Parameter(ParameterSetName = 'Search')][string]$Search,
+        [switch]$IncludeCore
     )
 
     switch ($PsCmdlet.ParameterSetName) {
@@ -45,6 +46,12 @@ function Get-CluedInVocabularyKey {
     $query = @{
         variables = $variables
         query = $queryContent
+    }
+
+    if (!$IncludeCore) {
+        $result.data.management.vocabularies.data = $result.data.management.vocabularies.data |
+            Where-Object {$_.isCluedInCore -eq $false}
+        $result.data.management.vocabularies.total = $result.data.management.vocabularies.data.count
     }
 
     return Invoke-CluedInGraphQL -Query $query

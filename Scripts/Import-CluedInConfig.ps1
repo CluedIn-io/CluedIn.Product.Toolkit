@@ -107,18 +107,20 @@ foreach ($vocabKey in $vocabKeys) {
     $vocabKeyJson = Get-Content -Path $vocabKey.FullName | ConvertFrom-Json -Depth 20
     $vocabKeyObject = $vocabKeyJson.data.management.vocabularyKeysFromVocabularyId.data
 
+    $vocabulary = Get-CluedInVocabulary -Search $vocabKeyObject.vocabulary.vocabularyName[0] -IncludeCore
     foreach ($key in $vocabKeyObject) {
         Write-Host "Processing Vocab Key: $($key.displayName) ($($key.vocabularyKeyId))" -ForegroundColor Cyan
         Write-Debug "$($key | Out-String)"
 
-        $vocabulary = Get-CluedInVocabulary -Search $key.vocabulary.vocabularyName
-
-        $params = @{
-            Object = $key
-            VocabId = $vocabulary.data.management.vocabularies.data.vocabularyId
+        $vocabularyKey = Get-CluedInVocabularyKey -Search $key.key
+        if (!$vocabularyKey.data.management.vocabularyPerKey.key) {
+            $params = @{
+                Object = $key
+                VocabId = $vocabulary.data.management.vocabularies.data.vocabularyId
+            }
+            $vocabKeyResult = New-CluedInVocabularyKey @params
+            checkResults($vocabKeyResult)
         }
-        $vocabKeyResult = New-CluedInVocabularyKey @params
-        checkResults($vocabKeyResult)
     }
 }
 
@@ -209,19 +211,25 @@ foreach ($dataSet in $dataSets) {
 
                 Write-Verbose "Setting Annotation Configuration"
                 $annotationId = (Get-CluedInDataSet -id $dataSetId).data.inbound.dataSet.annotationId # Doesn't come from result
+                $annotationObject.id = $annotationId
                 $settings = @{
                     useDefaultSourceCode = $annotationObject.useDefaultSourceCode
                     useStrictEdgeCode = $annotationObject.useStrictEdgeCode
                     descriptionKey = $annotationObject.descriptionKey
                     nameKey = $annotationObject.nameKey
                 }
-                $setAnnotationResult = Set-CluedInAnnotation -Id $annotationId -Settings $settings
+                $setAnnotationResult = Set-CluedInAnnotation -Id $annotationObject.id -Settings $settings
                 checkResults($setAnnotationResult)
 
                 Write-Verbose "Configuring Mappings"
                 foreach ($mapping in $dataSetObject.fieldMappings) {
                     $vocabularyKey = Get-CluedInVocabularyKey -Search $mapping.key
                     $vocabularyKeyObject = $vocabularyKey.data.management.vocabularyPerKey
+                    if (!$vocabularyKeyObject.vocabularyKeyId) {
+                        Write-Error "Key: $($mapping.key) doesn't exist"
+                        continue
+                    }
+
                     $mapping | Add-Member -MemberType 'NoteProperty' -Name 'dataSetId' -Value $dataSetId
                     $mapping | Add-Member -MemberType 'NoteProperty' -Name 'vocabularyId' -Value $vocabularyKeyObject.vocabularyId
                     $mapping | Add-Member -MemberType 'NoteProperty' -Name 'vocabularyKeyId' -Value $vocabularyKeyObject.vocabularyKeyId

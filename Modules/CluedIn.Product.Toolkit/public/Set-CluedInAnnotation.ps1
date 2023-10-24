@@ -26,6 +26,8 @@ function Set-CluedInAnnotation {
                 #useStrictEdgeCode = $true
                 #descriptionKey = ''
                 #nameKey = ''
+                #originEntityCodeKey = ''
+                #origin = ''
             } + $Settings
         }
         query = $queryContent

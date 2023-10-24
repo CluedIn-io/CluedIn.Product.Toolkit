@@ -218,6 +218,8 @@ foreach ($dataSet in $dataSets) {
                     useStrictEdgeCode = $annotationObject.useStrictEdgeCode
                     descriptionKey = $annotationObject.descriptionKey
                     nameKey = $annotationObject.nameKey
+                    originEntityCodeKey = $annotationObject.originEntityCodeKey
+                    origin = $annotationObject.origin
                 }
                 $setAnnotationResult = Set-CluedInAnnotation -Id $annotationObject.id -Settings $settings
                 checkResults($setAnnotationResult)

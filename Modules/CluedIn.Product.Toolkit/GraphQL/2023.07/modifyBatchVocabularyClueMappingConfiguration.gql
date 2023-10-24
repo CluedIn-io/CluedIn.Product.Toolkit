@@ -1,0 +1,12 @@
+mutation modifyBatchVocabularyClueMappingConfiguration(
+  $annotationId: ID!
+  $batchPropertyMappings: InputBatchPropertyMapping
+) {
+  management {
+    modifyBatchVocabularyClueMappingConfiguration(
+      annotationId: $annotationId
+      batchPropertyMappings: $batchPropertyMappings
+    )
+    __typename
+  }
+}

@@ -240,6 +240,13 @@ foreach ($dataSet in $dataSets) {
                     $dataSetMappingResult = New-CluedInDataSetMapping -Object $mapping
                     checkResults($dataSetMappingResult)
                 }
+
+                Write-Verbose "Setting Annotation Entity Codes"
+                $entities = $annotationObject.annotationProperties | Where-Object {$_.useAsEntityCode}
+                foreach ($entity in $entities) {
+                    $setAnnotationEntityCodesResult = Set-CluedInAnnotationEntityCodes -Object $entity -Id $annotationObject.id
+                    checkResults($setAnnotationEntityCodesResult)
+                }
             }
             catch {
                 Write-Verbose "Annotation file '$annotationPath' not found or error occured during run"

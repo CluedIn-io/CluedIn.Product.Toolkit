@@ -19,7 +19,7 @@ function Set-CluedInAnnotation {
     $queryContent = Get-CluedInGQLQuery -OperationName 'modifyAnnotation'
 
     $query = @{
-        variables =@{
+        variables = @{
             annotation = @{
                 id = $Id
                 #useDefaultSourceCode = $true

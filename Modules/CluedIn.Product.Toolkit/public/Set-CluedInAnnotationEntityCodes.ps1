@@ -26,7 +26,7 @@ function Set-CluedInAnnotationEntityCodes {
                     @{
                         vocabKey = $Object.vocabularyKey.key
                         entityCodeOrigin = $Object.entityCodeOrigin
-                        useAsEntityCode = $true
+                        useAsEntityCode = $Object.useAsEntityCode
                         useSourceCode = $Object.useSourceCode
                     }
                 )

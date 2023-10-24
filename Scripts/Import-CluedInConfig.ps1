@@ -114,6 +114,7 @@ foreach ($vocabKey in $vocabKeys) {
 
         $vocabularyKey = Get-CluedInVocabularyKey -Search $key.key
         if (!$vocabularyKey.data.management.vocabularyPerKey.key) {
+            Write-Verbose "Creating '$($key.key)' as it doesn't exist"
             $params = @{
                 Object = $key
                 VocabId = $vocabulary.data.management.vocabularies.data.vocabularyId

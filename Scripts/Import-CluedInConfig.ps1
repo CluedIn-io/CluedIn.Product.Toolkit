@@ -31,7 +31,6 @@ function checkResults($result) {
     if ($result.errors) {
         switch ($result.errors.message) {
             {$_ -match '409'} { Write-Warning "An entry already exists" }
-            {$_ -match '400'} { Write-Warning "Invalid" }
             default { Write-Warning "Failed: $($result.errors.message)" }
         }
     }
@@ -107,7 +106,8 @@ foreach ($vocabKey in $vocabKeys) {
     $vocabKeyJson = Get-Content -Path $vocabKey.FullName | ConvertFrom-Json -Depth 20
     $vocabKeyObject = $vocabKeyJson.data.management.vocabularyKeysFromVocabularyId.data
 
-    $vocabulary = Get-CluedInVocabulary -Search $vocabKeyObject.vocabulary.vocabularyName[0] -IncludeCore
+    $vocabName = $vocabKeyObject.vocabulary.vocabularyName | Select-Object -First 1
+    $vocabulary = Get-CluedInVocabulary -Search $vocabName -IncludeCore
     foreach ($key in $vocabKeyObject) {
         Write-Host "Processing Vocab Key: $($key.displayName) ($($key.vocabularyKeyId))" -ForegroundColor Cyan
         Write-Debug "$($key | Out-String)"

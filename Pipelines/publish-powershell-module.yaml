@@ -43,6 +43,9 @@ steps:
     Update-ModuleManifest -Path $ModulePath -ModuleVersion ${{ parameters.moduleVersion }}
   displayName: Update Module Version
 
+- publish: $(Build.ArtifactStagingDirectory)/${{ parameters.moduleName }}
+  artifact: PowershellModule
+
 - pwsh: |
     Write-Host "I will get ready to package and push to ADO"
   displayName: Publish Module

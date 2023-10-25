@@ -32,16 +32,16 @@ function Set-CluedInRule {
                     objectTypeId = $Object.condition.objectTypeId
                     condition = $Object.condition.condition
                     field = $Object.condition.field
-                    id = $Object.condition.id # Not sure what this is - we need to update it
+                    id = $Object.condition.id # Not sure what this is - do we need to update it?
                     operator = $Object.condition.operator
                     rules = @(
                         $Object.condition.rules.ForEach({
                             @{
                                 condition = $_.condition
                                 field = $_.field
-                                objectTypeId = $_.objectTypeId # Not sure what this is - we need to update it
-                                operator = $_.operator # Not sure what this is - we need to update it
-                                value = @($_.value) #array?
+                                objectTypeId = $_.objectTypeId # Not sure what this is - do we need to update it?
+                                operator = $_.operator # Not sure what this is - do we need to update it?
+                                value = $_.value
                                 type = $_.type
                             }
                         })
@@ -62,7 +62,7 @@ function Set-CluedInRule {
                                             field = $_.field
                                             objectTypeId = $_.objectTypeId
                                             operator = $_.operator
-                                            value = $_.value #array?
+                                            value = $_.value
                                             type = $_.type
                                         }
                                     })

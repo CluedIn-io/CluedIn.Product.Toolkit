@@ -1,8 +1,21 @@
 function Get-CluedInStreams {
+    <#
+        .SYNOPSIS
+        GraphQL Query: Returns information about streams
+
+        .DESCRIPTION
+        GraphQL Query: Returns information about streams
+
+        .PARAMETER Search
+        Narrows search results. By default will return everything
+
+        .EXAMPLE
+        PS> Get-CluedInStreams
+    #>
+
     [CmdletBinding()]
     param(
-        [guid]$Id
-
+        [string]$Search = ""
     )
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'getStreams'

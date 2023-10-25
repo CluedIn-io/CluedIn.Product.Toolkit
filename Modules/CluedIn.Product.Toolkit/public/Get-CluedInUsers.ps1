@@ -1,4 +1,17 @@
 function Get-CluedInUsers {
+    <#
+        .SYNOPSIS
+        GraphQL Query: Returns all users setup on the system
+
+        .DESCRIPTION
+        GraphQL Query: Returns all users setup on the system
+
+        .EXAMPLE
+        PS> Get-CluedInUsers
+
+        Returns all users
+    #>
+
     [CmdletBinding()]
     param()
 

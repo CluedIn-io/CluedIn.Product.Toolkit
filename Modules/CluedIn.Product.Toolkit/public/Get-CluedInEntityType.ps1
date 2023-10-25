@@ -6,6 +6,10 @@ function Get-CluedInEntityType {
         .DESCRIPTION
         GraphQL Query: Returns Entity Types
 
+        .PARAMETER Search
+        You can specify a Search parameter and it will narrow down the results
+        It is not a hard match
+
         .EXAMPLE
         PS> Get-CluedInEntityType
 

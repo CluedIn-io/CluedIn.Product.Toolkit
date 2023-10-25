@@ -5,7 +5,7 @@ function Connect-CluedInOrganisation {
 
         .DESCRIPTION
         Connects and Authenticates to the CluedIn Organisation specified when calling the function.
-        This stores some Environmental Variables for this session only which won't persist.
+        This stores some Environmental Variables for this session only which won't persist when powershell gets closed.
 
         The function should be ran before doing any work with a CluedIn Organisation
 
@@ -17,11 +17,18 @@ function Connect-CluedInOrganisation {
         This is the organisation to connect to. This can be determined on the url as it precedes the base url.
         ie. If you normally access on 'org.customer.com', please only use 'org'
 
+        .PARAMETER Version
+        This is the environments version to ensure we're using correct GraphQL queries downstream.
+
         .PARAMETER APIToken
         Can pass in a CluedIn API token that grants access to PublicAPI and Server UI Components only
 
+        .PARAMETER Force
+        If you need to refresh the JWT, force allows you to skip the existing check. This is useful when testing
+        against environments you're destroying and recreating.
+
         .EXAMPLE
-        PS> Connect-CluedInOrganisation -BaseURL 'customer.com' -Orgnisation 'org'
+        PS> Connect-CluedInOrganisation -BaseURL 'customer.com' -Orgnisation 'org' -Version '2023.07'
 
         This will attempt to connect to https://org.customer.com and authenticate
     #>

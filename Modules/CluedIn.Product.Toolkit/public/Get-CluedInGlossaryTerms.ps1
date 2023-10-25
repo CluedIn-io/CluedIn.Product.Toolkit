@@ -1,13 +1,19 @@
 function Get-CluedInGlossaryTerms {
     <#
         .SYNOPSIS
-        GraphQL Query: Returns all Glossaries
+        GraphQL Query: Returns all Glossaries Terms
 
         .DESCRIPTION
-        GraphQL Query: Returns all Glossaries
+        GraphQL Query: Returns all Glossaries Terms
+
+        .PARAMETER Search
+        If specified, will return a narrowed down results. By default, it will return everything
 
         .EXAMPLE
-        PS> Get-CluedInGlossary
+        PS> Get-CluedInGlossaryTerms
+
+        .EXAMPLE
+        PS> Get-CluedInGlossaryTerms -Search "Sample Term"
     #>
 
     [CmdletBinding()]

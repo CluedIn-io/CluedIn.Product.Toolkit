@@ -1,10 +1,10 @@
 function Invoke-CluedInWebRequest {
     <#
         .SYNOPSIS
-        Helper function which is a wrapper to the standard Invoke-RestMethod
+        Wrapper to the standard Invoke-RestMethod
 
         .DESCRIPTION
-        Helper function which is a wrapper to the standard Invoke-RestMethod
+        Wrapper to the standard Invoke-RestMethod with headers set to the correct configuration
 
         .EXAMPLE
         PS> Invoke-CluedInWebRequest -Uri 'https://customer.cluedin.com/api/graphql' -Method 'POST' -Body $body

@@ -114,7 +114,7 @@ foreach ($vocabKey in $vocabKeys) {
 
         $vocabularyKey = Get-CluedInVocabularyKey -Search $key.key
         if (!$vocabularyKey.data.management.vocabularyPerKey.key) {
-            Write-Verbose "Creating '$($key.key)' as it doesn't exist"
+            Write-Host "Creating '$($key.key)' as it doesn't exist" -ForegroundColor DarkCyan
             $params = @{
                 Object = $key
                 VocabId = $vocabulary.data.management.vocabularies.data.vocabularyId
@@ -189,7 +189,7 @@ foreach ($dataSet in $dataSets) {
 
             # If the dataSet already exists, we need to assume the annotations were also restored.
             # So we only run this in the !exists block
-            Write-Verbose "Importing Annotations"
+            Write-Host "Processing Annotations" -ForegroundColor Cyan
             $annotationPath = Join-Path -Path $dataSetsPath -ChildPath ('{0}-Annotation.json' -f $dataSetObject.id)
             Try {
                 $annotationJson = Get-Content -Path $annotationPath | ConvertFrom-Json -Depth 20
@@ -246,6 +246,20 @@ foreach ($dataSet in $dataSets) {
                 foreach ($entity in $entities) {
                     $setAnnotationEntityCodesResult = Set-CluedInAnnotationEntityCodes -Object $entity -Id $annotationObject.id
                     checkResults($setAnnotationEntityCodesResult)
+                }
+
+                Write-Verbose "Adding Edge Mappings"
+                $edges = $annotationObject.annotationProperties | Where-Object {$_.annotationEdges}
+
+                foreach ($edge in $edges) {
+                    $edge = $edge.annotationEdges
+                    $edgeVocabulary = Get-CluedInVocabularyKey -Search $edge.edgeProperties.vocabularyKey.key
+                    $edgeVocabularyObject = $edgeVocabulary.data.management.vocabularyPerKey
+                    $edge.edgeProperties.vocabularyKey.vocabularyKeyId = $edgeVocabularyObject.vocabularyKeyId
+                    $edge.edgeProperties.vocabularyKey.vocabularyId = $edgeVocabularyObject.vocabularyId
+
+                    $edgeResult = New-CluedInEdgeMapping -Object $edge -AnnotationId $annotationObject.id
+                    checkResults($edgeResult)
                 }
             }
             catch {

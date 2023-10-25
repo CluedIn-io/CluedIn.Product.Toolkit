@@ -101,6 +101,7 @@ foreach ($vocabulary in $vocabularies) {
 }
 
 Write-Host "INFO: Importing Vocabulary Keys" -ForegroundColor 'Green'
+Write-Host "This may take a couple minutes..." -ForegroundColor 'Yellow'
 $vocabKeys = Get-ChildItem -Path $vocabKeysPath -Filter "*.json"
 foreach ($vocabKey in $vocabKeys) {
     $vocabKeyJson = Get-Content -Path $vocabKey.FullName | ConvertFrom-Json -Depth 20
@@ -109,12 +110,12 @@ foreach ($vocabKey in $vocabKeys) {
     $vocabName = $vocabKeyObject.vocabulary.vocabularyName | Select-Object -First 1
     $vocabulary = Get-CluedInVocabulary -Search $vocabName -IncludeCore
     foreach ($key in $vocabKeyObject) {
-        Write-Host "Processing Vocab Key: $($key.displayName) ($($key.vocabularyKeyId))" -ForegroundColor Cyan
+        Write-Host "Processing Vocab Key: $($key.displayName) ($($key.vocabularyKeyId))" -ForegroundColor 'Cyan'
         Write-Debug "$($key | Out-String)"
 
         $vocabularyKey = Get-CluedInVocabularyKey -Search $key.key
         if (!$vocabularyKey.data.management.vocabularyPerKey.key) {
-            Write-Host "Creating '$($key.key)' as it doesn't exist" -ForegroundColor DarkCyan
+            Write-Host "Creating '$($key.key)' as it doesn't exist" -ForegroundColor 'DarkCyan'
             $params = @{
                 Object = $key
                 VocabId = $vocabulary.data.management.vocabularies.data.vocabularyId
@@ -136,6 +137,7 @@ foreach ($dataSourceSet in $dataSourceSets.data.inbound.dataSourceSets.data) {
     $exists = (Get-CluedInDataSourceSet -Search $($dataSourceSet.name)).data.inbound.dataSourceSets.data
 
     if (!$exists) {
+        Write-Host "Creating '$($dataSourceSet.name)' as it doesn't exist" -ForegroundColor 'DarkCyan'
         $dataSourceSetResult = New-CluedInDataSourceSet -Object $dataSourceSet
         checkResults($dataSourceSetResult)
     }
@@ -159,6 +161,7 @@ foreach ($dataSource in $dataSources) {
     Write-Host "Processing Data Source: $($dataSourceObject.name) ($($dataSourceObject.id))" -ForegroundColor 'Cyan'
     $exists = (Get-CluedInDataSource -Search $dataSourceObject.name).data.inbound.dataSource
     if (!$exists) {
+        Write-Host "Creating '$($dataSourceObject.name)' as it doesn't exist" -ForegroundColor 'DarkCyan'
         $dataSourceResult = New-CluedInDataSource -Object $dataSourceObject
         checkResults($dataSourceResult)
     }
@@ -179,6 +182,7 @@ foreach ($dataSet in $dataSets) {
 
     $exists = ($dataSetObject.name -in $dataSource.data.inbound.dataSource.dataSets.name)
     if (!$exists) {
+        Write-Host "Creating '$($dataSetObject.name)' as it doesn't exist" -ForegroundColor 'DarkCyan'
         $dataSetResult = New-CluedInDataSet -Object $dataSetObject
         checkResults($dataSetResult)
 
@@ -207,6 +211,7 @@ foreach ($dataSet in $dataSets) {
                 }
                 $annotationObject.vocabulary.vocabularyId = $vocabObject.data.vocabularyId
 
+                Write-Host "Creating annotation as it doesn't exist" -ForegroundColor 'DarkCyan'
                 $annotationResult = New-CluedInAnnotation -Object $annotationObject
                 checkResults($annotationResult)
 
@@ -270,4 +275,6 @@ foreach ($dataSet in $dataSets) {
         }
     }
     else { Write-Warning "An entry already exists" }
+
+    Write-Host "INFO: Import Complete" -ForegroundColor 'Green'
 }

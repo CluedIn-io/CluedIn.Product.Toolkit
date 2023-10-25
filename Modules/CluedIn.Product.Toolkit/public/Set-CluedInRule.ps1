@@ -14,7 +14,7 @@ function Set-CluedInRule {
 
     [CmdletBinding()]
     param(
-        [string]$Object
+        [PSCustomObject]$Object
     )
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'saveRule'
@@ -23,67 +23,69 @@ function Set-CluedInRule {
         query = $queryContent
         variables = @{
             rule = @{
-                id = $Id # Get from New-CluedInRule?
-                name = $RuleName # Get from New-CluedInRule?
-                isActive = $false
-                description = $null
-                scope = 'DataPart'
+                id = $Object.id
+                name = $Object.name
+                isActive = $Object.isActive
+                description = $Object.description
+                scope = $Object.scope
                 condition = @{
-                    objectTypeId = '00000000-0000-0000-0000-000000000000'
-                    condition = 'AND'
-                    field = $null
-                    id = '81f89387-11b3-4f83-9f7c-bf13cd6fb45d'
-                    operator = '00000000-0000-0000-0000-000000000000'
+                    objectTypeId = $Object.condition.objectTypeId
+                    condition = $Object.condition.condition
+                    field = $Object.condition.field
+                    id = $Object.condition.id # Not sure what this is - we need to update it
+                    operator = $Object.condition.operator
                     rules = @(
-                        @{
-                            condition = 'AND'
-                            field = 'Aliases'
-                            objectTypeId = '3be85371-cbe0-4180-8820-73e6e37a6c32'
-                            operator = '4988d076-3ec1-4414-9f56-5b9b30e25f72'
-                            value = @(
-                                "admin@devcluedin.com"
-                            )
-                            type = 'enumerable'
-                        }
+                        $Object.condition.rules.ForEach({
+                            @{
+                                condition = $_.condition
+                                field = $_.field
+                                objectTypeId = $_.objectTypeId # Not sure what this is - we need to update it
+                                operator = $_.operator # Not sure what this is - we need to update it
+                                value = @($_.value) #array?
+                                type = $_.type
+                            }
+                        })
                     )
-                    type = $null
-                    value = $null
+                    type = $Object.condition.type
+                    value = $Object.condition.value
                 }
                 rules = @(
-                    @{
-                        name = $ActionName
-                        isActive = $false
-                        conditions = @{
-                            rules = @(
+                    $object.rules.ForEach({
+                        @{
+                            name = $_.name
+                            isActive = $_.isActive
+                            conditions = @{
+                                rules = @(
+                                    $_.conditions.rules.ForEach({
+                                        @{
+                                            condition = $_.condition
+                                            field = $_.field
+                                            objectTypeId = $_.objectTypeId
+                                            operator = $_.operator
+                                            value = $_.value #array?
+                                            type = $_.type
+                                        }
+                                    })
+                                )
+                                condition = $_.conditions.condition
+                            }
+                            actions = @(
                                 @{
-                                    condition = 'AND'
-                                    field = "Properties[organization.address]"
-                                    objectTypeId = '011ac3b4-0b46-4f9c-a82a-8c14f9dd642b'
-                                    operator = '4988d076-3ec1-4414-9f56-5b9b30e25f72'
-                                    value = @(
-                                        "asdf"
+                                    name = $_.actions.name
+                                    supportsPreview = $_.actions.supportsPreview
+                                    type = $_.actions.type
+                                    properties = @(
+                                        @{
+                                            name = $_.actions.properties.name
+                                            type = $_.actions.properties.type
+                                            value = $_.actions.properties.value
+                                            isRequired = $_.actions.properties.isRequired
+                                        }
                                     )
-                                    type = 'string'
                                 }
                             )
-                            condition = 'OR'
                         }
-                        actions = @(
-                            @{
-                                name = "Add Tag"
-                                supportsPreview = $false
-                                type = "CluedIn.Rules.Actions.AddTag, CluedIn.Rules"
-                                properties = @(
-                                    @{
-                                        name = "Value"
-                                        type = "System.String"
-                                        value = "asdfsdaf"
-                                        isRequired = $true
-                                    }
-                                )
-                            }
-                        )
-                    }
+                    })
                 )
             }
         }

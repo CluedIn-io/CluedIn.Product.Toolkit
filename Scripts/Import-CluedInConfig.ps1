@@ -52,6 +52,7 @@ $dataSourceSetsPath = Join-Path -Path $dataPath -ChildPath 'SourceSets'
 $dataSourcesPath = Join-Path -Path $dataPath -ChildPath 'Sources'
 $dataSetsPath = Join-Path -Path $dataPath -ChildPath 'Sets'
 $generalPath = Join-Path -Path $RestorePath -ChildPath 'General'
+$rulesPath = Join-Path -Path $RestorePath -ChildPath 'Rules'
 
 # Test Paths
 if (!(Test-Path -Path $generalPath -PathType Container)) { throw "'$generalPath' could not be found. Please investigate" }
@@ -74,7 +75,7 @@ foreach ($setting in $settings) {
 
     $key = $setting
     $value = $adminSetting.data.administration.configurationSettings.$key
-    Write-Host "Processing Admin Setting: $key" -ForegroundColor Cyan
+    Write-Host "Processing Admin Setting: $key" -ForegroundColor 'Cyan'
     $adminSettingResult = Set-CluedInAdminSettings -AdminSettingName $key -AdminSettingValue $value
     checkResults($adminSettingResult)
 }
@@ -86,7 +87,7 @@ foreach ($vocabulary in $vocabularies) {
     $vocabJson = Get-Content -Path $vocabulary.FullName | ConvertFrom-Json -Depth 20
     $vocabObject = $vocabJson.data.management.vocabulary
 
-    Write-Host "Processing Vocab: $($vocabObject.vocabularyName) ($($vocabObject.vocabularyId))" -ForegroundColor Cyan
+    Write-Host "Processing Vocab: $($vocabObject.vocabularyName) ($($vocabObject.vocabularyId))" -ForegroundColor 'Cyan'
     Write-Debug "$($vocabObject | Out-String)"
 
     # Check if entity Type exists and create if not found
@@ -275,6 +276,23 @@ foreach ($dataSet in $dataSets) {
         }
     }
     else { Write-Warning "An entry already exists" }
-
-    Write-Host "INFO: Import Complete" -ForegroundColor 'Green'
 }
+
+# Rules
+Write-Host "INFO: Importing Rules" -ForegroundColor 'Green'
+$rules = Get-ChildItem -Path $rulesPath -Filter "*.json" -Recurse
+foreach ($rule in $rules) {
+    $ruleJson = Get-Content -Path $rule.FullName | ConvertFrom-Json -Depth 20
+    $ruleObject = $ruleJson.data.management.rule
+
+    Write-Host "Processing Rule: $($ruleObject.name) ($($ruleObject.scope))" -ForegroundColor 'Cyan'
+    $ruleResult = New-CluedInRule -Name $ruleObject.name -Scope $ruleObject.scope
+    checkResults($ruleResult)
+
+    Write-Verbose "Setting rule configuration"
+    $ruleObject.id = $ruleResult.data.management.createRule.id
+    $setRuleResult = Set-CluedInRule -Object $ruleObject
+    checkResults($setRuleResult)
+}
+
+Write-Host "INFO: Import Complete" -ForegroundColor 'Green'

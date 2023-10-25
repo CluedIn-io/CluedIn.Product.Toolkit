@@ -6,7 +6,7 @@
     <authors>Implementation</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <projectUrl>https://github.com/CluedIn-io/CluedIn.Product.Toolkit</projectUrl>
-    <description>This module coontains cmdlets to manage CluedIn product</description>
+    <description>This module contains cmdlets to manage CluedIn product</description>
     <releaseNotes>GitHub</releaseNotes>
     <copyright>$copyright$</copyright>
   </metadata>

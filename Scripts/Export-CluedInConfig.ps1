@@ -57,9 +57,11 @@ $dataSetProcess = @()
 for ($i = 0; $i -lt $dataSources.count; $i++) {
     $dataSource = Get-CluedInDataSource -Id $dataSources[$i].id
     $dataSource | Out-JsonFile -Path $path -Name ('{0}-DataSource' -f $i)
-    $dataSetProcess += @{
-        id = $dataSource.data.inbound.datasource.datasets.id
-        type = $dataSource.data.inbound.datasource.type
+    foreach ($dataSet in $dataSource.data.inbound.datasource.datasets) {
+        $dataSetProcess += @{
+            id = $dataSet.id
+            type = $dataSource.data.inbound.datasource.type
+        }
     }
 }
 

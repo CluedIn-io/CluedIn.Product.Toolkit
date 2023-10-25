@@ -11,6 +11,9 @@ parameters:
   type: string
   default: CluedIn.Product.Toolkit
 
+variables:
+  MODULE_VERSION: ${{ parameters.moduleVersion }}
+
 steps:
 - pwsh: |
     Write-Host "I will run pester"
@@ -44,7 +47,7 @@ steps:
   inputs:
     command: pack
     versioningScheme: byEnvVar
-    versionEnvVar: ${{ parameters.moduleVersion }}
+    versionEnvVar: MODULE_VERSION
     packagesToPack: $(Build.ArtifactStagingDirectory)/${{ parameters.moduleName }}
     packDestination: '$(Build.ArtifactStagingDirectory)'
 

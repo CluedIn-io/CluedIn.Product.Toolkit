@@ -23,8 +23,8 @@ function Set-CluedInRule {
         query = $queryContent
         variables = @{
             rule = @{
-                id = $Id
-                name = $RuleName
+                id = $Id # Get from New-CluedInRule?
+                name = $RuleName # Get from New-CluedInRule?
                 isActive = $false
                 description = $null
                 scope = 'DataPart'

@@ -15,7 +15,7 @@ function New-CluedInRule {
     [CmdletBinding()]
     param(
         [string]$RuleName,
-        [ValidateSet('Survivorship', 'DataPart')][string]$Scope,
+        [ValidateSet('Survivorship', 'DataPart', 'Entity')][string]$Scope,
         [PSCustomObject]$Object
     )
 

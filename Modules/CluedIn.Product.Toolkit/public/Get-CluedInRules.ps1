@@ -1,21 +1,23 @@
 function Get-CluedInRules {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'Search')]
     param(
-        [guid]$Id,
+        [Parameter(ParameterSetName = 'Id')][guid]$Id,
+        [Parameter(ParameterSetName = 'Search')][string]$Search = "",
         [Parameter(Mandatory)][ValidateSet('Survivorship', 'DataPart', 'Entity')][string]$Scope
     )
 
-    switch ($Id) {
-        '' {
+    switch ($PsCmdlet.ParameterSetName) {
+        'Search' {
             $queryContent = Get-CluedInGQLQuery -OperationName 'getRules'
             $query = @{
                 variables = @{
+                    searchName = $Search
                     scope = $Scope
                 }
                 query = $queryContent
             }
         }
-        default {
+        'Id' {
             $queryContent = Get-CluedInGQLQuery -OperationName 'getRule'
             $query = @{
                 variables = @{

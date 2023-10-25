@@ -40,7 +40,7 @@ steps:
         throw "The specified version '$newVersion' is lower than '$currentVersion'"
     }
 
-    Update-ModuleManifest -Path $ModulePath -ModuleVersion ${{ parameters.moduleVersion }}
+    Update-ModuleManifest -Path $ModulePath/${{ parameters.moduleName }}.psd1 -ModuleVersion ${{ parameters.moduleVersion }}
   displayName: Update Module Version
 
 - publish: $(Build.ArtifactStagingDirectory)/${{ parameters.moduleName }}

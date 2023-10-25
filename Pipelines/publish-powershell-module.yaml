@@ -13,6 +13,12 @@ parameters:
 
 steps:
 - pwsh: |
+    Write-Host "I will run pester"
+
+- pwsh: |
+    (Get-ChildItem $(System.DefaultWorkingDirectory) -recurse | Out-String)
+
+- pwsh: |
     $modulePath = "$(System.DefaultWorkingDirectory)/Modules/${{ parameters.moduleName }}"
     $artifactPath = '$(Build.ArtifactStagingDirectory)/'
     Copy-Item -Path $modulePath -Destination $artifactPath

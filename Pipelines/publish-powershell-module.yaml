@@ -1,1 +1,40 @@
 trigger: none
+
+name: ${{ parameters.organisation }}.${{ parameters.baseURL }} Backup ($(Date:yyyyMMdd)$(Rev:r))
+
+parameters:
+- name: 'moduleVersion'
+  displayName: 'Module Version'
+  type: string
+- name: 'moduleName'
+  displayName: 'Module Name'
+  type: string
+  default: CluedIn.Production.Toolkit
+
+steps:
+- pwsh: |
+    $modulePath = "$(System.DefaultWorkingDirectory)/Modules/${{ parameters.moduleName }}"
+    $artifactPath = '$(Build.ArtifactStagingDirectory)/'
+    Copy-Item -Path $modulePath -Destination $artifactPath
+    Remove-Item -Path $artifactPath/${{ parameters.moduleName }}/tests -Force -Recurse
+  displayName: Copy Module to artifact staging
+
+- pwsh: |
+    $ModulePath = '$(Build.ArtifactStagingDirectory)/${{ parameters.moduleName }}'
+    Write-Host "Module Path: $ModulePath"
+
+    $content = Get-Content -Path "$ModulePath/${{ parameters.moduleName }}.psd1"
+    $version = $content | select-string -Pattern "ModuleVersion = '(.*)'"
+    [version]$currentVersion = $version.Matches.Groups[1].value
+    Write-Host "Current Version: $currentVersion"
+    [version]$newVersion = ${{ parameters.moduleVersion }}
+
+    if ($newVersion -le $currentVersion) {
+        throw "The specified version '$newVersion' is lower than '$currentVersion'"
+    }
+
+    Update-ModuleManifest -Path $ModulePath -ModuleVersion ${{ parameters.moduleVersion }}
+  displayName: Update Module Version
+
+- pwsh: |
+    Write-Host "I will get ready to package and push to ADO"

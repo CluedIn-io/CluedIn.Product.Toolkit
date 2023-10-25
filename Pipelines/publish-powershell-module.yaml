@@ -22,7 +22,7 @@ steps:
 - pwsh: |
     $modulePath = "$(System.DefaultWorkingDirectory)/Modules/${{ parameters.moduleName }}"
     $artifactPath = '$(Build.ArtifactStagingDirectory)/'
-    Copy-Item -Path $modulePath -Destination $artifactPath
+    Copy-Item -Path $modulePath -Destination $artifactPath -Recurse
     Remove-Item -Path $artifactPath/${{ parameters.moduleName }}/tests -Force -Recurse
   displayName: Copy Module to artifact staging
 

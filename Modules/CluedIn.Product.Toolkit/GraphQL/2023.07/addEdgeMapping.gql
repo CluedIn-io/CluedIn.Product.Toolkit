@@ -1,0 +1,14 @@
+mutation addEdgeMapping(
+  $annotationId: ID!
+  $key: String!
+  $edgeConfiguration: InputEdgeConfiguration
+) {
+  management {
+    addEdgeMapping(
+      annotationId: $annotationId
+      key: $key
+      edgeConfiguration: $edgeConfiguration
+    )
+    __typename
+  }
+}

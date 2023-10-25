@@ -51,6 +51,8 @@ function Connect-CluedInOrganisation {
         return $refreshRequired
     }
 
+    if ($Version -lt [version]'2023.07') { throw "This toolkit only supports versions greater than 2023.07" }
+
     [string]$envVersion = '{0}.{1}' -f $Version.Major, ([string]$Version.Minor).PadLeft(2, '0')
 
     if (!$Force) {

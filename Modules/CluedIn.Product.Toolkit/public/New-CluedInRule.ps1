@@ -14,8 +14,8 @@ function New-CluedInRule {
 
     [CmdletBinding()]
     param(
-        [string]$RuleName,
-        [ValidateSet('Survivorship', 'DataPart')][string]$Scope
+        [string]$Name,
+        [ValidateSet('Survivorship', 'DataPart', 'Entity')][string]$Scope
     )
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'createRule'
@@ -23,8 +23,8 @@ function New-CluedInRule {
     $query = @{
         variables = @{
             rule = @{
-                name = 'TestRule'
-                scope = 'Survivorship'
+                name = $Name
+                scope = $Scope
             }
         }
         query = $queryContent

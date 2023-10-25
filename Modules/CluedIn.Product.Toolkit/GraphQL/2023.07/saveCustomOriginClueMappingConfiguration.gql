@@ -1,0 +1,12 @@
+mutation saveCustomOriginClueMappingConfiguration(
+  $annotationId: ID!
+  $customOrigin: String
+) {
+  management {
+    saveCustomOriginClueMappingConfiguration(
+      annotationId: $annotationId
+      customOrigin: $customOrigin
+    )
+    __typename
+  }
+}

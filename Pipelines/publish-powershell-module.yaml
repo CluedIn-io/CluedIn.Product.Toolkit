@@ -1,6 +1,6 @@
 trigger: none
 
-name: ${{ parameters.organisation }}.${{ parameters.baseURL }} Backup ($(Date:yyyyMMdd)$(Rev:r))
+name: ${{ parameters.moduleName }} v${{ parameters.moduleVersion }} Publish
 
 parameters:
 - name: 'moduleVersion'

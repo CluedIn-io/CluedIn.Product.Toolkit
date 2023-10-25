@@ -6,10 +6,13 @@ function Set-CluedInRule {
         .DESCRIPTION
         GraphQL Query: Sets a Rule's configuration
 
-        .EXAMPLE
-        PS> Set-CluedInRule -RuleName 'TestRule'
+        .PARAMETER Object
+        Due to the complexity of the function, it needs to be passed in as a PSCustomObject
 
-        This will query will return mapping id '10' for the connected CluedIn Organisation
+        You can get a sample by running Get-CluedInRules and filtering it down to the rule configuration
+
+        .EXAMPLE
+        PS> Set-CluedInRule -Object $sampleRuleObject
     #>
 
     [CmdletBinding()]

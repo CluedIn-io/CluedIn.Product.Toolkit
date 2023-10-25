@@ -6,8 +6,14 @@ function New-CluedInDataSourceSet {
         .DESCRIPTION
         GraphQL Query: Creates a New DataSource Set
 
+        .PARAMETER DisplayName
+        This is the name of the Data Source Set as it appears in the GUI
+
+        .PARAMETER Object
+        This can be passed in as an PSCustomObject
+
         .EXAMPLE
-        PS> New-CluedInDataSourceSet
+        PS> New-CluedInDataSourceSet -DisplayName 'Sample Data Source Set'
     #>
 
     [CmdletBinding()]

@@ -6,8 +6,16 @@ function New-CluedInEdgeMapping {
         .DESCRIPTION
         GraphQL Query: Creates an edge mapping
 
+        .PARAMETER AnnotationId
+        This is the Id of an annotation which is associated to a data set
+
+        .PARAMETER Object
+        Due to the complexity of the function, it needs to be passed in as a PSCustomObject
+
+        You can get a sample by running Get-CluedInAnnotation and filtering down to the annotation mappings
+
         .EXAMPLE
-        PS> New-CluedInEdgeMapping
+        PS> New-CluedInEdgeMapping -AnnotationId 1 -Object $annotationMappingObject
     #>
 
     [CmdletBinding()]

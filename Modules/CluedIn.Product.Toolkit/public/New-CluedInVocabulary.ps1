@@ -6,8 +6,13 @@ function New-CluedInVocabulary {
         .DESCRIPTION
         GraphQL Query: Creates a New Vocabulary
 
+        .PARAMETER Object
+        Due to the complexity of the function, it is recommended to be passed in as a PSCustomObject.
+
+        You can run Get-CluedInVocabulary and filter down to the vocabulary for a sample
+
         .EXAMPLE
-        PS> New-CluedInVocabulary
+        PS> New-CluedInVocabulary -Object $vocabularyObject
     #>
 
     [CmdletBinding()]
@@ -27,7 +32,7 @@ function New-CluedInVocabulary {
             $Prefix = $Object.keyPrefix
             $description = $Object.description
             $entityTypeConfiguration = @{
-                new = $false # We create entities in a prior step
+                new = $false
                 icon = $object.entityTypeConfiguration.icon
                 entityType = $object.entityTypeConfiguration.entityType
                 displayName = $object.entityTypeConfiguration.displayName

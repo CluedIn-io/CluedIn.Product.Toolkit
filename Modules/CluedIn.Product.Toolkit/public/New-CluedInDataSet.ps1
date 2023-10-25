@@ -6,8 +6,15 @@ function New-CluedInDataSet {
         .DESCRIPTION
         GraphQL Query: Creates a New Dataset
 
+        .PARAMETER Object
+        The preferred way of creating a Data Set due to the complex nature of the function.
+
+        You can use Get-CluedInDataSet to see an example PSCustomObject when filtered down to the data
+
         .EXAMPLE
-        PS> New-CluedInDataSet -Id 10
+        PS> $dataSet = Get-CluedInDataSet -id 67ab03ee-44b2-40b2-a911-90f094e2f294
+        PS> $dataSetObject = $dataSet.data.inbound.dataSet
+        PS> New-CluedInDataSet -Object $dataSetObject
 
         This will query will return mapping id '10' for the connected CluedIn Organisation
     #>

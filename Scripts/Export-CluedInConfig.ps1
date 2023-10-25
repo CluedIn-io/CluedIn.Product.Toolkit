@@ -8,13 +8,16 @@
     It utilises the module 'CluedIn.Product.Toolkit' to facilitate all this.
 
     .PARAMETER BaseURL
-    This is the base url used to access the environment. It should not contain http(s)
+    This is the base url of your clued in instance. If you access CluedIn by https://cluedin.domain.com, the BaseURL is 'domain.com'
 
     .PARAMETER Organisation
+    This is the section before your base URL. If you access CluedIn by https://cluedin.domain.com, the Organisation is 'cluedin'
 
     .PARAMETER Version
+    This is the version of your current CluedIn environment in the format of '2023.01'
 
     .PARAMETER BackupPath
+    This is the location of where to export files
 
     .EXAMPLE
     PS> ./Export-CluedInConfig.ps1 -BaseURL 'cluedin.com' -Organisation 'dev' -Version '2023.07'

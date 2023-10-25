@@ -6,14 +6,22 @@ function Set-CluedInAnnotationEntityCodes {
         .DESCRIPTION
         GraphQL Query: Sets specific settings for Annotations
 
+        .PARAMETER Id
+        This is the AnnotationId that we're setting this against
+
+        .PARAMETER Object
+        Due to the complexity of the function, it needs to be passed in as a PSCustomObject
+
+        You can get a sample by filtering down Get-CluedInAnnotation
+
         .EXAMPLE
-        PS> Set-CluedInAnnotation
+        PS> Set-CluedInAnnotationEntityCodes -Id 1 -Object $annotationObject
     #>
 
     [CmdletBinding()]
     param(
-        [int]$Id,
-        [PSCustomObject]$Object
+        [Parameter(Mandatory)][int]$Id,
+        [Parameter(Mandatory)][PSCustomObject]$Object
     )
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'modifyBatchVocabularyClueMappingConfiguration'

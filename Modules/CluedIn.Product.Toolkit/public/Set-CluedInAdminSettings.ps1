@@ -6,14 +6,20 @@ function Set-CluedInAdminSettings {
         .DESCRIPTION
         GraphQL Query: Sets a specified admin settings
 
+        .PARAMETER Name
+        This is the Key of an admin setting that you want to set.
+
+        .PARAMETER Value
+        This is the Value of an admin setting key that you want to set.
+
         .EXAMPLE
-        PS> Set-CluedInAdminSettings
+        PS> Set-CluedInAdminSettings -Name 'EnableTurboMode' -Value 'True'
     #>
 
     [CmdletBinding()]
     param(
-        $AdminSettingName,
-        $AdminSettingValue
+        [Parameter(Mandatory)][string]$Name,
+        [Parameter(Mandatory)][string]$Value
     )
 
     $id = (Get-CluedInCurrentOrganisation).data.administration.organization.id
@@ -23,8 +29,8 @@ function Set-CluedInAdminSettings {
     $query = @{
         variables =@{
             organizationId = $id
-            key = $AdminSettingName
-            value = $AdminSettingValue
+            key = $Name
+            value = $Value
         }
         query = $queryContent
     }

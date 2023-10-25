@@ -6,6 +6,10 @@ function New-CluedInAnnotation {
         .DESCRIPTION
         GraphQL Query: Creates the Data Set mapping (annotations)
 
+        .PARAMETER Object
+        Because this is a complex function, you need to create a PSCustomObject to use.
+        You can see a sample by using Get-CluedInAnnotation, and filtering to the property 'annotation'
+
         .EXAMPLE
         PS> $annotationJson = Get-Content -Path $annotationPath | ConvertFrom-Json -Depth 20
         PS> $annotationObject = $annotationJson.data.preparation.annotation

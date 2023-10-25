@@ -19,6 +19,13 @@ function Get-CluedInVocabulary {
 
         .EXAMPLE
         PS> Get-CluedInVocabulary
+
+        Will return all custom vocabularies
+
+        .EXAMPLE
+        PS> Get-CluedInVocabulary -IncludeCore
+
+        Will return all vocabularies, including the ones that get shipped with the product.
     #>
 
     [CmdletBinding()]

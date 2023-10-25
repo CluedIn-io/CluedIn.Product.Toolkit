@@ -6,10 +6,16 @@ function New-CluedInRule {
         .DESCRIPTION
         GraphQL Query: Creates a New Rule
 
-        .EXAMPLE
-        PS> New-CluedInRule -RuleName 'TestRule'
+        .PARAMETER Name
+        This is the display name of the rule
 
-        This will query will return mapping id '10' for the connected CluedIn Organisation
+        .PARAMETER Scope
+        This is where the rule will reside
+
+        .EXAMPLE
+        PS> New-CluedInRule -RuleName 'TestRule' -Scope 'Survivorship'
+
+        This will create a rule called 'TestRule' under the Survivorship category
     #>
 
     [CmdletBinding()]

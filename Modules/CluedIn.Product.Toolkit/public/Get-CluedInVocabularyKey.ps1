@@ -1,10 +1,16 @@
 function Get-CluedInVocabularyKey {
     <#
         .SYNOPSIS
-        GraphQL Query: Returns all Voculatuary Keys
+        GraphQL Query: Returns detailed information about Vocabulary Keys
 
         .DESCRIPTION
-        GraphQL Query: Returns all Voculatuary Keys
+        GraphQL Query: Returns detailed information about Vocabulary Keys
+
+        .PARAMETER Id
+        Returns very detailed information about a specified Vocabulary Key.
+
+        .PARAMETER Search
+        Returns basic information on the specified value. If nothing is specified, it will return all keys.
 
         .EXAMPLE
         PS> Get-CluedInVocabularyKey -Id 10
@@ -20,7 +26,7 @@ function Get-CluedInVocabularyKey {
     [CmdletBinding()]
     param (
         [Parameter(ParameterSetName = 'Id')][guid]$Id,
-        [Parameter(ParameterSetName = 'Search')][string]$Search
+        [Parameter(ParameterSetName = 'Search')][string]$Search = ""
     )
 
     switch ($PsCmdlet.ParameterSetName) {

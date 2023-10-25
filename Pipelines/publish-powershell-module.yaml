@@ -34,7 +34,7 @@ steps:
     $version = $content | select-string -Pattern "ModuleVersion = '(.*)'"
     [version]$currentVersion = $version.Matches.Groups[1].value
     Write-Host "Current Version: $currentVersion"
-    [version]$newVersion = ${{ parameters.moduleVersion }}
+    [version]$newVersion = '${{ parameters.moduleVersion }}'
 
     if ($newVersion -le $currentVersion) {
         throw "The specified version '$newVersion' is lower than '$currentVersion'"

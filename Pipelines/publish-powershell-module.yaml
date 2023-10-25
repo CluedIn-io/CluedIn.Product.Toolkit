@@ -9,11 +9,12 @@ parameters:
 - name: 'moduleName'
   displayName: 'Module Name'
   type: string
-  default: CluedIn.Production.Toolkit
+  default: CluedIn.Product.Toolkit
 
 steps:
 - pwsh: |
     Write-Host "I will run pester"
+  displayName: Test Module
 
 - pwsh: |
     (Get-ChildItem $(System.DefaultWorkingDirectory) -recurse | Out-String)
@@ -44,3 +45,4 @@ steps:
 
 - pwsh: |
     Write-Host "I will get ready to package and push to ADO"
+  displayName: Publish Module

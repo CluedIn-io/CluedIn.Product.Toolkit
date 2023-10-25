@@ -43,14 +43,15 @@ steps:
 - task: NuGetCommand@2
   inputs:
     command: pack
+    versioningScheme: byEnvVar
+    versionEnvVar: ${{ parameters.moduleVersion }}
     packagesToPack: $(Build.ArtifactStagingDirectory)/${{ parameters.moduleName }}
     packDestination: '$(Build.ArtifactStagingDirectory)'
-    arguments: -Version ${{ parameters.moduleVersion }}
 
 - pwsh: |
     Get-ChildItem -Path $(Build.ArtifactStagingDirectory) -Recurse | Out-String
 
-- publish: $(Build.ArtifactStagingDirectory)/${{ parameters.moduleName }}
+- publish: $(Build.ArtifactStagingDirectory)
   artifact: PowershellModule
 
 - pwsh: |

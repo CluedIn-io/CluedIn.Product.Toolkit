@@ -5,8 +5,6 @@
     <version>0.0.0</version>
     <authors>Implementation</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <license type="expression">MIT</license>
-    <!-- <icon>icon.png</icon> -->
     <projectUrl>https://github.com/CluedIn-io/CluedIn.Product.Toolkit</projectUrl>
     <description>This module coontains cmdlets to manage CluedIn product</description>
     <releaseNotes>GitHub</releaseNotes>

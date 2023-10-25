@@ -43,8 +43,10 @@ steps:
 - task: NuGetCommand@2
   inputs:
     command: pack
+    configuration: $(System.DefaultWorkingDirectory)/Modules/${{ parameters.moduleName }}.nuspec
     packagesToPack: $(Build.ArtifactStagingDirectory)/${{ parameters.moduleName }}
     packDestination: '$(Build.ArtifactStagingDirectory)'
+    arguments: -Version ${{ parameters.moduleVersion }}
 
 - pwsh: |
     Get-ChildItem -Path $(Build.ArtifactStagingDirectory) -Recurse | Out-String

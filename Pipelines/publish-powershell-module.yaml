@@ -25,7 +25,9 @@ steps:
 - pwsh: |
     $organisation = 'CluedIn-io'
     $feed = 'CluedIn'
-    $uri = "https://feeds.dev.azure.com/${organisation}/_apis/Packaging/Feeds/${feed}/Packages/09015c9c-1088-4087-978a-77d79521e180/Versions?api-version=7.1-preview.1"
+    $packageId = '09015c9c-1088-4087-978a-77d79521e180'
+
+    $uri = "https://feeds.dev.azure.com/${organisation}/_apis/Packaging/Feeds/${feed}/Packages/${packageId}/Versions?api-version=7.1-preview.1"
     $headers = @{Authorization = "Bearer ${env:SYSTEM_ACCESSTOKEN}"}
     $result = Invoke-RestMethod -Uri $uri -Headers $headers
     Write-Host "Current Version: $($result.value.version)"
@@ -46,7 +48,9 @@ steps:
     Write-Host "Module Path: $ModulePath"
 
     [version]$currentVersion = $(currentVersion)
+    Write-Host "currentVersion: $currentVersion"
     [version]$newVersion = '${{ parameters.moduleVersion }}'
+    Write-Host "newVersion: $newVersion"
 
     if ($newVersion -le $currentVersion) {
         throw "The specified version '$newVersion' is lower than '$currentVersion'"

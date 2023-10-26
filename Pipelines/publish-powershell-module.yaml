@@ -3,13 +3,16 @@ trigger: none
 name: ${{ parameters.moduleName }} v${{ parameters.moduleVersion }} Publish
 
 parameters:
-- name: 'moduleVersion'
+- name: moduleVersion
   displayName: 'Module Version'
   type: string
-- name: 'moduleName'
+- name: moduleName
   displayName: 'Module Name'
   type: string
   default: CluedIn.Product.Toolkit
+- name: publish
+  type: boolean
+  default: false
 
 variables:
   MODULE_VERSION: ${{ parameters.moduleVersion }}
@@ -66,6 +69,7 @@ steps:
 
 - task: NuGetCommand@2
   displayName: 'NuGet Push'
+  condition: eq( ${{ parameters.publish }}, 'true' )
   inputs:
     command: push
     packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'

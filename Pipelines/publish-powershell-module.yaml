@@ -26,7 +26,7 @@ steps:
     $organisation = 'CluedIn-io'
     $feed = 'CluedIn'
     $uri = "https://feeds.dev.azure.com/${organisation}/_apis/Packaging/Feeds/${feed}/Packages/09015c9c-1088-4087-978a-77d79521e180/Versions?api-version=7.1-preview.1"
-    $headers = @{Authorization = "Bearer ${env:SYSTEM_ACCESSTOKEN}"}}
+    $headers = @{Authorization = "Bearer ${env:SYSTEM_ACCESSTOKEN}"}
     $result = Invoke-RestMethod -Uri $uri -Headers $headers
     Write-Host "Current Version: $($result.value.version)"
     Write-Host "##vso[task.setvariable variable=currentVersion]$($result.value.version)"

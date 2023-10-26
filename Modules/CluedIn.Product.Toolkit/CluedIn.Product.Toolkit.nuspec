@@ -9,6 +9,6 @@
     <description>This module contains cmdlets to manage CluedIn product</description>
     <releaseNotes>GitHub</releaseNotes>
     <copyright>$copyright$</copyright>
-    <tags>pwsh</tags>
+    <tags>PSModule pwsh</tags>
   </metadata>
 </package>

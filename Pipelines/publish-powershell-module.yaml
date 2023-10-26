@@ -46,7 +46,7 @@ steps:
     $result = Invoke-RestMethod -Uri $uri -Headers $headers
     $result = $result.value | Where-Object {$_.isLatest -eq $true}
     Write-Host "Current Version: $($result.version)"
-    Write-Host "##vso[task.setvariable variable=currentVersion]$($result.value.version)"
+    Write-Host "##vso[task.setvariable variable=currentVersion]$($result.version)"
   displayName: Get current version
   env:
     SYSTEM_ACCESSTOKEN: $(System.AccessToken)

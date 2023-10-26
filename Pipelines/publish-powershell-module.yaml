@@ -8,8 +8,6 @@ trigger:
     exclude:
     - Modules/CluedIn.Product.Toolkit/tests
 
-name: ${{ parameters.moduleName }} Publish
-
 parameters:
 - name: moduleVersion
   displayName: 'Module Version'
@@ -74,6 +72,9 @@ steps:
 
     Update-ModuleManifest -Path $ModulePath/${{ parameters.moduleName }}.psd1 -ModuleVersion $newVersion
     Write-Host "##vso[task.setvariable variable=MODULE_VERSION]$newVersion"
+
+    Write-Host "##vso[build.addbuildtag]$newVersion"
+    Write-Host "##vso[build.updatebuildnumber]CluedIn.Product.Toolkit ($newVersion)"
   displayName: Update Module Version
 
 - task: NuGetCommand@2

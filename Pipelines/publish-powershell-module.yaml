@@ -1,4 +1,12 @@
-trigger: none
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - Modules/CluedIn.Product.Toolkit
+    exclude:
+    - Modules/CluedIn.Product.Toolkit/tests
 
 name: ${{ parameters.moduleName }} v${{ parameters.moduleVersion }} Publish
 
@@ -6,6 +14,7 @@ parameters:
 - name: moduleVersion
   displayName: 'Module Version'
   type: string
+  default: ""
 - name: moduleName
   displayName: 'Module Name'
   type: string
@@ -13,9 +22,6 @@ parameters:
 - name: publish
   type: boolean
   default: false
-
-variables:
-  MODULE_VERSION: ${{ parameters.moduleVersion }}
 
 steps:
 - pwsh: |
@@ -49,7 +55,13 @@ steps:
 
     [version]$currentVersion = '$(currentVersion)'
     Write-Host "currentVersion: $currentVersion"
+
     [version]$newVersion = '${{ parameters.moduleVersion }}'
+    if (!$newVersion) {
+        Write-Host "Auto-Incrementing new version"
+        [version]$newVersion =
+            '{0}.{1}.{2}' -f $currentVersion.Major, $currentVersion.Minor, ($currentVersion.Build + 1)
+    }
     Write-Host "newVersion: $newVersion"
 
     if ($newVersion -le $currentVersion) {
@@ -57,6 +69,7 @@ steps:
     }
 
     Update-ModuleManifest -Path $ModulePath/${{ parameters.moduleName }}.psd1 -ModuleVersion ${{ parameters.moduleVersion }}
+    Write-Host "##vso[task.setvariable variable=MODULE_VERSION]$newVersion"
   displayName: Update Module Version
 
 - task: NuGetCommand@2

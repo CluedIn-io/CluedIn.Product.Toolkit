@@ -1,13 +1,18 @@
 function New-CluedInVocabularyKey {
     <#
         .SYNOPSIS
-        GraphQL Query: Creates a New Vocabulary Key
+        GraphQL Query: Creates a New Vocabulary Key under a Vocabulary
 
         .DESCRIPTION
-        GraphQL Query: Creates a New Vocabulary Key
+        GraphQL Query: Creates a New Vocabulary Key under a Vocabulary
+
+        .PARAMETER Object
+        Due to the complexity of the function, it is recommended to be passed in as a PSCustomObject.
+
+        You can get a sample object by running Get-CluedInVocabularyKey and filtering down to the key result
 
         .EXAMPLE
-        PS> New-CluedInVocabularyKey
+        PS> New-CluedInVocabularyKey -Object $vocabularyKeyObject
     #>
 
     param(

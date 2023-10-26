@@ -8,15 +8,19 @@
     It utilises the module 'CluedIn.Product.Toolkit' to facilitate all this.
 
     .PARAMETER BaseURL
+    This is the base url of your clued in instance. If you access CluedIn by https://cluedin.domain.com, the BaseURL is 'domain.com'
 
     .PARAMETER Organisation
+    This is the section before your base URL. If you access CluedIn by https://cluedin.domain.com, the Organisation is 'cluedin'
 
     .PARAMETER Version
+    This is the version of your current CluedIn environment in the format of '2023.01'
 
     .PARAMETER RestorePath
+    This is the location of the export files ran by Export-CluedInConfig
 
     .EXAMPLE
-    PS> ./Export-CluedInConfig.ps1 -BaseURL 'cluedin.com' -Organisation 'dev' -Version '2023.07'
+    PS> ./Import-CluedInConfig.ps1 -BaseURL 'cluedin.com' -Organisation 'dev' -Version '2023.07' -RestorePath /path/to/backups
 #>
 
 [CmdletBinding()]
@@ -24,7 +28,7 @@ param(
     [Parameter(Mandatory)][string]$BaseURL,
     [Parameter(Mandatory)][string]$Organisation,
     [Parameter(Mandatory)][version]$Version,
-    [Parameter(Mandatory)][string]$RestorePath = 'C:\.dev\EXPORTTEST'
+    [Parameter(Mandatory)][string]$RestorePath
 )
 
 function checkResults($result) {
@@ -76,7 +80,7 @@ foreach ($setting in $settings) {
     $key = $setting
     $value = $adminSetting.data.administration.configurationSettings.$key
     Write-Host "Processing Admin Setting: $key" -ForegroundColor 'Cyan'
-    $adminSettingResult = Set-CluedInAdminSettings -AdminSettingName $key -AdminSettingValue $value
+    $adminSettingResult = Set-CluedInAdminSettings -Name $key -Value $value
     checkResults($adminSettingResult)
 }
 
@@ -90,7 +94,6 @@ foreach ($vocabulary in $vocabularies) {
     Write-Host "Processing Vocab: $($vocabObject.vocabularyName) ($($vocabObject.vocabularyId))" -ForegroundColor 'Cyan'
     Write-Debug "$($vocabObject | Out-String)"
 
-    # Check if entity Type exists and create if not found
     $entityTypeResult = Get-CluedInEntityType -Search $($vocabObject.entityTypeConfiguration.displayName)
     if ($entityTypeResult.data.management.entityTypeConfigurations.total -ne 1) {
         $entityResult = New-CluedInEntityType -Object $vocabObject.entityTypeConfiguration
@@ -192,8 +195,6 @@ foreach ($dataSet in $dataSets) {
             $endpoint = '{0}/upload/api/endpoint/{1}' -f ${env:CLUEDIN_ENDPOINT}, $dataSetId
             Write-Host "New Endpoint created: $endPoint"
 
-            # If the dataSet already exists, we need to assume the annotations were also restored.
-            # So we only run this in the !exists block
             Write-Host "Processing Annotations" -ForegroundColor Cyan
             $annotationPath = Join-Path -Path $dataSetsPath -ChildPath ('{0}-Annotation.json' -f $dataSetObject.id)
             Try {
@@ -239,11 +240,10 @@ foreach ($dataSet in $dataSets) {
                         continue
                     }
 
-                    $mapping | Add-Member -MemberType 'NoteProperty' -Name 'dataSetId' -Value $dataSetId
                     $mapping | Add-Member -MemberType 'NoteProperty' -Name 'vocabularyId' -Value $vocabularyKeyObject.vocabularyId
                     $mapping | Add-Member -MemberType 'NoteProperty' -Name 'vocabularyKeyId' -Value $vocabularyKeyObject.vocabularyKeyId
 
-                    $dataSetMappingResult = New-CluedInDataSetMapping -Object $mapping
+                    $dataSetMappingResult = New-CluedInDataSetMapping -Object $mapping -DataSetId $dataSetId
                     checkResults($dataSetMappingResult)
                 }
 

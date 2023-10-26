@@ -6,8 +6,13 @@ function New-CluedInEntityType {
         .DESCRIPTION
         GraphQL Query: Creates a New Entity Type
 
+        .PARAMETER Object
+        Due to the complexity of the function, it is recommended to be passed in as a PSCustomObject.
+
+        You can see a sample object by running Get-CluedInEntityType and filtering down to the entity itself
+
         .EXAMPLE
-        PS> New-CluedInEntityType
+        PS> New-CluedInEntityType -Object $entityObject
     #>
 
     [CmdletBinding()]

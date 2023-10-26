@@ -1,21 +1,23 @@
 function Invoke-CluedInGraphQL {
     <#
         .SYNOPSIS
-        Wrapper for Invoke-CluedInWebRequest to the graphql endpoint
+        Wrapper for Invoke-CluedInWebRequest to the GraphQL endpoint
 
         .DESCRIPTION
-        Wrapper for Invoke-CluedInWebRequest to the graphql endpoint.
+        Wrapper for Invoke-CluedInWebRequest to the GraphQL endpoint.
 
         Allows functions to easily be created without much thought into how to reach the endpoint.
         All GraphQL sub-functions should go through this function.
+        Will automatically paginate when the variable pageNumber exists
 
         .PARAMETER Query
-        single string input that's sent to the next function. It should be in JSON format and matches what you'd send to GraphQL.
+        A hashtable input that's sent to Invoke-CluedInWebRequest.
+        This is part of most public functions.
 
         .EXAMPLE
-        PS> Invoke-CluedInGraphQL -Query '{"query":"query getConfigurationSettings() {}"}'
+        PS> Invoke-CluedInGraphQL -Query $Hashtable
 
-        This will send the GraphQL query to the GraphQL endpoint
+        This will send the GraphQL query and variables to the GraphQL endpoint
     #>
 
     [CmdletBinding()]

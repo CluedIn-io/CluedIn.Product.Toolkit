@@ -6,8 +6,13 @@ function New-CluedInDataSource {
         .DESCRIPTION
         GraphQL Query: Creates a New DataSource
 
+        .PARAMETER Object
+        Due to the complexity of the function, it is recommended to be passed in as a PSCustomObject.
+
+        You can get a sample object by running Get-CluedInDataSource
+
         .EXAMPLE
-        PS> New-CluedInDataSource
+        PS> New-CluedInDataSource -Object $DataSourceObject
     #>
 
     [CmdletBinding()]

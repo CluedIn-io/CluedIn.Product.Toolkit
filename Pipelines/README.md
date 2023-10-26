@@ -20,16 +20,26 @@ For this example, we'll just be using the native library.
 1. In Azure DevOps, navigate to your Project and then Pipelines > Library
 2. Create a new Variable Group called 'CluedIn Connection' or something appropriate to your setup.
 3. Create 2 variables
-   * cluedin.username: This should be an account on CluedIn that has enough permission
-   * cluedin.password: This is the password for the above account, please ensure you change the type to secret so it masks the password. This is controlled by the lock to the right of the textbox.
+   * cluedin-username: This should be an account on CluedIn that has enough permission
+   * cluedin-password: This is the password for the above account, please ensure you change the type to secret so it masks the password. This is controlled by the lock to the right of the textbox.
 4. Click on [Save] at the top.
 
 ### Pipeline
 1. In Azure DevOps, navigate to your Project and then Pipelines > Pipelines
 2. Click on **All** at the top
-3. Find/Create the folder (or location) you'd like to store this automated pipeline and then click on [ New pipeline ]
+3. Find/Create the folder (or location) you'd like to store this automated pipeline and then click on [ **New pipeline** ]
 4. Depending where you have stored the clued in backup pipeline sample, navigate to the repo and select it so that it can now be used.
 5. Update the name of the pipeline as it'll inherit the default. This is used as part of the git commit message.
+
+### Pipeline Alterations
+With this now setup, we need to make a few adjustments to the pipeline before it is useable.
+
+1. Navigate to the git repository where the pipeline is located
+2. You will need to update the following:
+
+   * the variable group name, and variable values to match what is in your ADO/KV.
+   * Repositories Type, Endpoint, and Name. We recommend leaving -repository: {value} set as is, as it's used further down in the code
+
 
 ### First run
 With everything now setup, it's time to give it a run.
@@ -39,7 +49,7 @@ When we're confident it works without a problem, it's best to update the source 
 2. Fill in parameters:
    * **CluedIn Base URL**: This is in the format of customer.com without http(s)://
    * **CluedIn Organisation**: This is the first part of your cluedin environment. If you access your environment using https://cluedin.customer.com, it will just simply be 'cluedin'.
-   * *CluedIn Environment Version*: Unfortunately due to current limitations, this needs to be specified in the format on 2023.01.01 for the current environment we're backing up
-3. When ready, click on [Run]
+   * **CluedIn Environment Version**: Unfortunately due to current limitations, this needs to be specified in the format on 2023.01.01 for the current environment we're backing up
+3. When ready, click on [**Run**]
 
 This shouldn't take more than a couple minutes to complete and if succesful, you should see the files directly uploaded to your backup git repository

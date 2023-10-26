@@ -6,8 +6,16 @@ function Get-CluedInConnectors {
         .DESCRIPTION
         GraphQL Query: Gets all connectors (Export Targets)
 
+        .PARAMETER Search
+        Allows you to filter results rather than returning everything
+
         .EXAMPLE
         PS> Get-CluedInConnectors
+
+        If no -Search is specified, it will return everything
+
+        .EXAMPLE
+        PS> Get-CluedInConnectors -Search "SampleStream"
     #>
 
     [CmdletBinding()]

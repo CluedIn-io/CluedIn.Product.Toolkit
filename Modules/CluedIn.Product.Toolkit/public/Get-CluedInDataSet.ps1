@@ -6,6 +6,9 @@ function Get-CluedInDataSet {
         .DESCRIPTION
         GraphQL Query: Returns all datasets or a singular dataset if an id is provided
 
+        .PARAMETER Id
+        Can be left blank to return all, or if looking for specific DataSet, you can pass this as the Id to reduce returned results
+
         .EXAMPLE
         PS> Get-CluedInDataSet -Id 10
 

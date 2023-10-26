@@ -6,6 +6,10 @@ function Get-CluedInGlossary {
         .DESCRIPTION
         GraphQL Query: Returns all Glossaries
 
+        .PARAMETER Search
+        Returns narrowed results when specify a Search parameter value. If not used, it will return everything
+        Is not a hard match
+
         .EXAMPLE
         PS> Get-CluedInGlossary
     #>

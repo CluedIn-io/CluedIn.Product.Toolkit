@@ -7,6 +7,11 @@ function Get-CluedInVocabulary {
         GraphQL Query: Gets all vocabularies
 
         .PARAMETER Search
+        Will narrow returned results. By default, all custom vocabularies will be returned unless 0IncludeCore is specified
+
+        .PARAMETER IncludeCore
+        By default, returned results will be for custom vocabularies only. If you want the default ones that come OOTB
+        you need to include this switch.
 
         .PARAMETER IncludeCore
         By default, all CluedIn base vocabularies will be filtered out. If this is set to $true
@@ -14,6 +19,13 @@ function Get-CluedInVocabulary {
 
         .EXAMPLE
         PS> Get-CluedInVocabulary
+
+        Will return all custom vocabularies
+
+        .EXAMPLE
+        PS> Get-CluedInVocabulary -IncludeCore
+
+        Will return all vocabularies, including the ones that get shipped with the product.
     #>
 
     [CmdletBinding()]

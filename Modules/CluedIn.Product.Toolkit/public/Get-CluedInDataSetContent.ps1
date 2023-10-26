@@ -6,6 +6,9 @@ function Get-CluedInDataSetContent {
         .DESCRIPTION
         GraphQL Query: Returns all content for a specific dataset
 
+        .PARAMETER Id
+        Mandatory parameter that must be specified to retrieve the data of a given Data Set
+
         .EXAMPLE
         PS> Get-CluedInDataSetContent -Id '97D22210-F18C-4378-BF52-D79D354275E4'
 
@@ -14,7 +17,7 @@ function Get-CluedInDataSetContent {
 
     [CmdletBinding()]
     param(
-        [guid]$Id
+        [Parameter(Mandatory)][guid]$Id
     )
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'getDataSetContent'

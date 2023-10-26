@@ -1,13 +1,15 @@
 function New-CluedInAPIToken {
     <#
         .SYNOPSIS
-        GraphQL Query: Creates a new API Token
+        GraphQL Query: Creates a new API Token that can be used to connect to the Organisation
 
         .DESCRIPTION
-        GraphQL Query: Creates a new API Token
+        GraphQL Query: Creates a new API Token that can be used to connect to the Organisation
 
         .EXAMPLE
-        PS> New-CluedInAPIToken
+        PS> New-CluedInAPIToken -Name $guid -ExpiredInHours 24
+
+        Returns a new API Token that is valid for 24 hours. It's only limited scope and not full admin permission.
     #>
 
     [CmdletBinding()]

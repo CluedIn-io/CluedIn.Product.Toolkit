@@ -6,12 +6,8 @@ function Get-CluedInAdminSetting {
         .DESCRIPTION
         GraphQL Query: Gets the Administrators Settings of the currently connected endpoint.
 
-        Utilises a few helper functions and also uses the env variable with the endpoint set.
-
         .EXAMPLE
         PS> Get-CluedInAdminSetting
-
-        This will query the endpoint with a GraphQL body and return a powershell object which contains data you can use.
     #>
 
     [CmdletBinding()]

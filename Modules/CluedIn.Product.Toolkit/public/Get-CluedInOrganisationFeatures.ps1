@@ -1,4 +1,15 @@
 function Get-CluedInOrganisationFeatures {
+    <#
+        .SYNOPSIS
+        GraphQL Query: Returns information about the connected Organisation Features
+
+        .DESCRIPTION
+        GraphQL Query: Returns information about the connected Organisation Features
+
+        .EXAMPLE
+        PS> Get-CluedInOrganisationFeatures
+    #>
+
     [CmdletBinding()]
     param()
 

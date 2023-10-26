@@ -6,6 +6,12 @@ function Send-CluedInIngestionData {
         .DESCRIPTION
         GraphQL Query: Sends JSON data to a specified ingestion endpoint guid
 
+        .PARAMETER Json
+        This is raw JSON content in string format. Can be single or multiline
+
+        .PARAMETER IngestionEndpoint
+        This is the endpoint guid that data will be sent to
+
         .EXAMPLE
         PS> $json = Get-Content -Path /path/to/data/60-Persons.json -raw
         PS> Send-CluedInIngestionData -Json $Json -IngestionEndpoint ae145ff5-450b-46b2-8d02-7662dee2beb3
@@ -14,7 +20,7 @@ function Send-CluedInIngestionData {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)][string]$Json,
-        [guid]$IngestionEndpoint
+        [Parameter(Mandatory)][guid]$IngestionEndpoint
     )
 
     if (!(Test-Json -Json $Json)) {

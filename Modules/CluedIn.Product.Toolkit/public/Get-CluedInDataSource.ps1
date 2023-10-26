@@ -1,15 +1,28 @@
 function Get-CluedInDataSource {
     <#
         .SYNOPSIS
-        GraphQL Query: Returns information based on a data source id
+        GraphQL Query: Returns information on a data source
 
         .DESCRIPTION
-        GraphQL Query: Returns information based on a data source id
+        GraphQL Query: Returns information on a data source
+
+        You can search by Id or Name field. You cannot specify both
+
+        .PARAMETER Id
+        This is the id of a data source which is integer
+
+        .PARAMETER Search
+        This allows you to get the data source by searching for the name instead of Id
 
         .EXAMPLE
-        PS> Get-CluedInDataSet -Id 10
+        PS> Get-CluedInDataSource -Id 10
 
-        This will query will return data source id '10' for the connected CluedIn Organisation
+        This query will return data source id '10' for the connected CluedIn Organisation
+
+        .EXAMPLE
+        PS> Get-CluedInDataSource -Search "Sample DataSet"
+
+        This query will return the data sources that match the search criteria. This is a hard match and won't wildcard.
     #>
 
     [CmdletBinding()]

@@ -1,13 +1,15 @@
 function New-CluedInGlossary {
     <#
         .SYNOPSIS
-        GraphQL Query: Returns all Glossaries
+        GraphQL Query: Creates a new Glossary based on specified Name
 
         .DESCRIPTION
-        GraphQL Query: Returns all Glossaries
+        GraphQL Query: Creates a new Glossary based on specified Name
 
         .EXAMPLE
-        PS> Get-CluedInGlossary
+        PS> New-CluedInGlossary -Name "Sample Glossary"
+
+        This will create a new glossary categry called "Sample Glossary"
     #>
 
     [CmdletBinding()]

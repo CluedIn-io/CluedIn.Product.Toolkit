@@ -7,7 +7,7 @@ function Get-CluedInAPIToken {
         Returns the JWT in standard powershell format which can then be used to interact with the connected environment.
 
         .PARAMETER BaseURL
-        This should be in the format for fqdn without any protocol, paths, or Organisation added to the URL.
+        This should be in the format for fqdn without any protocol, paths, or organisation added to the URL.
 
         .PARAMETER Organisation
         This is the cluedin organisation name. It normally precedes the baseurl. ie. ORGANISATION.customer.com
@@ -20,7 +20,7 @@ function Get-CluedInAPIToken {
 
         .EXAMPLE
         PS> Get-CluedInAPIToken -BaseURL 'cluedin.com' -Organisation 'customer' -Username 'cluedin' -Password $securePassword
-        
+
         This send a REST request to the authentication endpoint and return a JWT which is returned to the caller.
     #>
 
@@ -35,7 +35,7 @@ function Get-CluedInAPIToken {
     $enc_username = [System.Web.HttpUtility]::UrlEncode($Username)
     $enc_password = [System.Web.HttpUtility]::UrlEncode((ConvertFrom-SecureString -AsPlainText $Password))
 
-    
+
     $requestUrl =  'https://{0}.{1}/auth/connect/token' -f $Organisation, $BaseURL
     $body = "username=$enc_username&password=$enc_password&client_id=$Organisation&grant_type=password"
     $headers = @{

@@ -20,8 +20,6 @@ parameters:
 variables:
 - name: moduleName
   value: CluedIn.Product.Toolkit
-- name: currentVersion
-  value: '0.0.1'
 
 steps:
 - pwsh: |
@@ -38,19 +36,19 @@ steps:
     failTaskOnFailedTests: true
     testRunTitle: "Validate Task Files"
 
-#- pwsh: |
-#    $organisation = 'CluedIn-io'
-#    $feed = 'release'
-#    $packageId = '09015c9c-1088-4087-978a-77d79521e180' # change me
-#
-#    $uri = "https://feeds.dev.azure.com/${organisation}/_apis/Packaging/Feeds/${feed}/Packages/${packageId}/Versions?api-version=7.1-preview.1"
-#    $headers = @{Authorization = "Bearer ${env:SYSTEM_ACCESSTOKEN}"}
-#    $result = Invoke-RestMethod -Uri $uri -Headers $headers
-#    Write-Host "Current Version: $($result.value.version)"
-#    Write-Host "##vso[task.setvariable variable=currentVersion]$($result.value.version)"
-#  displayName: Get current version
-#  env:
-#    SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+- pwsh: |
+    $organisation = 'CluedIn-io'
+    $feed = 'release'
+    $packageId = '67c35d48-cad7-49a2-8ebd-19de32d9fa32'
+
+    $uri = "https://feeds.dev.azure.com/${organisation}/_apis/Packaging/Feeds/${feed}/Packages/${packageId}/Versions?api-version=7.1-preview.1"
+    $headers = @{Authorization = "Bearer ${env:SYSTEM_ACCESSTOKEN}"}
+    $result = Invoke-RestMethod -Uri $uri -Headers $headers
+    Write-Host "Current Version: $($result.value.version)"
+    Write-Host "##vso[task.setvariable variable=currentVersion]$($result.value.version)"
+  displayName: Get current version
+  env:
+    SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
 - pwsh: |
     $modulePath = "$(System.DefaultWorkingDirectory)/Modules/${{ variables.moduleName }}"

@@ -53,7 +53,7 @@ steps:
     Write-Host "newVersion: $newVersion"
 
     if ($newVersion -le $currentVersion) {
-        throw "The specified version '$newVersion' is lower than '$currentVersion'"
+        throw "The specified version '$newVersion' is lower/equal to '$currentVersion'"
     }
 
     Update-ModuleManifest -Path $ModulePath/${{ parameters.moduleName }}.psd1 -ModuleVersion ${{ parameters.moduleVersion }}

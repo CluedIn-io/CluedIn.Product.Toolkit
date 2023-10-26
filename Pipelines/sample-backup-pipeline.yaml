@@ -15,8 +15,12 @@ parameters:
   displayName: 'CluedIn Environment Version'
   type: string
 
-#variables:
-#- template: vars/vars.yaml
+variables:
+- group: CluedIn-Authentication
+- name: CLUEDIN_USERNAME
+  value: $(cluedin.username) # This is the key from the group above
+- name: CLUEDIN_PASSWORD
+  value: $(cluedin.password) # This is the key from the group above
 
 resources:
   repositories:
@@ -38,7 +42,6 @@ jobs:
     persistCredentials: true
 
   - pwsh: Get-ChildItem -Path ENV:\
-  - pwsh: (Get-ChildItem -Path $(System.DefaultWorkingDirectory) -recurse | Out-String)
 
   #- task: AzureCLI@2
   #  displayName: 'Backup'
@@ -52,14 +55,13 @@ jobs:
   #      -Version ${{ parameters.version }}
   #      -BackupPath $(System.DefaultWorkingDirectory)/Backups
 
-  - pwsh: |
-      git config --global user.email "ado@azurepipelines.com"
-      git config --global user.name "ADO Pipeline ($(Build.DefinitionName))"
-
-      git checkout -b main
-      "hi" | Out-File fake.txt
-      git add -A
-      git commit -m "Backup: $(Build.BuildNumber)"
-      git push --set-upstream origin main
-    displayName: Push to git
-    workingDirectory: $(System.DefaultWorkingDirectory)/jjr-testbackups
+  #- pwsh: |
+  #    git config --global user.email "ado@azurepipelines.com"
+  #    git config --global user.name "ADO Pipeline ($(Build.DefinitionName))"
+  #    git checkout -b main
+  #    "hi" | Out-File fake.txt
+  #    git add -A
+  #    git commit -m "Backup: $(Build.BuildNumber)"
+  #    git push --set-upstream origin main
+  #  displayName: Push to git
+  #  workingDirectory: $(System.DefaultWorkingDirectory)/jjr-testbackups

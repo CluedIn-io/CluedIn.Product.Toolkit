@@ -47,6 +47,9 @@ jobs:
   - checkout: backupRepo
     persistCredentials: true
 
+  - pwsh: |
+      Write-Host "username: $(CLUEDIN_USERNAME) password: $(CLUEDIN_PASSWORD)"
+
   - task: PowerShell@2
     displayName: 'Backup'
     inputs:

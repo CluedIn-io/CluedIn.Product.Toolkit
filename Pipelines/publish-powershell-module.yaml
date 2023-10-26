@@ -13,18 +13,28 @@ parameters:
   displayName: 'Module Version'
   type: string
   default: '*'
-- name: moduleName
-  displayName: 'Module Name'
-  type: string
-  default: CluedIn.Product.Toolkit
 - name: publish
   type: boolean
   default: false
 
+variables:
+- name: moduleName
+  value: CluedIn.Product.Toolkit
+
 steps:
 - pwsh: |
-    Write-Host "I will run pester"
+    $testPath = "./Modules/${{ parameters.moduleName }}/tests"
+    Invoke-Pester -Script $testPath -Output 'Detailed' -PassThru |
+        Export-NUnitReport -Path "$testPath/test-results.xml"
   displayName: Test Module
+
+- task: PublishTestResults@2
+  displayName: 'Publish Pester Results'
+  inputs:
+    testResultsFormat: "NUnit"
+    testResultsFiles: "**/test-results.xml"
+    failTaskOnFailedTests: true
+    testRunTitle: "Validate Task Files"
 
 - pwsh: |
     $organisation = 'CluedIn-io'

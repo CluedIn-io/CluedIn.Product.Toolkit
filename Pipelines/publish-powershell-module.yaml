@@ -8,7 +8,7 @@ trigger:
     exclude:
     - Modules/CluedIn.Product.Toolkit/tests
 
-name: ${{ parameters.moduleName }} v${{ parameters.moduleVersion }} Publish
+name: ${{ parameters.moduleName }} Publish
 
 parameters:
 - name: moduleVersion
@@ -72,7 +72,7 @@ steps:
         throw "The specified version '$newVersion' is lower/equal to '$currentVersion'"
     }
 
-    Update-ModuleManifest -Path $ModulePath/${{ parameters.moduleName }}.psd1 -ModuleVersion ${{ parameters.moduleVersion }}
+    Update-ModuleManifest -Path $ModulePath/${{ parameters.moduleName }}.psd1 -ModuleVersion $newVersion
     Write-Host "##vso[task.setvariable variable=MODULE_VERSION]$newVersion"
   displayName: Update Module Version
 

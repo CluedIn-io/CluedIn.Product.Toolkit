@@ -50,13 +50,13 @@ jobs:
   - task: PowerShell@2
     displayName: 'Backup'
     inputs:
-      targetType: pscore
       filePath: Scripts/Export-CluedInConfig.ps1
       arguments: >-
         -BaseURL ${{ parameters.baseURL }}
         -Organisation ${{ parameters.organisation }}
         -Version ${{ parameters.version }}
         -BackupPath '$(BackupPath)'
+      pwsh: true
 
   - pwsh: |
       git config --global user.email "ado@azurepipelines.com"

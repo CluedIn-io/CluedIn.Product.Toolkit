@@ -82,7 +82,7 @@ steps:
       }
       Write-Host "##vso[build.addbuildtag]$(MODULE_VERSION)"
       Write-Host "##vso[build.addbuildtag]$publishState"
-      Write-Host "##vso[build.updatebuildnumber]CluedIn.Product.Toolkit ($newVersion)"
+      Write-Host "##vso[build.updatebuildnumber]CluedIn.Product.Toolkit ($(MODULE_VERSION))"
   displayName: Tag Pipeline
 
 - task: NuGetCommand@2

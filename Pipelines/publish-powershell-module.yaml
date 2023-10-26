@@ -1,0 +1,118 @@
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - Modules/CluedIn.Product.Toolkit
+    exclude:
+    - Modules/CluedIn.Product.Toolkit/tests
+
+parameters:
+- name: moduleVersion
+  displayName: 'Module Version'
+  type: string
+  default: '*'
+- name: publish
+  type: boolean
+  default: false
+
+variables:
+- name: moduleName
+  value: CluedIn.Product.Toolkit
+
+steps:
+- pwsh: |
+    $testPath = "./Modules/${{ variables.moduleName }}/tests"
+    Invoke-Pester -Script $testPath -Output 'Detailed' -PassThru |
+        Export-NUnitReport -Path "$testPath/test-results.xml"
+  displayName: Test Module
+
+- task: PublishTestResults@2
+  displayName: 'Publish Pester Results'
+  inputs:
+    testResultsFormat: "NUnit"
+    testResultsFiles: "**/test-results.xml"
+    failTaskOnFailedTests: true
+    testRunTitle: "Validate Task Files"
+
+- pwsh: |
+    $organisation = 'CluedIn-io'
+    $feed = 'release'
+    $packageId = '67c35d48-cad7-49a2-8ebd-19de32d9fa32'
+
+    $uri = "https://feeds.dev.azure.com/${organisation}/_apis/Packaging/Feeds/${feed}/Packages/${packageId}/Versions?api-version=7.1-preview.1"
+    $headers = @{Authorization = "Bearer ${env:SYSTEM_ACCESSTOKEN}"}
+    $result = Invoke-RestMethod -Uri $uri -Headers $headers
+    $result = $result.value | Where-Object {$_.isLatest -eq $true}
+    Write-Host "Current Version: $($result.version)"
+    Write-Host "##vso[task.setvariable variable=currentVersion]$($result.version)"
+  displayName: Get current version
+  env:
+    SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+
+- pwsh: |
+    $modulePath = "$(System.DefaultWorkingDirectory)/Modules/${{ variables.moduleName }}"
+    $artifactPath = '$(Build.ArtifactStagingDirectory)/'
+    Copy-Item -Path $modulePath -Destination $artifactPath -Recurse
+    Remove-Item -Path $artifactPath/${{ variables.moduleName }}/tests -Force -Recurse
+  displayName: Copy Module to artifact staging
+
+- pwsh: |
+    $ModulePath = '$(Build.ArtifactStagingDirectory)/${{ variables.moduleName }}'
+    Write-Host "Module Path: $ModulePath"
+
+    [version]$currentVersion = '$(currentVersion)'
+    Write-Host "currentVersion: $currentVersion"
+
+    switch ('${{ parameters.moduleVersion }}') {
+        '*' {
+            Write-Host "Auto-Incrementing new version"
+            [version]$newVersion =
+                '{0}.{1}.{2}' -f $currentVersion.Major, $currentVersion.Minor, ($currentVersion.Build + 1)
+        }
+        default {
+            [version]$newVersion = '${{ parameters.moduleVersion }}'
+        }
+    }
+    Write-Host "newVersion: $newVersion"
+
+    if ($newVersion -le $currentVersion) {
+        throw "The specified version '$newVersion' is lower/equal to '$currentVersion'"
+    }
+
+    Update-ModuleManifest -Path $ModulePath/${{ variables.moduleName }}.psd1 -ModuleVersion $newVersion
+    Write-Host "##vso[task.setvariable variable=MODULE_VERSION]$newVersion"
+
+  displayName: Update Module Version
+
+- pwsh: |
+      $publishState = switch ('${{ parameters.publish }}') {
+          'true' { 'published' }
+          default { 'unpublished' }
+      }
+      Write-Host "##vso[build.addbuildtag]$(MODULE_VERSION)"
+      Write-Host "##vso[build.addbuildtag]$publishState"
+      Write-Host "##vso[build.updatebuildnumber]CluedIn.Product.Toolkit ($(MODULE_VERSION))"
+  displayName: Tag Pipeline
+
+- task: NuGetCommand@2
+  displayName: 'Nuget Pack'
+  inputs:
+    command: pack
+    versioningScheme: byEnvVar
+    versionEnvVar: MODULE_VERSION
+    packagesToPack: $(Build.ArtifactStagingDirectory)/${{ variables.moduleName }}
+    packDestination: '$(Build.ArtifactStagingDirectory)'
+
+- publish: $(Build.ArtifactStagingDirectory)
+  artifact: PowershellModule
+
+- task: NuGetCommand@2
+  displayName: 'NuGet Push'
+  condition: eq( ${{ parameters.publish }}, 'true' )
+  inputs:
+    command: push
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
+    nuGetFeedType: 'internal'
+    publishVstsFeed: 'release'

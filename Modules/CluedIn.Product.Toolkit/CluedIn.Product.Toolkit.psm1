@@ -4,5 +4,3 @@
 #>
 
 Get-ChildItem -Path $PSScriptRoot -Filter "*.ps1" -Exclude "*.tests.ps1" -Recurse | ForEach-Object { . $_ }
-Get-ChildItem -Path (Join-Path -Path $PSScriptRoot -ChildPath public) -Filter *.ps1 |
-    ForEach-Object { Export-ModuleMember -Function $_.Basename }

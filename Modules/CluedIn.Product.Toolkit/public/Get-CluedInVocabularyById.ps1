@@ -21,7 +21,7 @@ function Get-CluedInVocabularyById {
     $queryContent = Get-CluedInGQLQuery -OperationName 'getVocabulary'
 
     $query = @{
-        variables =@{
+        variables = @{
             id = $Id
         }
         query = $queryContent

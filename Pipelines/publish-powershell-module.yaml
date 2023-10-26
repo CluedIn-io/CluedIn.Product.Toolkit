@@ -14,7 +14,7 @@ parameters:
 - name: moduleVersion
   displayName: 'Module Version'
   type: string
-  default: ""
+  default: '*'
 - name: moduleName
   displayName: 'Module Name'
   type: string
@@ -56,11 +56,15 @@ steps:
     [version]$currentVersion = '$(currentVersion)'
     Write-Host "currentVersion: $currentVersion"
 
-    [version]$newVersion = '${{ parameters.moduleVersion }}'
-    if (!$newVersion) {
-        Write-Host "Auto-Incrementing new version"
-        [version]$newVersion =
-            '{0}.{1}.{2}' -f $currentVersion.Major, $currentVersion.Minor, ($currentVersion.Build + 1)
+    switch ('${{ parameters.moduleVersion }}') {
+        '*' {
+            Write-Host "Auto-Incrementing new version"
+            [version]$newVersion =
+                '{0}.{1}.{2}' -f $currentVersion.Major, $currentVersion.Minor, ($currentVersion.Build + 1)
+        }
+        default {
+            [version]$newVersion = '${{ parameters.moduleVersion }}'
+        }
     }
     Write-Host "newVersion: $newVersion"
 

@@ -50,7 +50,7 @@ jobs:
   - task: PowerShell@2
     displayName: 'Backup'
     inputs:
-      filePath: Scripts/Export-CluedInConfig.ps1
+      filePath: jjr-testbackups/Scripts/Export-CluedInConfig.ps1
       arguments: >-
         -BaseURL ${{ parameters.baseURL }}
         -Organisation ${{ parameters.organisation }}

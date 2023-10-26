@@ -20,6 +20,8 @@ parameters:
 variables:
 - name: moduleName
   value: CluedIn.Product.Toolkit
+- name: currentVersion
+  value: '0.0.1'
 
 steps:
 - pwsh: |

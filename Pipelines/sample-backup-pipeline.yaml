@@ -47,13 +47,12 @@ jobs:
   - checkout: backupRepo
     persistCredentials: true
 
-  - task: AzureCLI@2
+  - task: PowerShell@2
     displayName: 'Backup'
     inputs:
-      azureSubscription: 'Your ADO Subscription Here'
-      scriptType: pscore
-      scriptPath: Scripts/Export-CluedInConfig.ps1
-      scriptArguments: >-
+      targetType: pscore
+      filePath: Scripts/Export-CluedInConfig.ps1
+      arguments: >-
         -BaseURL ${{ parameters.baseURL }}
         -Organisation ${{ parameters.organisation }}
         -Version ${{ parameters.version }}

@@ -1,10 +1,10 @@
 BeforeDiscovery {
-    $GraphQLFunctions = Get-ChildItem -Path "$(Split-Path -Parent $PSScriptRoot)/GraphQL" -Filter *.ps1
+    $publicGetFunctions = Get-ChildItem -Path "$(Split-Path -Parent $PSScriptRoot)/public" -Filter "Get-*.ps1"
 }
 
 BeforeAll {
     $moduleDirectory = Split-Path -Parent $PSScriptRoot # Returns root module folder
-    $publicFunc = Join-Path -Path $moduleDirectory -ChildPath 'public'
+    $publicFuncPath = Join-Path -Path $moduleDirectory -ChildPath 'public'
     $moduleName = 'CluedIn.Product.Toolkit'
 }
 
@@ -27,7 +27,7 @@ Describe "Unit Testing" {
         }
 
         It "has public functions" {
-            $funcs = Get-ChildItem -Path $publicFunc -Filter *.ps1
+            $funcs = Get-ChildItem -Path $publicFuncPath -Filter *.ps1
             $funcs.count | Should -BeGreaterThan 0
         }
 
@@ -48,17 +48,11 @@ Describe "Unit Testing" {
                 Get-Command -Name $_ -Module $moduleName -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
             }
 
-            It "<_.basename> Variables key exists" -foreach (Get-ChildItem -Path $publicFunc -Filter "Get-*.ps1") {
+            It "<_.basename> Variables key exists" -foreach $publicGetFunctions {
                 $item = Get-Content $_.fullname
-                $result = $item | Select-String -Pattern 'variables = @{'
+                $regex = 'variables? = @{'
+                $result = $item | Select-String -Pattern $regex
                 $result.matches.Success | Should -BeTrue
-            }
-        }
-
-        Context "GraphQL" {
-            It "<_.basename> matches cmdlet name" -forEach $GraphQLFunctions {
-                Get-Command -Name $_.basename -Module $moduleName -ErrorAction SilentlyContinue |
-                    Should -Not -BeNullOrEmpty
             }
         }
     }

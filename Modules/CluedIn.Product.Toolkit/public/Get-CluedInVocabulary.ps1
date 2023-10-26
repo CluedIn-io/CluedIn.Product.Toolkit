@@ -25,7 +25,7 @@ function Get-CluedInVocabulary {
     $queryContent = Get-CluedInGQLQuery -OperationName 'getAllVocabularies'
 
     $query = @{
-        variables =@{
+        variables = @{
             searchName = $Search
             pageNumber = 1
             pageSize = 20

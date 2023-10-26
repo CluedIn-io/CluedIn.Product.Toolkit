@@ -44,7 +44,8 @@ steps:
     $uri = "https://feeds.dev.azure.com/${organisation}/_apis/Packaging/Feeds/${feed}/Packages/${packageId}/Versions?api-version=7.1-preview.1"
     $headers = @{Authorization = "Bearer ${env:SYSTEM_ACCESSTOKEN}"}
     $result = Invoke-RestMethod -Uri $uri -Headers $headers
-    Write-Host "Current Version: $($result.value.version)"
+    $result = $result.value | Where-Object {$_.isLatest -eq $true}
+    Write-Host "Current Version: $($result.version)"
     Write-Host "##vso[task.setvariable variable=currentVersion]$($result.value.version)"
   displayName: Get current version
   env:

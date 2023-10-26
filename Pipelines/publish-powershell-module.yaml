@@ -47,7 +47,7 @@ steps:
     $ModulePath = '$(Build.ArtifactStagingDirectory)/${{ parameters.moduleName }}'
     Write-Host "Module Path: $ModulePath"
 
-    [version]$currentVersion = $(currentVersion)
+    [version]$currentVersion = '$(currentVersion)'
     Write-Host "currentVersion: $currentVersion"
     [version]$newVersion = '${{ parameters.moduleVersion }}'
     Write-Host "newVersion: $newVersion"

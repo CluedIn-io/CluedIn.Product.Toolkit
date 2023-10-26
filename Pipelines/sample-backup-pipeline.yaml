@@ -50,7 +50,7 @@ jobs:
   - task: PowerShell@2
     displayName: 'Backup'
     inputs:
-      filePath: backupRepo/Scripts/Export-CluedInConfig.ps1
+      filePath: CluedIn.Product.Toolkit/Scripts/Export-CluedInConfig.ps1
       arguments: >-
         -BaseURL ${{ parameters.baseURL }}
         -Organisation ${{ parameters.organisation }}

@@ -44,7 +44,6 @@ jobs:
     persistCredentials: true
 
   - pwsh: |
-      Write-Host "username: $(CLUEDIN_USERNAME) password: $(CLUEDIN_PASSWORD)"
       Write-Host "env: ${env:CLUEDIN_USERNAME} ${env:CLUEDIN_PASSWORD}"
     env:
       CLUEDIN_USERNAME: $(cluedin-username) # Comes from the variable group

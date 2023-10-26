@@ -35,7 +35,11 @@ For this example, we'll just be using the native library.
 With this now setup, we need to make a few adjustments to the pipeline before it is useable.
 
 1. Navigate to the git repository where the pipeline is located
-2.
+2. You will need to update the following:
+
+   * the variable group name, and variable values to match what is in your ADO/KV.
+   * Repositories Type, Endpoint, and Name. We recommend leaving -repository: {value} set as is, as it's used further down in the code
+
 
 ### First run
 With everything now setup, it's time to give it a run.

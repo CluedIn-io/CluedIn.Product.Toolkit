@@ -14,24 +14,30 @@ parameters:
 - name: version
   displayName: 'CluedIn Environment Version'
   type: string
+- name: pushToRepo
+  displayName: Push to repo
+  type: boolean
+  default: false
 
 variables:
 - group: CluedIn-Authentication
 - name: CLUEDIN_USERNAME
-  value: $(cluedin.username) # This is the key from the group above
+  value: $(cluedin-username) # This is the key from the group above
 - name: CLUEDIN_PASSWORD
-  value: $(cluedin.password) # This is the key from the group above
+  value: $(cluedin-password) # This is the key from the group above
+- name: BackupPath
+  value: '$(System.DefaultWorkingDirectory)/Backups'
 
 resources:
   repositories:
   - repository: codeRepo # Friendly name for ADO to use
     type: github
     endpoint: 'CluedIn' # Service connection
-    name: 'CluedIn-io/CluedIn.Product.Toolkit' # Actual GitHub repo name
+    name: 'CluedIn-io/CluedIn.Product.Toolkit' # GitHub repo name
   - repository: backupRepo
     type: github
-    endpoint: 'CluedIn'
-    name: 'jjrcluedin/jjr-testbackups'
+    endpoint: 'CluedIn' # Service connection
+    name: 'jjrcluedin/jjr-testbackups' # GitHub repo name
 
 jobs:
 - job: backupConfiguration
@@ -41,27 +47,28 @@ jobs:
   - checkout: backupRepo
     persistCredentials: true
 
-  - pwsh: Get-ChildItem -Path ENV:\
+  - task: AzureCLI@2
+    displayName: 'Backup'
+    inputs:
+      azureSubscription: 'Your ADO Subscription Here'
+      scriptType: pscore
+      scriptPath: Scripts/Export-CluedInConfig.ps1
+      scriptArguments: >-
+        -BaseURL ${{ parameters.baseURL }}
+        -Organisation ${{ parameters.organisation }}
+        -Version ${{ parameters.version }}
+        -BackupPath '$(BackupPath)'
 
-  #- task: AzureCLI@2
-  #  displayName: 'Backup'
-  #  inputs:
-  #    azureSubscription: 'Your ADO Subscription Here'
-  #    scriptType: pscore
-  #    scriptPath: Scripts/Export-CluedInConfig.ps1
-  #    scriptArguments: >-
-  #      -BaseURL ${{ parameters.baseURL }}
-  #      -Organisation ${{ parameters.organisation }}
-  #      -Version ${{ parameters.version }}
-  #      -BackupPath $(System.DefaultWorkingDirectory)/Backups
+  - pwsh: |
+      git config --global user.email "ado@azurepipelines.com"
+      git config --global user.name "ADO Pipeline ($(Build.DefinitionName))"
+      git checkout -b main
 
-  #- pwsh: |
-  #    git config --global user.email "ado@azurepipelines.com"
-  #    git config --global user.name "ADO Pipeline ($(Build.DefinitionName))"
-  #    git checkout -b main
-  #    "hi" | Out-File fake.txt
-  #    git add -A
-  #    git commit -m "Backup: $(Build.BuildNumber)"
-  #    git push --set-upstream origin main
-  #  displayName: Push to git
-  #  workingDirectory: $(System.DefaultWorkingDirectory)/jjr-testbackups
+      Copy-Item -Path '$(BackupPath)' -Destination . -Recurse
+
+      git add -A
+      git commit -m "Backup: $(Build.BuildNumber)"
+      git push --set-upstream origin main
+    displayName: Push to git
+    condition: eq( ${{ parameters.pushToRepo }}, 'true' )
+    workingDirectory: $(System.DefaultWorkingDirectory)/jjr-testbackups

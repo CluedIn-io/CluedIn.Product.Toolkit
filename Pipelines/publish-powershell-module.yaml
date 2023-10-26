@@ -73,9 +73,17 @@ steps:
     Update-ModuleManifest -Path $ModulePath/${{ parameters.moduleName }}.psd1 -ModuleVersion $newVersion
     Write-Host "##vso[task.setvariable variable=MODULE_VERSION]$newVersion"
 
-    Write-Host "##vso[build.addbuildtag]$newVersion"
-    Write-Host "##vso[build.updatebuildnumber]CluedIn.Product.Toolkit ($newVersion)"
   displayName: Update Module Version
+
+- pwsh: |
+      $publishState = switch ('${{ parameters.publish }}') {
+          'true' { 'published' }
+          default { 'unpublished' }
+      }
+      Write-Host "##vso[build.addbuildtag]$(MODULE_VERSION)"
+      Write-Host "##vso[build.addbuildtag]$publishState"
+      Write-Host "##vso[build.updatebuildnumber]CluedIn.Product.Toolkit ($newVersion)"
+  displayName: Tag Pipeline
 
 - task: NuGetCommand@2
   displayName: 'Nuget Pack'

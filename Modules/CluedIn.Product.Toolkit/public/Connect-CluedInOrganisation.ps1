@@ -91,7 +91,13 @@ function Connect-CluedInOrganisation {
         }
         else {
             Write-Verbose "Generating JWT based on credentials"
-            $cluedInCredentials = Get-Credential -Title 'CluedIn Organisation Login'
+            if ( ${env:CLUEDIN_USERNAME} -and ${env:CLUEDIN_PASSWORD} ) {
+                $username = ${env:CLUEDIN_USERNAME}
+                $password = ConvertTo-SecureString -String ${env:CLUEDIN_PASSWORD} -AsPlainText -Force
+                [PSCredential]$cluedInCredentials = New-Object System.Management.Automation.PSCredential ($username, $password)
+            }
+            else { $cluedInCredentials = Get-Credential -Title 'CluedIn Organisation Login' }
+
             $tokenParams = @{
                 BaseURL = $BaseURL
                 Organisation = $Organisation

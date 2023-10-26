@@ -21,10 +21,6 @@ parameters:
 
 variables:
 - group: CluedIn-Authentication
-- name: CLUEDIN_USERNAME
-  value: $(cluedin-username) # This is the key from the group above
-- name: CLUEDIN_PASSWORD
-  value: $(cluedin-password) # This is the key from the group above
 - name: BackupPath
   value: '$(System.DefaultWorkingDirectory)/Backups'
 
@@ -47,6 +43,12 @@ jobs:
   - checkout: backupRepo
     persistCredentials: true
 
+  - pwsh: |
+      Write-Host "env: ${env:CLUEDIN_USERNAME} ${env:CLUEDIN_PASSWORD}"
+    env:
+      CLUEDIN_USERNAME: $(cluedin-username) # Comes from the variable group
+      CLUEDIN_PASSWORD: $(cluedin-password) # Comes from the variable group
+
   - task: PowerShell@2
     displayName: 'Backup'
     inputs:
@@ -57,6 +59,9 @@ jobs:
         -Version ${{ parameters.version }}
         -BackupPath '$(BackupPath)'
       pwsh: true
+    env:
+      CLUEDIN_USERNAME: $(cluedin-username) # Comes from the variable group
+      CLUEDIN_PASSWORD: $(cluedin-password) # Comes from the variable group
 
   - pwsh: |
       git config --global user.email "ado@azurepipelines.com"

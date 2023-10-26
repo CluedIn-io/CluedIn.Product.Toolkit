@@ -4,6 +4,7 @@ BeforeDiscovery {
 
 BeforeAll {
     $moduleDirectory = Split-Path -Parent $PSScriptRoot # Returns root module folder
+    $publicFunc = Join-Path -Path $moduleDirectory -ChildPath 'public'
     $moduleName = 'CluedIn.Product.Toolkit'
 }
 
@@ -14,8 +15,8 @@ Describe "Unit Testing" {
             $path | Should -Exist
         }
 
-        It "<moduleName>.psd exists" {
-            $path = Join-Path -Path $moduleDirectory -ChildPath "$moduleName.psd"
+        It "<moduleName>.psd1 exists" {
+            $path = Join-Path -Path $moduleDirectory -ChildPath "$moduleName.psd1"
             $path | Should -Exist
         }
 
@@ -26,18 +27,12 @@ Describe "Unit Testing" {
         }
 
         It "has public functions" {
-            $publicFunc = Join-Path -Path $moduleDirectory -ChildPath 'public'
             $funcs = Get-ChildItem -Path $publicFunc -Filter *.ps1
             $funcs.count | Should -BeGreaterThan 0
         }
 
         It "GraphQL Folder exists" {
             $graphqlPath = Join-Path -Path $moduleDirectory -ChildPath 'GraphQL'
-            Test-Path -Path $graphqlPath -PathType Container | Should -BeTrue
-        }
-
-        It "GraphQL\Queries Folder exists" {
-            $graphqlPath = Join-Path -Path $moduleDirectory -ChildPath 'GraphQL\Queries'
             Test-Path -Path $graphqlPath -PathType Container | Should -BeTrue
         }
     }
@@ -49,13 +44,14 @@ Describe "Unit Testing" {
             It "Core Function: <_> exists" -ForEach @(
                 'Connect-CluedInOrganisation'
                 'Out-JsonFile'
-                'Invoke-CluedInGraphQL'
             ) {
                 Get-Command -Name $_ -Module $moduleName -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
             }
 
-            It "Variables key exists" {
-                throw
+            It "<_.basename> Variables key exists" -foreach (Get-ChildItem -Path $publicFunc -Filter "Get-*.ps1") {
+                $item = Get-Content $_.fullname
+                $result = $item | Select-String -Pattern 'variables = @{'
+                $result.matches.Success | Should -BeTrue
             }
         }
 

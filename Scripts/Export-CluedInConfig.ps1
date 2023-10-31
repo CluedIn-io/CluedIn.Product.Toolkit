@@ -124,7 +124,7 @@ $vocabularyIds = switch ($SelectVocabularies) {
 
 foreach ($id in $vocabularyIds) {
     $vocab = Get-CluedInVocabularyById -Id $id
-    if ((!$?) -or ($set.errors)) { Write-Warning "Id '$id' was not found. This won't be backed up"; continue }
+    if ((!$?) -or ($vocab.errors)) { Write-Warning "Id '$id' was not found. This won't be backed up"; continue }
 
     Write-Host "Exporting Vocabulary: '$($vocab.data.management.vocabulary.vocabularyName) ($id)'" -ForegroundColor 'Cyan'
     $vocab | Out-JsonFile -Path $vocabPath -Name $id
@@ -136,7 +136,7 @@ if (!(Test-Path -Path $vocabKeysPath -PathType Container)) { New-Item $vocabKeys
 foreach ($id in $vocabularyIds) {
     Write-Verbose "Processing id: $id"
     $vocabKey = Get-CluedInVocabularyKey -Id $id
-    if ((!$?) -or ($set.errors)) { Write-Warning "Id '$id' was not found. This won't be backed up"; continue }
+    if ((!$?) -or ($vocabKey.errors)) { Write-Warning "Id '$id' was not found. This won't be backed up"; continue }
 
     $vocabKey | Out-JsonFile -Path $vocabKeysPath -Name $id
 }

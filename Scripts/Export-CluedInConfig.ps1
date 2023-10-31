@@ -117,7 +117,6 @@ if (!(Test-Path -Path $rulesPath -PathType Container)) {
 
 $scope = 'Survivorship'
 $survivorshipRules = Get-CluedInRules -Scope $scope
-#$survivorshipRules | Out-JsonFile -Path $survivorshipRulesPath -Name 'SurvivorshipRules'
 if ($survivorshipRules.data.management.rules.total -ge 1) {
     foreach ($rule in $survivorshipRules.data.management.rules.data) {
         Get-CluedInRules -Id $rule.id -Scope $scope | Out-JsonFile -Path $survivorshipRulesPath -Name $rule.id
@@ -126,7 +125,6 @@ if ($survivorshipRules.data.management.rules.total -ge 1) {
 
 $scope = 'DataPart'
 $dataPartRules = Get-CluedInRules -Scope $scope
-#$dataPartRules | Out-JsonFile -Path $dataPartRulesPath -Name 'DataPartRules'
 if ($dataPartRules.data.management.rules.total -ge 1) {
     foreach ($rule in $dataPartRules.data.management.rules.data) {
         Get-CluedInRules -Id $rule.id -Scope $scope | Out-JsonFile -Path $dataPartRulesPath -Name $rule.id
@@ -135,7 +133,6 @@ if ($dataPartRules.data.management.rules.total -ge 1) {
 
 $scope = 'Entity'
 $goldenRecordRules = Get-CluedInRules -Scope $scope
-#$goldenRecordRules | Out-JsonFile -Path $goldenRecordsRulesPath -Name 'GoldenRecordRules'
 if ($goldenRecordRules.data.management.rules.total -ge 1) {
     foreach ($rule in $goldenRecordRules.data.management.rules.data) {
         Get-CluedInRules -Id $rule.id -Scope $scope | Out-JsonFile -Path $goldenRecordsRulesPath -Name $rule.id

@@ -29,11 +29,9 @@ param(
     [Parameter(Mandatory)][string]$Organisation,
     [Parameter(Mandatory)][version]$Version,
     [Parameter(Mandatory)][string]$BackupPath,
-    [string]$SelectVocabKeys = 'All',
-    #[string]$SelectDataSourceSets,
-    [string]$SelectDataSources = 'All',
-    [string]$SelectDataSets = 'All',
-    [string]$SelectAnnotations = 'All',
+    [string]$SelectVocabularies = 'None',
+    [string]$SelectDataSources = 'None',
+    [string]$SelectDataSets = 'None',
     [string]$SelectRules = 'None'
 )
 
@@ -49,18 +47,18 @@ Write-Host "INFO: Starting backup"
 $generalPath = Join-Path -Path $BackupPath -ChildPath 'General'
 if (!(Test-Path -Path $generalPath -PathType Container)) { New-Item $generalPath -ItemType Directory | Out-Null }
 
-Write-Host "INFO: Exporting Admin Settings"
+Write-Host "INFO: Exporting Admin Settings" -ForegroundColor 'Green'
 Get-CluedInAdminSetting | Out-JsonFile -Path $generalPath -Name 'AdminSetting'
 
-# Data Sources
+# Data Source Sets
 $path = Join-Path -Path $BackupPath -ChildPath 'Data/SourceSets'
 if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
 
-Write-Host "INFO: Exporting Data Source Sets"
+Write-Host "INFO: Exporting Data Source Sets" -ForegroundColor 'Green'
 $dataSourceSets = Get-CluedInDataSourceSet
 $dataSourceSets | Out-JsonFile -Path $path -Name 'DataSourceSet'
 
-# Data Source Sets
+# Data Sources
 $path = Join-Path -Path $BackupPath -ChildPath 'Data/Sources'
 if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
 
@@ -77,7 +75,7 @@ foreach ($id in $dataSourceIds) {
     $dataSource = Get-CluedInDataSource -Id $id
     if ((!$?) -or ($dataSource.errors)) { Write-Warning "Id '$id' was not found. This won't be backed up"; continue }
 
-    Write-Host "INFO: Exporting Data Source: $($dataSource.data.inbound.dataSource.name) ($id)"
+    Write-Host "Exporting Data Source: $($dataSource.data.inbound.dataSource.name) ($id)" -ForegroundColor 'Cyan'
     $dataSource | Out-JsonFile -Path $path -Name ('{0}-DataSource' -f $id)
 }
 
@@ -95,36 +93,52 @@ foreach ($id in $dataSetIds) {
     Write-Verbose "Processing id: $id"
     $set = Get-CluedInDataSet -id $id
     if ((!$?) -or ($set.errors)) { Write-Warning "Id '$id' was not found. This won't be backed up"; continue }
-    Write-Host "INFO: Exporting Data Set: '$($set.data.inbound.dataSet.name) ($id)'"
 
+    Write-Host "Exporting Data Set: '$($set.data.inbound.dataSet.name) ($id)'" -ForegroundColor 'Cyan'
     $set | Out-JsonFile -Path $path -Name ('{0}-DataSet' -f $id)
+
     if ($set.data.inbound.dataSet.dataSource.type -eq 'file') {
-        Get-CluedInDataSetContent -id $id | Out-JsonFile -Path $path -Name ('{0}-DataSetContent' -f $dataSet.id)
+        Get-CluedInDataSetContent -id $id | Out-JsonFile -Path $path -Name ('{0}-DataSetContent' -f $id)
     }
 
     Write-Verbose "Exporting Annotation"
     $annotationId = $set.data.inbound.dataSet.annotationId
-    Get-CluedInAnnotations -id $annotationId | Out-JsonFile -Path $path -Name ('{0}-Annotation' -f $dataSet.id)
+    Get-CluedInAnnotations -id $annotationId | Out-JsonFile -Path $path -Name ('{0}-Annotation' -f $id)
 }
 
 # Vocabulary
-Write-Host "INFO: Exporting Vocabularies"
 $dataCatalogPath = Join-Path -Path $BackupPath -ChildPath 'DataCatalog'
 $vocabPath = Join-Path -Path $dataCatalogPath -ChildPath 'Vocab'
 if (!(Test-Path -Path $vocabPath -PathType Container)) { New-Item $vocabPath -ItemType Directory | Out-Null }
-$vocabularies = Get-CluedInVocabulary -IncludeCore
-$customVocabularies = $vocabularies.data.management.vocabularies.data |
-    Where-Object {$_.isCluedInCore -eq $False}
-$vocabularies | Out-JsonFile -Path $dataCatalogPath -Name 'VocabulariesManifest'
-foreach ($vocab in $customVocabularies) {
-    Get-CluedInVocabularyById -Id $vocab.vocabularyId | Out-JsonFile -Path $vocabPath -Name $vocab.vocabularyId
+
+if ($SelectVocabularies -ne 'None') {
+    $vocabularies = Get-CluedInVocabulary -IncludeCore
+    Write-Host "INFO: Exporting Vocabularies and Keys" -ForegroundColor 'Green'
 }
 
-Write-Host "INFO: Exporting Vocabulary Keys"
+$vocabularyIds = switch ($SelectVocabularies) {
+    'All' { ($vocabularies.data.management.vocabularies.data | Where-Object {$_.isCluedInCore -eq $False}).vocabularyId }
+    'None' { $null }
+    default { ($SelectVocabularies -Split ',').Trim() }
+}
+
+foreach ($id in $vocabularyIds) {
+    $vocab = Get-CluedInVocabularyById -Id $id
+    if ((!$?) -or ($set.errors)) { Write-Warning "Id '$id' was not found. This won't be backed up"; continue }
+
+    Write-Host "Exporting Vocabulary: '$($vocab.data.management.vocabulary.vocabularyName) ($id)'" -ForegroundColor 'Cyan'
+    $vocab | Out-JsonFile -Path $vocabPath -Name $id
+}
+
 $vocabKeysPath = Join-Path -Path $dataCatalogPath -ChildPath 'Keys'
 if (!(Test-Path -Path $vocabKeysPath -PathType Container)) { New-Item $vocabKeysPath -ItemType Directory | Out-Null }
-foreach ($i in $vocabularies.data.management.vocabularies.data.vocabularyId) {
-    Get-CluedInVocabularyKey -Id $i | Out-JsonFile -Path $vocabKeysPath -Name $i
+
+foreach ($id in $vocabularyIds) {
+    Write-Verbose "Processing id: $id"
+    $vocabKey = Get-CluedInVocabularyKey -Id $id
+    if ((!$?) -or ($set.errors)) { Write-Warning "Id '$id' was not found. This won't be backed up"; continue }
+
+    $vocabKey | Out-JsonFile -Path $vocabKeysPath -Name $id
 }
 
 # Rules

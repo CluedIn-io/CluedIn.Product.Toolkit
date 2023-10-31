@@ -33,7 +33,8 @@ param(
     #[string]$SelectDataSourceSets,
     [string]$SelectDataSources = 'All',
     [string]$SelectDataSets = 'All',
-    [string]$SelectAnnotations = 'All'
+    [string]$SelectAnnotations = 'All',
+    [string]$SelectRules = 'None'
 )
 
 Write-Verbose "Importing modules"
@@ -59,6 +60,7 @@ Write-Host "INFO: Exporting Data Source Sets"
 $dataSourceSets = Get-CluedInDataSourceSet
 $dataSourceSets | Out-JsonFile -Path $path -Name 'DataSourceSet'
 
+# Data Source Sets
 Write-Host "INFO: Exporting Data Sources"
 $path = Join-Path -Path $BackupPath -ChildPath 'Data/Sources'
 if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
@@ -74,11 +76,12 @@ $dataSourceIds = switch ($SelectDataSources) {
 foreach ($id in $dataSourceIds) {
     Write-Verbose "Processing id: $id"
     $dataSource = Get-CluedInDataSource -Id $id
-    if ($dataSource.errors) { Write-Warning "Id '$id' was not found. This won't be backed up"; continue }
+    if ((!$?) -or ($dataSource.errors)) { Write-Warning "Id '$id' was not found. This won't be backed up"; continue }
 
     $dataSource | Out-JsonFile -Path $path -Name ('{0}-DataSource' -f $i)
 }
 
+# Data Sets and Annotations
 Write-Host "INFO: Exporting Data Sets and Annotations"
 $path = Join-Path -Path $BackupPath -ChildPath 'Data/Sets'
 if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
@@ -92,7 +95,7 @@ $dataSetIds = switch ($SelectDataSets) {
 foreach ($id in $dataSetIds) {
     Write-Verbose "Processing id: $id"
     $set = Get-CluedInDataSet -id $id
-    if ($set.errors) { Write-Warning "Id '$id' was not found. This won't be backed up"; continue }
+    if ((!$?) -or ($set.errors)) { Write-Warning "Id '$id' was not found. This won't be backed up"; continue }
 
     $set | Out-JsonFile -Path $path -Name ('{0}-DataSet' -f $id)
     if ($set.data.inbound.dataSet.dataSource.type -eq 'file') {
@@ -125,38 +128,40 @@ foreach ($i in $vocabularies.data.management.vocabularies.data.vocabularyId) {
 }
 
 # Rules
-Write-Host "INFO: Exporting Rules"
-$rulesPath = Join-Path -Path $BackupPath -ChildPath 'Rules'
-$dataPartRulesPath = Join-Path -Path $rulesPath -ChildPath 'DataPart'
-$survivorshipRulesPath = Join-Path -Path $rulesPath -ChildPath 'Survivorship'
-$goldenRecordsRulesPath = Join-Path -Path $rulesPath -ChildPath 'GoldenRecords'
-if (!(Test-Path -Path $rulesPath -PathType Container)) {
-    New-Item $dataPartRulesPath -ItemType Directory | Out-Null
-    New-Item $survivorshipRulesPath -ItemType Directory | Out-Null
-    New-Item $goldenRecordsRulesPath -ItemType Directory | Out-Null
-}
-
-$scope = 'Survivorship'
-$survivorshipRules = Get-CluedInRules -Scope $scope
-if ($survivorshipRules.data.management.rules.total -ge 1) {
-    foreach ($rule in $survivorshipRules.data.management.rules.data) {
-        Get-CluedInRules -Id $rule.id -Scope $scope | Out-JsonFile -Path $survivorshipRulesPath -Name $rule.id
+if (!$SelectRules -eq 'None') {
+    Write-Host "INFO: Exporting Rules"
+    $rulesPath = Join-Path -Path $BackupPath -ChildPath 'Rules'
+    $dataPartRulesPath = Join-Path -Path $rulesPath -ChildPath 'DataPart'
+    $survivorshipRulesPath = Join-Path -Path $rulesPath -ChildPath 'Survivorship'
+    $goldenRecordsRulesPath = Join-Path -Path $rulesPath -ChildPath 'GoldenRecords'
+    if (!(Test-Path -Path $rulesPath -PathType Container)) {
+        New-Item $dataPartRulesPath -ItemType Directory | Out-Null
+        New-Item $survivorshipRulesPath -ItemType Directory | Out-Null
+        New-Item $goldenRecordsRulesPath -ItemType Directory | Out-Null
     }
-}
 
-$scope = 'DataPart'
-$dataPartRules = Get-CluedInRules -Scope $scope
-if ($dataPartRules.data.management.rules.total -ge 1) {
-    foreach ($rule in $dataPartRules.data.management.rules.data) {
-        Get-CluedInRules -Id $rule.id -Scope $scope | Out-JsonFile -Path $dataPartRulesPath -Name $rule.id
+    $scope = 'Survivorship'
+    $survivorshipRules = Get-CluedInRules -Scope $scope
+    if ($survivorshipRules.data.management.rules.total -ge 1) {
+        foreach ($rule in $survivorshipRules.data.management.rules.data) {
+            Get-CluedInRules -Id $rule.id -Scope $scope | Out-JsonFile -Path $survivorshipRulesPath -Name $rule.id
+        }
     }
-}
 
-$scope = 'Entity'
-$goldenRecordRules = Get-CluedInRules -Scope $scope
-if ($goldenRecordRules.data.management.rules.total -ge 1) {
-    foreach ($rule in $goldenRecordRules.data.management.rules.data) {
-        Get-CluedInRules -Id $rule.id -Scope $scope | Out-JsonFile -Path $goldenRecordsRulesPath -Name $rule.id
+    $scope = 'DataPart'
+    $dataPartRules = Get-CluedInRules -Scope $scope
+    if ($dataPartRules.data.management.rules.total -ge 1) {
+        foreach ($rule in $dataPartRules.data.management.rules.data) {
+            Get-CluedInRules -Id $rule.id -Scope $scope | Out-JsonFile -Path $dataPartRulesPath -Name $rule.id
+        }
+    }
+
+    $scope = 'Entity'
+    $goldenRecordRules = Get-CluedInRules -Scope $scope
+    if ($goldenRecordRules.data.management.rules.total -ge 1) {
+        foreach ($rule in $goldenRecordRules.data.management.rules.data) {
+            Get-CluedInRules -Id $rule.id -Scope $scope | Out-JsonFile -Path $goldenRecordsRulesPath -Name $rule.id
+        }
     }
 }
 

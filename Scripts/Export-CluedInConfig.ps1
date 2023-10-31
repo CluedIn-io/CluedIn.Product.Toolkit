@@ -137,7 +137,7 @@ foreach ($id in $vocabularyIds) {
     $vocabKey = Get-CluedInVocabularyKey -Id $id
     if ((!$?) -or ($vocabKey.errors)) { Write-Warning "Id '$id' was not found. This won't be backed up"; continue }
 
-    $keys = $vocabKey.data.management.vocabularyKeysFromVocabularyId.data.displayName #-Join ', '
+    $keys = $vocabKey.data.management.vocabularyKeysFromVocabularyId.data.displayName
     $keys = ($keys.ForEach({'[{0}]' -f $_})) -Join ', '
     Write-Host "Exporting Keys: $keys" -ForegroundColor 'Cyan'
     $vocabKey | Out-JsonFile -Path $vocabKeysPath -Name $id

@@ -135,9 +135,12 @@ if (!(Test-Path -Path $vocabKeysPath -PathType Container)) { New-Item $vocabKeys
 
 foreach ($id in $vocabularyIds) { # Should we move this into above block if we can't seperate?
     Write-Verbose "Processing id: $id"
-    Write-Host "Exporting Vocabulary Keys" -ForegroundColor 'Cyan'
     $vocabKey = Get-CluedInVocabularyKey -Id $id
     if ((!$?) -or ($vocabKey.errors)) { Write-Warning "Id '$id' was not found. This won't be backed up"; continue }
+
+    ($vocabKeys.data.management.vocabularyKeysFromVocabularyId.data.displayName).ForEach({
+        Write-Host "Exporting Vocabulary Key: $_" -ForegroundColor 'Cyan'
+    })
     $vocabKey | Out-JsonFile -Path $vocabKeysPath -Name $id
 }
 

@@ -101,7 +101,7 @@ foreach ($id in $dataSetIds) {
         Get-CluedInDataSetContent -id $id | Out-JsonFile -Path $path -Name ('{0}-DataSetContent' -f $id)
     }
 
-    Write-Verbose "Exporting Annotation"
+    Write-Host "Exporting Annotation" -ForegroundColor 'Cyan'
     $annotationId = $set.data.inbound.dataSet.annotationId
     Get-CluedInAnnotations -id $annotationId | Out-JsonFile -Path $path -Name ('{0}-Annotation' -f $id)
 }

@@ -63,33 +63,30 @@ Write-Host "INFO: Exporting Data Sources"
 $path = Join-Path -Path $BackupPath -ChildPath 'Data/Sources'
 if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
 
-if ($SelectDataSources) { $dataSourceSets = Get-CluedInDataSourceSet }
 $dataSources = $dataSourceSets.data.inbound.dataSourceSets.data.datasources
 
-if ($SelectDataSources) {
-    $items = $SelectDataSources -Split ','
-}
+if ($SelectDataSources) { $dataSourceIds = ($SelectDataSources -Split ',').Trim() }
+else { $dataSourceIds = $dataSources.id }
 
-#$dataSetProcess = @()
-for ($i = 0; $i -lt $dataSources.count; $i++) {
-    $dataSource = Get-CluedInDataSource -Id $dataSources[$i].id
+foreach ($id in $dataSourceIds) {
+    Write-Verbose "Processing id: $id"
+    $dataSource = Get-CluedInDataSource -Id $id
+    if ($dataSource.errors) { Write-Warning "Id '$id' was not found. This won't be backed up"; continue }
+
     $dataSource | Out-JsonFile -Path $path -Name ('{0}-DataSource' -f $i)
-    #foreach ($dataSet in $dataSource.data.inbound.datasource.datasets) {
-    #    $dataSetProcess += @{
-    #        id = $dataSet.id
-    #        type = $dataSource.data.inbound.datasource.type
-    #    }
-    #}
 }
-
 
 Write-Host "INFO: Exporting Data Sets and Annotations"
 $path = Join-Path -Path $BackupPath -ChildPath 'Data/Sets'
 if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
-foreach ($dataSet in $dataSetProcess) {
+
+if ($SelectDataSets) { $dataSetIds = ($SelectDataSets -Split ',').Trim() }
+else { $dataSetIds = $dataSources.dataSets.id } # Need to change this
+
+foreach ($id in $dataSetIds) {
     $set = Get-CluedInDataSet -id $dataSet.id
     $set | Out-JsonFile -Path $path -Name ('{0}-DataSet' -f $dataSet.id)
-    if ($dataSet.type -eq 'file') {
+    if ($set.data.inbound.dataSet.dataSource.type -eq 'file') {
         Get-CluedInDataSetContent -id $dataSet.id | Out-JsonFile -Path $path -Name ('{0}-DataSetContent' -f $dataSet.id)
     }
 

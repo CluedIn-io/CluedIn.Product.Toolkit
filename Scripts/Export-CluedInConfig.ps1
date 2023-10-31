@@ -36,7 +36,8 @@ function selectionMenu($items) {
     Add-Type -AssemblyName System.Windows.Forms
     Add-Type -AssemblyName System.Drawing
 
-    $drawSize = $items.Count * 18
+    if ($items.count -eq '1') { $drawSize = 28 }
+    else { $drawSize = $items.Count * 18 }
 
     $form = New-Object System.Windows.Forms.Form
     $form.Text = 'Backup Selection'
@@ -71,9 +72,7 @@ function selectionMenu($items) {
 
     $listBox.SelectionMode = 'MultiExtended'
 
-    $items.ForEach({
-        [void] $listBox.Items.Add("$_")
-    })
+    $items.ForEach({ [void] $listBox.Items.Add("$_") })
 
     $listBox.Height = $drawSize
     $form.Controls.Add($listBox)
@@ -110,33 +109,37 @@ if ($SelectBackups) {
 }
 
 # Settings
-Write-Host "INFO: Exporting Admin Settings"
 $generalPath = Join-Path -Path $BackupPath -ChildPath 'General'
 if (!(Test-Path -Path $generalPath -PathType Container)) { New-Item $generalPath -ItemType Directory | Out-Null }
 
 if (('Admin Settings' -in $result) -or (!$SelectBackups)) { $processAdminSettings = $true }
 if ($processAdminSettings) {
+    Write-Host "INFO: Exporting Admin Settings"
     Get-CluedInAdminSetting | Out-JsonFile -Path $generalPath -Name 'AdminSetting'
 }
 
 # Data Sources
-Write-Host "INFO: Exporting Data Source Sets"
 $path = Join-Path -Path $BackupPath -ChildPath 'Data/SourceSets'
 if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
 
 if (('Data Source Sets' -in $result) -or (!$SelectBackups)) { $processDataSourceSets = $true }
 if ($processDataSourceSets) {
+    Write-Host "INFO: Exporting Data Source Sets"
     $dataSourceSets = Get-CluedInDataSourceSet
 
     if ($SelectBackups) {
-        $items = $dataSourceSets.TEST
+        $items = $dataSourceSets.data.inbound.dataSourceSets.data.name
         $result = selectionMenu($items)
         if (!$result) { Write-Warning "Nothing was selected" }
         else {
+            $dataSourceSets.data.inbound.dataSourceSets.data = $dataSourceSets.data.inbound.dataSourceSets.data |
+                Where-Object {$_.name -match $result}
+                $dataSourceSets.data.inbound.dataSourceSets.total = $result.count
 
         }
     }
-    else { $dataSourceSets | Out-JsonFile -Path $path -Name 'DataSourceSet' }
+
+    $dataSourceSets | Out-JsonFile -Path $path -Name 'DataSourceSet'
 }
 
 Write-Host "INFO: Exporting Data Sources"

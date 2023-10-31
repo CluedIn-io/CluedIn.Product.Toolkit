@@ -133,11 +133,11 @@ foreach ($id in $vocabularyIds) {
 $vocabKeysPath = Join-Path -Path $dataCatalogPath -ChildPath 'Keys'
 if (!(Test-Path -Path $vocabKeysPath -PathType Container)) { New-Item $vocabKeysPath -ItemType Directory | Out-Null }
 
-foreach ($id in $vocabularyIds) {
+foreach ($id in $vocabularyIds) { # Should we move this into above block if we can't seperate?
     Write-Verbose "Processing id: $id"
+    Write-Host "Exporting Vocabulary Keys" -ForegroundColor 'Cyan'
     $vocabKey = Get-CluedInVocabularyKey -Id $id
     if ((!$?) -or ($vocabKey.errors)) { Write-Warning "Id '$id' was not found. This won't be backed up"; continue }
-
     $vocabKey | Out-JsonFile -Path $vocabKeysPath -Name $id
 }
 

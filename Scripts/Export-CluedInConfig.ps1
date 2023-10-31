@@ -61,7 +61,6 @@ $dataSourceSets = Get-CluedInDataSourceSet
 $dataSourceSets | Out-JsonFile -Path $path -Name 'DataSourceSet'
 
 # Data Source Sets
-Write-Host "INFO: Exporting Data Sources"
 $path = Join-Path -Path $BackupPath -ChildPath 'Data/Sources'
 if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
 
@@ -78,11 +77,11 @@ foreach ($id in $dataSourceIds) {
     $dataSource = Get-CluedInDataSource -Id $id
     if ((!$?) -or ($dataSource.errors)) { Write-Warning "Id '$id' was not found. This won't be backed up"; continue }
 
-    $dataSource | Out-JsonFile -Path $path -Name ('{0}-DataSource' -f $i)
+    Write-Host "INFO: Exporting Data Source: $($dataSource.data.inbound.dataSource.name) ($id)"
+    $dataSource | Out-JsonFile -Path $path -Name ('{0}-DataSource' -f $id)
 }
 
 # Data Sets and Annotations
-Write-Host "INFO: Exporting Data Sets and Annotations"
 $path = Join-Path -Path $BackupPath -ChildPath 'Data/Sets'
 if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
 
@@ -96,6 +95,7 @@ foreach ($id in $dataSetIds) {
     Write-Verbose "Processing id: $id"
     $set = Get-CluedInDataSet -id $id
     if ((!$?) -or ($set.errors)) { Write-Warning "Id '$id' was not found. This won't be backed up"; continue }
+    Write-Host "INFO: Exporting Data Set: '$($set.data.inbound.dataSet.name) ($id)'"
 
     $set | Out-JsonFile -Path $path -Name ('{0}-DataSet' -f $id)
     if ($set.data.inbound.dataSet.dataSource.type -eq 'file') {
@@ -128,7 +128,7 @@ foreach ($i in $vocabularies.data.management.vocabularies.data.vocabularyId) {
 }
 
 # Rules
-if (!$SelectRules -eq 'None') {
+if ($SelectRules -eq 'All') {
     Write-Host "INFO: Exporting Rules"
     $rulesPath = Join-Path -Path $BackupPath -ChildPath 'Rules'
     $dataPartRulesPath = Join-Path -Path $rulesPath -ChildPath 'DataPart'

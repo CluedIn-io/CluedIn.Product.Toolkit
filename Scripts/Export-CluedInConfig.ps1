@@ -91,10 +91,12 @@ $dataSetIds = switch ($SelectDataSets) {
 
 foreach ($id in $dataSetIds) {
     Write-Verbose "Processing id: $id"
-    $set = Get-CluedInDataSet -id $dataSet.id
-    $set | Out-JsonFile -Path $path -Name ('{0}-DataSet' -f $dataSet.id)
+    $set = Get-CluedInDataSet -id $id
+    if ($set.errors) { Write-Warning "Id '$id' was not found. This won't be backed up"; continue }
+
+    $set | Out-JsonFile -Path $path -Name ('{0}-DataSet' -f $id)
     if ($set.data.inbound.dataSet.dataSource.type -eq 'file') {
-        Get-CluedInDataSetContent -id $dataSet.id | Out-JsonFile -Path $path -Name ('{0}-DataSetContent' -f $dataSet.id)
+        Get-CluedInDataSetContent -id $id | Out-JsonFile -Path $path -Name ('{0}-DataSetContent' -f $dataSet.id)
     }
 
     Write-Verbose "Exporting Annotation"

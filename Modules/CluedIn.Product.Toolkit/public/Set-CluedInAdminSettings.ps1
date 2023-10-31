@@ -19,7 +19,7 @@ function Set-CluedInAdminSettings {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)][string]$Name,
-        [Parameter(Mandatory)][string]$Value
+        [string]$Value
     )
 
     $id = (Get-CluedInCurrentOrganisation).data.administration.organization.id

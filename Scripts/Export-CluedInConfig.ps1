@@ -28,8 +28,64 @@ param(
     [Parameter(Mandatory)][string]$BaseURL,
     [Parameter(Mandatory)][string]$Organisation,
     [Parameter(Mandatory)][version]$Version,
-    [Parameter(Mandatory)][string]$BackupPath
+    [Parameter(Mandatory)][string]$BackupPath,
+    [switch]$SelectBackups
 )
+
+function selectionMenu($items) {
+    Add-Type -AssemblyName System.Windows.Forms
+    Add-Type -AssemblyName System.Drawing
+
+    $drawSize = $items.Count * 18
+
+    $form = New-Object System.Windows.Forms.Form
+    $form.Text = 'Backup Selection'
+    $form.Size = New-Object System.Drawing.Size(300, (120 + $drawSize))
+    $form.StartPosition = 'CenterScreen'
+
+    $OKButton = New-Object System.Windows.Forms.Button
+    $OKButton.Location = New-Object System.Drawing.Point(75, (50 + $drawSize))
+    $OKButton.Size = New-Object System.Drawing.Size(75,23)
+    $OKButton.Text = 'OK'
+    $OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
+    $form.AcceptButton = $OKButton
+    $form.Controls.Add($OKButton)
+
+    $CancelButton = New-Object System.Windows.Forms.Button
+    $CancelButton.Location = New-Object System.Drawing.Point(150, (50 + $drawSize))
+    $CancelButton.Size = New-Object System.Drawing.Size(75,23)
+    $CancelButton.Text = 'Cancel'
+    $CancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+    $form.CancelButton = $CancelButton
+    $form.Controls.Add($CancelButton)
+
+    $label = New-Object System.Windows.Forms.Label
+    $label.Location = New-Object System.Drawing.Point(10,20)
+    $label.Size = New-Object System.Drawing.Size(280,20)
+    $label.Text = 'Select backup items:'
+    $form.Controls.Add($label)
+
+    $listBox = New-Object System.Windows.Forms.Listbox
+    $listBox.Location = New-Object System.Drawing.Point(10,40)
+    $listBox.Size = New-Object System.Drawing.Size(260,20)
+
+    $listBox.SelectionMode = 'MultiExtended'
+
+    $items.ForEach({
+        [void] $listBox.Items.Add("$_")
+    })
+
+    $listBox.Height = $drawSize
+    $form.Controls.Add($listBox)
+    $form.Topmost = $true
+
+    $result = $form.ShowDialog()
+
+    if ($result -eq [System.Windows.Forms.DialogResult]::OK)
+    {
+        return $listBox.SelectedItems
+    }
+}
 
 Write-Verbose "Importing modules"
 Import-Module "$PSScriptRoot/../Modules/CluedIn.Product.Toolkit"
@@ -39,18 +95,49 @@ Connect-CluedInOrganisation -BaseURL $BaseURL -Organisation $Organisation -Versi
 
 Write-Host "INFO: Starting backup"
 
+if ($SelectBackups) {
+    $items = @(
+        'Admin Settings'
+        'Data Source Sets'
+        'Data Sources'
+        'Data Sets'
+        'Annotations'
+        'Vocabularies'
+        'Vocabulary Keys'
+    )
+    $result = selectionMenu($items)
+    if (!$result) { return }
+}
+
 # Settings
 Write-Host "INFO: Exporting Admin Settings"
 $generalPath = Join-Path -Path $BackupPath -ChildPath 'General'
 if (!(Test-Path -Path $generalPath -PathType Container)) { New-Item $generalPath -ItemType Directory | Out-Null }
-Get-CluedInAdminSetting | Out-JsonFile -Path $generalPath -Name 'AdminSetting'
+
+if (('Admin Settings' -in $result) -or (!$SelectBackups)) { $processAdminSettings = $true }
+if ($processAdminSettings) {
+    Get-CluedInAdminSetting | Out-JsonFile -Path $generalPath -Name 'AdminSetting'
+}
 
 # Data Sources
 Write-Host "INFO: Exporting Data Source Sets"
 $path = Join-Path -Path $BackupPath -ChildPath 'Data/SourceSets'
 if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
-$dataSourceSets = Get-CluedInDataSourceSet
-$dataSourceSets | Out-JsonFile -Path $path -Name 'DataSourceSet'
+
+if (('Data Source Sets' -in $result) -or (!$SelectBackups)) { $processDataSourceSets = $true }
+if ($processDataSourceSets) {
+    $dataSourceSets = Get-CluedInDataSourceSet
+
+    if ($SelectBackups) {
+        $items = $dataSourceSets.TEST
+        $result = selectionMenu($items)
+        if (!$result) { Write-Warning "Nothing was selected" }
+        else {
+
+        }
+    }
+    else { $dataSourceSets | Out-JsonFile -Path $path -Name 'DataSourceSet' }
+}
 
 Write-Host "INFO: Exporting Data Sources"
 $path = Join-Path -Path $BackupPath -ChildPath 'Data/Sources'

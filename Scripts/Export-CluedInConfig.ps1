@@ -111,6 +111,9 @@ $dataCatalogPath = Join-Path -Path $BackupPath -ChildPath 'DataCatalog'
 $vocabPath = Join-Path -Path $dataCatalogPath -ChildPath 'Vocab'
 if (!(Test-Path -Path $vocabPath -PathType Container)) { New-Item $vocabPath -ItemType Directory | Out-Null }
 
+$vocabKeysPath = Join-Path -Path $dataCatalogPath -ChildPath 'Keys'
+if (!(Test-Path -Path $vocabKeysPath -PathType Container)) { New-Item $vocabKeysPath -ItemType Directory | Out-Null }
+
 if ($SelectVocabularies -ne 'None') {
     $vocabularies = Get-CluedInVocabulary -IncludeCore
     Write-Host "INFO: Exporting Vocabularies and Keys" -ForegroundColor 'Green'
@@ -123,24 +126,20 @@ $vocabularyIds = switch ($SelectVocabularies) {
 }
 
 foreach ($id in $vocabularyIds) {
+    # Vocab
     $vocab = Get-CluedInVocabularyById -Id $id
     if ((!$?) -or ($vocab.errors)) { Write-Warning "Id '$id' was not found. This won't be backed up"; continue }
 
     Write-Host "Exporting Vocabulary: '$($vocab.data.management.vocabulary.vocabularyName) ($id)'" -ForegroundColor 'Cyan'
     $vocab | Out-JsonFile -Path $vocabPath -Name $id
-}
 
-$vocabKeysPath = Join-Path -Path $dataCatalogPath -ChildPath 'Keys'
-if (!(Test-Path -Path $vocabKeysPath -PathType Container)) { New-Item $vocabKeysPath -ItemType Directory | Out-Null }
-
-foreach ($id in $vocabularyIds) { # Should we move this into above block if we can't seperate?
-    Write-Verbose "Processing id: $id"
+    # Keys
     $vocabKey = Get-CluedInVocabularyKey -Id $id
     if ((!$?) -or ($vocabKey.errors)) { Write-Warning "Id '$id' was not found. This won't be backed up"; continue }
 
-    ($vocabKeys.data.management.vocabularyKeysFromVocabularyId.data.displayName).ForEach({
-        Write-Host "Exporting Vocabulary Key: $_" -ForegroundColor 'Cyan'
-    })
+    $keys = $vocabKey.data.management.vocabularyKeysFromVocabularyId.data.displayName #-Join ', '
+    $keys = ($keys.ForEach({'[{0}]' -f $_})) -Join ', '
+    Write-Host "Exporting Keys: $keys" -ForegroundColor 'Cyan'
     $vocabKey | Out-JsonFile -Path $vocabKeysPath -Name $id
 }
 

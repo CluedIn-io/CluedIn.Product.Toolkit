@@ -29,62 +29,12 @@ param(
     [Parameter(Mandatory)][string]$Organisation,
     [Parameter(Mandatory)][version]$Version,
     [Parameter(Mandatory)][string]$BackupPath,
-    [switch]$SelectBackups
+    [string]$SelectVocabKeys,
+    #[string]$SelectDataSourceSets,
+    [string]$SelectDataSources,
+    [string]$SelectDataSets,
+    [string]$SelectAnnotations
 )
-
-function selectionMenu($items) {
-    Add-Type -AssemblyName System.Windows.Forms
-    Add-Type -AssemblyName System.Drawing
-
-    if ($items.count -eq '1') { $drawSize = 28 }
-    else { $drawSize = $items.Count * 18 }
-
-    $form = New-Object System.Windows.Forms.Form
-    $form.Text = 'Backup Selection'
-    $form.Size = New-Object System.Drawing.Size(300, (120 + $drawSize))
-    $form.StartPosition = 'CenterScreen'
-
-    $OKButton = New-Object System.Windows.Forms.Button
-    $OKButton.Location = New-Object System.Drawing.Point(75, (50 + $drawSize))
-    $OKButton.Size = New-Object System.Drawing.Size(75,23)
-    $OKButton.Text = 'OK'
-    $OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
-    $form.AcceptButton = $OKButton
-    $form.Controls.Add($OKButton)
-
-    $CancelButton = New-Object System.Windows.Forms.Button
-    $CancelButton.Location = New-Object System.Drawing.Point(150, (50 + $drawSize))
-    $CancelButton.Size = New-Object System.Drawing.Size(75,23)
-    $CancelButton.Text = 'Cancel'
-    $CancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
-    $form.CancelButton = $CancelButton
-    $form.Controls.Add($CancelButton)
-
-    $label = New-Object System.Windows.Forms.Label
-    $label.Location = New-Object System.Drawing.Point(10,20)
-    $label.Size = New-Object System.Drawing.Size(280,20)
-    $label.Text = 'Select backup items:'
-    $form.Controls.Add($label)
-
-    $listBox = New-Object System.Windows.Forms.Listbox
-    $listBox.Location = New-Object System.Drawing.Point(10,40)
-    $listBox.Size = New-Object System.Drawing.Size(260,20)
-
-    $listBox.SelectionMode = 'MultiExtended'
-
-    $items.ForEach({ [void] $listBox.Items.Add("$_") })
-
-    $listBox.Height = $drawSize
-    $form.Controls.Add($listBox)
-    $form.Topmost = $true
-
-    $result = $form.ShowDialog()
-
-    if ($result -eq [System.Windows.Forms.DialogResult]::OK)
-    {
-        return $listBox.SelectedItems
-    }
-}
 
 Write-Verbose "Importing modules"
 Import-Module "$PSScriptRoot/../Modules/CluedIn.Product.Toolkit"
@@ -94,69 +44,44 @@ Connect-CluedInOrganisation -BaseURL $BaseURL -Organisation $Organisation -Versi
 
 Write-Host "INFO: Starting backup"
 
-if ($SelectBackups) {
-    $items = @(
-        'Admin Settings'
-        'Data Source Sets'
-        'Data Sources'
-        'Data Sets'
-        'Annotations'
-        'Vocabularies'
-        'Vocabulary Keys'
-    )
-    $result = selectionMenu($items)
-    if (!$result) { return }
-}
-
 # Settings
 $generalPath = Join-Path -Path $BackupPath -ChildPath 'General'
 if (!(Test-Path -Path $generalPath -PathType Container)) { New-Item $generalPath -ItemType Directory | Out-Null }
 
-if (('Admin Settings' -in $result) -or (!$SelectBackups)) { $processAdminSettings = $true }
-if ($processAdminSettings) {
-    Write-Host "INFO: Exporting Admin Settings"
-    Get-CluedInAdminSetting | Out-JsonFile -Path $generalPath -Name 'AdminSetting'
-}
+Write-Host "INFO: Exporting Admin Settings"
+Get-CluedInAdminSetting | Out-JsonFile -Path $generalPath -Name 'AdminSetting'
 
 # Data Sources
 $path = Join-Path -Path $BackupPath -ChildPath 'Data/SourceSets'
 if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
 
-if (('Data Source Sets' -in $result) -or (!$SelectBackups)) { $processDataSourceSets = $true }
-if ($processDataSourceSets) {
-    Write-Host "INFO: Exporting Data Source Sets"
-    $dataSourceSets = Get-CluedInDataSourceSet
-
-    if ($SelectBackups) {
-        $items = $dataSourceSets.data.inbound.dataSourceSets.data.name
-        $result = selectionMenu($items)
-        if (!$result) { Write-Warning "Nothing was selected" }
-        else {
-            $dataSourceSets.data.inbound.dataSourceSets.data = $dataSourceSets.data.inbound.dataSourceSets.data |
-                Where-Object {$_.name -match $result}
-                $dataSourceSets.data.inbound.dataSourceSets.total = $result.count
-
-        }
-    }
-
-    $dataSourceSets | Out-JsonFile -Path $path -Name 'DataSourceSet'
-}
+Write-Host "INFO: Exporting Data Source Sets"
+$dataSourceSets = Get-CluedInDataSourceSet
+$dataSourceSets | Out-JsonFile -Path $path -Name 'DataSourceSet'
 
 Write-Host "INFO: Exporting Data Sources"
 $path = Join-Path -Path $BackupPath -ChildPath 'Data/Sources'
 if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
+
+if ($SelectDataSources) { $dataSourceSets = Get-CluedInDataSourceSet }
 $dataSources = $dataSourceSets.data.inbound.dataSourceSets.data.datasources
-$dataSetProcess = @()
+
+if ($SelectDataSources) {
+    $items = $SelectDataSources -Split ','
+}
+
+#$dataSetProcess = @()
 for ($i = 0; $i -lt $dataSources.count; $i++) {
     $dataSource = Get-CluedInDataSource -Id $dataSources[$i].id
     $dataSource | Out-JsonFile -Path $path -Name ('{0}-DataSource' -f $i)
-    foreach ($dataSet in $dataSource.data.inbound.datasource.datasets) {
-        $dataSetProcess += @{
-            id = $dataSet.id
-            type = $dataSource.data.inbound.datasource.type
-        }
-    }
+    #foreach ($dataSet in $dataSource.data.inbound.datasource.datasets) {
+    #    $dataSetProcess += @{
+    #        id = $dataSet.id
+    #        type = $dataSource.data.inbound.datasource.type
+    #    }
+    #}
 }
+
 
 Write-Host "INFO: Exporting Data Sets and Annotations"
 $path = Join-Path -Path $BackupPath -ChildPath 'Data/Sets'

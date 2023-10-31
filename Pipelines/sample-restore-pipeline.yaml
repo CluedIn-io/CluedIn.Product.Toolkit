@@ -1,4 +1,4 @@
-# Backs up configuration from specified environment
+# Restores configuration from specified config files
 
 trigger: none
 
@@ -15,29 +15,25 @@ parameters:
   displayName: 'CluedIn Environment Version'
   type: string
 - name: vocabKeys
-  displayName: Vocabulary Keys (guid, csv)
+  displayName: Vocabulary Keys (guids, csv)
   type: string
   default: All
-#- name: dataSourceSets
-#  displayName: Data Source Sets (int, csv)
-#  type: string
-#  default: All
+- name: dataSourceSets
+  displayName: Data Source Sets (guids, csv)
+  type: string
+  default: All
 - name: dataSources
-  displayName: Data Sources (int, csv)
+  displayName: Data Sources (guids, csv)
   type: string
   default: All
 - name: dataSets
-  displayName: Data Sets (guid, csv)
+  displayName: Data Sets (guids, csv)
   type: string
   default: All
 - name: annotations
-  displayName: Annotations (guid, csv)
+  displayName: Annotations (guids, csv)
   type: string
   default: All
-- name: pushToRepo
-  displayName: Push to repo
-  type: boolean
-  default: false
 
 variables:
 - group: CluedIn-Authentication

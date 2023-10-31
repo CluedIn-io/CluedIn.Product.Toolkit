@@ -29,11 +29,11 @@ param(
     [Parameter(Mandatory)][string]$Organisation,
     [Parameter(Mandatory)][version]$Version,
     [Parameter(Mandatory)][string]$BackupPath,
-    [string]$SelectVocabKeys,
+    [string]$SelectVocabKeys = 'All',
     #[string]$SelectDataSourceSets,
-    [string]$SelectDataSources,
-    [string]$SelectDataSets,
-    [string]$SelectAnnotations
+    [string]$SelectDataSources = 'All',
+    [string]$SelectDataSets = 'All',
+    [string]$SelectAnnotations = 'All'
 )
 
 Write-Verbose "Importing modules"
@@ -65,8 +65,11 @@ if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Dir
 
 $dataSources = $dataSourceSets.data.inbound.dataSourceSets.data.datasources
 
-if ($SelectDataSources) { $dataSourceIds = ($SelectDataSources -Split ',').Trim() }
-else { $dataSourceIds = $dataSources.id }
+$dataSourceIds = switch ($SelectDataSources) {
+    'All' { $dataSources.id }
+    'None' { $null }
+    default { ($SelectDataSources -Split ',').Trim() }
+}
 
 foreach ($id in $dataSourceIds) {
     Write-Verbose "Processing id: $id"
@@ -80,17 +83,21 @@ Write-Host "INFO: Exporting Data Sets and Annotations"
 $path = Join-Path -Path $BackupPath -ChildPath 'Data/Sets'
 if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
 
-if ($SelectDataSets) { $dataSetIds = ($SelectDataSets -Split ',').Trim() }
-else { $dataSetIds = $dataSources.dataSets.id } # Need to change this
+$dataSetIds = switch ($SelectDataSets) {
+    'All' { $dataSources.dataSets.id }
+    'None' { $null }
+    default { ($SelectDataSets -Split ',').Trim() }
+}
 
 foreach ($id in $dataSetIds) {
+    Write-Verbose "Processing id: $id"
     $set = Get-CluedInDataSet -id $dataSet.id
     $set | Out-JsonFile -Path $path -Name ('{0}-DataSet' -f $dataSet.id)
     if ($set.data.inbound.dataSet.dataSource.type -eq 'file') {
         Get-CluedInDataSetContent -id $dataSet.id | Out-JsonFile -Path $path -Name ('{0}-DataSetContent' -f $dataSet.id)
     }
 
-    Write-Verbose "INFO: Exporting Annotation"
+    Write-Verbose "Exporting Annotation"
     $annotationId = $set.data.inbound.dataSet.annotationId
     Get-CluedInAnnotations -id $annotationId | Out-JsonFile -Path $path -Name ('{0}-Annotation' -f $dataSet.id)
 }

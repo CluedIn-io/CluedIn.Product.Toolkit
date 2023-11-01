@@ -74,9 +74,6 @@ $adminSetting = Get-Content -Path (Join-Path -Path $generalPath -ChildPath 'Admi
 $settings = ($adminSetting.data.administration.configurationSettings).psobject.properties.name
 
 foreach ($setting in $settings) {
-    # We apparently export API keys which need to be re-imported.
-    # Need to find out where these are grabbed from and we can then store/retrieve from KV
-
     $key = $setting
     $value = $adminSetting.data.administration.configurationSettings.$key
     Write-Host "Processing Admin Setting: $key" -ForegroundColor 'Cyan'

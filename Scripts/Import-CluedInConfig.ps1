@@ -244,19 +244,19 @@ foreach ($dataSet in $dataSets) {
                     checkResults($setAnnotationEntityCodesResult)
                 }
 
-                Write-Verbose "Adding Edge Mappings"
-                $edges = $annotationObject.annotationProperties | Where-Object {$_.annotationEdges}
+                # Write-Verbose "Adding Edge Mappings"
+                # $edges = $annotationObject.annotationProperties | Where-Object {$_.annotationEdges}
 
-                foreach ($edge in $edges) {
-                    $edge = $edge.annotationEdges
-                    $edgeVocabulary = Get-CluedInVocabularyKey -Search $edge.edgeProperties.vocabularyKey.key
-                    $edgeVocabularyObject = $edgeVocabulary.data.management.vocabularyPerKey
-                    $edge.edgeProperties.vocabularyKey.vocabularyKeyId = $edgeVocabularyObject.vocabularyKeyId
-                    $edge.edgeProperties.vocabularyKey.vocabularyId = $edgeVocabularyObject.vocabularyId
+                # foreach ($edge in $edges) {
+                #     $edge = $edge.annotationEdges
+                #     $edgeVocabulary = Get-CluedInVocabularyKey -Search $edge.edgeProperties.vocabularyKey.key
+                #     $edgeVocabularyObject = $edgeVocabulary.data.management.vocabularyPerKey
+                #     $edge.edgeProperties.vocabularyKey.vocabularyKeyId = $edgeVocabularyObject.vocabularyKeyId
+                #     $edge.edgeProperties.vocabularyKey.vocabularyId = $edgeVocabularyObject.vocabularyId
 
-                    $edgeResult = New-CluedInEdgeMapping -Object $edge -AnnotationId $annotationObject.id
-                    checkResults($edgeResult)
-                }
+                #     $edgeResult = New-CluedInEdgeMapping -Object $edge -AnnotationId $annotationObject.id
+                #     checkResults($edgeResult)
+                # }
             }
             catch {
                 Write-Verbose "Annotation file '$annotationPath' not found or error occured during run"

@@ -56,7 +56,7 @@ $dataSourceSetsPath = Join-Path -Path $dataPath -ChildPath 'SourceSets'
 $dataSourcesPath = Join-Path -Path $dataPath -ChildPath 'Sources'
 $dataSetsPath = Join-Path -Path $dataPath -ChildPath 'Sets'
 $generalPath = Join-Path -Path $RestorePath -ChildPath 'General'
-$rulesPath = Join-Path -Path $RestorePath -ChildPath 'Rules'
+# $rulesPath = Join-Path -Path $RestorePath -ChildPath 'Rules'
 
 # Test Paths
 if (!(Test-Path -Path $generalPath -PathType Container)) { throw "'$generalPath' could not be found. Please investigate" }
@@ -74,9 +74,6 @@ $adminSetting = Get-Content -Path (Join-Path -Path $generalPath -ChildPath 'Admi
 $settings = ($adminSetting.data.administration.configurationSettings).psobject.properties.name
 
 foreach ($setting in $settings) {
-    # We apparently export API keys which need to be re-imported.
-    # Need to find out where these are grabbed from and we can then store/retrieve from KV
-
     $key = $setting
     $value = $adminSetting.data.administration.configurationSettings.$key
     Write-Host "Processing Admin Setting: $key" -ForegroundColor 'Cyan'
@@ -105,7 +102,6 @@ foreach ($vocabulary in $vocabularies) {
 }
 
 Write-Host "INFO: Importing Vocabulary Keys" -ForegroundColor 'Green'
-Write-Host "This may take a couple minutes..." -ForegroundColor 'Yellow'
 $vocabKeys = Get-ChildItem -Path $vocabKeysPath -Filter "*.json"
 foreach ($vocabKey in $vocabKeys) {
     $vocabKeyJson = Get-Content -Path $vocabKey.FullName | ConvertFrom-Json -Depth 20
@@ -130,24 +126,6 @@ foreach ($vocabKey in $vocabKeys) {
     }
 }
 
-# Data Sources
-Write-Host "INFO: Importing Data Source Sets" -ForegroundColor 'Green'
-
-$dataSourceSets = Get-Content -Path (Join-Path -Path $dataSourceSetsPath -ChildPath 'DataSourceSet.json') | ConvertFrom-Json -Depth 20
-foreach ($dataSourceSet in $dataSourceSets.data.inbound.dataSourceSets.data) {
-    Write-Host "Processing Data Source Set: $($dataSourceSet.name) ($($dataSourceSet.id))" -ForegroundColor Cyan
-    Write-Debug "$($dataSourceSet | Out-String)"
-
-    $exists = (Get-CluedInDataSourceSet -Search $($dataSourceSet.name)).data.inbound.dataSourceSets.data
-
-    if (!$exists) {
-        Write-Host "Creating '$($dataSourceSet.name)' as it doesn't exist" -ForegroundColor 'DarkCyan'
-        $dataSourceSetResult = New-CluedInDataSourceSet -Object $dataSourceSet
-        checkResults($dataSourceSetResult)
-    }
-    else { Write-Warning "An entry already exists" }
-}
-
 Write-Host "INFO: Importing Data Sources" -ForegroundColor 'Green'
 $dataSources = Get-ChildItem -Path $dataSourcesPath -Filter "*.json"
 
@@ -159,7 +137,12 @@ foreach ($dataSource in $dataSources) {
     $dataSourceSet = Get-CluedInDataSourceSet -Search $dataSourceSetName
     $dataSourceSetMatch = $dataSourceSet.data.inbound.dataSourceSets.data |
         Where-Object {$_.name -match "^$dataSourceSetName$"}
-    if (!$dataSourceSetMatch) { Write-Warning "'$dataSourceSetName' was not found as a Data Source"; continue }
+    if (!$dataSourceSetMatch) {
+        Write-Warning "'$dataSourceSetName' was not found. Creating it now"
+        $dataSourceSetResult = New-CluedInDataSourceSet -DisplayName $dataSourceSetName
+        checkResults($dataSourceSetResult)
+        $dataSourceSetMatch = (Get-CluedInDataSourceSet -Search $dataSourceSetName).data.inbound.dataSourceSets.data
+    }
     $dataSourceObject.dataSourceSet.id = $dataSourceSetMatch.id
 
     Write-Host "Processing Data Source: $($dataSourceObject.name) ($($dataSourceObject.id))" -ForegroundColor 'Cyan'
@@ -167,7 +150,14 @@ foreach ($dataSource in $dataSources) {
     if (!$exists) {
         Write-Host "Creating '$($dataSourceObject.name)' as it doesn't exist" -ForegroundColor 'DarkCyan'
         $dataSourceResult = New-CluedInDataSource -Object $dataSourceObject
+        $newDataSourceId = $dataSourceResult.data.inbound.createDataSource.id
         checkResults($dataSourceResult)
+
+        $dataSourceObject.connectorConfiguration.id =
+            (Get-CluedInDataSource -Search $dataSourceObject.name).data.inbound.dataSource.connectorConfiguration.id
+        $dataSourceObject.connectorConfiguration.configuration.DataSourceId = $newDataSourceId
+        $dataSourceConfigResult = Set-CluedInDataSourceConfiguration -Object $dataSourceObject.connectorConfiguration
+        checkResults($dataSourceConfigResult)
     }
     else { Write-Warning "An entry already exists" }
 }
@@ -254,19 +244,21 @@ foreach ($dataSet in $dataSets) {
                     checkResults($setAnnotationEntityCodesResult)
                 }
 
-                Write-Verbose "Adding Edge Mappings"
-                $edges = $annotationObject.annotationProperties | Where-Object {$_.annotationEdges}
+                # Blocked as not currently in scope
 
-                foreach ($edge in $edges) {
-                    $edge = $edge.annotationEdges
-                    $edgeVocabulary = Get-CluedInVocabularyKey -Search $edge.edgeProperties.vocabularyKey.key
-                    $edgeVocabularyObject = $edgeVocabulary.data.management.vocabularyPerKey
-                    $edge.edgeProperties.vocabularyKey.vocabularyKeyId = $edgeVocabularyObject.vocabularyKeyId
-                    $edge.edgeProperties.vocabularyKey.vocabularyId = $edgeVocabularyObject.vocabularyId
+                # Write-Verbose "Adding Edge Mappings"
+                # $edges = $annotationObject.annotationProperties | Where-Object {$_.annotationEdges}
 
-                    $edgeResult = New-CluedInEdgeMapping -Object $edge -AnnotationId $annotationObject.id
-                    checkResults($edgeResult)
-                }
+                # foreach ($edge in $edges) {
+                #     $edge = $edge.annotationEdges
+                #     $edgeVocabulary = Get-CluedInVocabularyKey -Search $edge.edgeProperties.vocabularyKey.key
+                #     $edgeVocabularyObject = $edgeVocabulary.data.management.vocabularyPerKey
+                #     $edge.edgeProperties.vocabularyKey.vocabularyKeyId = $edgeVocabularyObject.vocabularyKeyId
+                #     $edge.edgeProperties.vocabularyKey.vocabularyId = $edgeVocabularyObject.vocabularyId
+
+                #     $edgeResult = New-CluedInEdgeMapping -Object $edge -AnnotationId $annotationObject.id
+                #     checkResults($edgeResult)
+                # }
             }
             catch {
                 Write-Verbose "Annotation file '$annotationPath' not found or error occured during run"
@@ -278,21 +270,23 @@ foreach ($dataSet in $dataSets) {
     else { Write-Warning "An entry already exists" }
 }
 
+# Blocked as not currently in scope
+
 # Rules
-Write-Host "INFO: Importing Rules" -ForegroundColor 'Green'
-$rules = Get-ChildItem -Path $rulesPath -Filter "*.json" -Recurse
-foreach ($rule in $rules) {
-    $ruleJson = Get-Content -Path $rule.FullName | ConvertFrom-Json -Depth 20
-    $ruleObject = $ruleJson.data.management.rule
-
-    Write-Host "Processing Rule: $($ruleObject.name) ($($ruleObject.scope))" -ForegroundColor 'Cyan'
-    $ruleResult = New-CluedInRule -Name $ruleObject.name -Scope $ruleObject.scope
-    checkResults($ruleResult)
-
-    Write-Verbose "Setting rule configuration"
-    $ruleObject.id = $ruleResult.data.management.createRule.id
-    $setRuleResult = Set-CluedInRule -Object $ruleObject
-    checkResults($setRuleResult)
-}
+# Write-Host "INFO: Importing Rules" -ForegroundColor 'Green'
+# $rules = Get-ChildItem -Path $rulesPath -Filter "*.json" -Recurse
+# foreach ($rule in $rules) {
+#     $ruleJson = Get-Content -Path $rule.FullName | ConvertFrom-Json -Depth 20
+#     $ruleObject = $ruleJson.data.management.rule
+#
+#     Write-Host "Processing Rule: $($ruleObject.name) ($($ruleObject.scope))" -ForegroundColor 'Cyan'
+#     $ruleResult = New-CluedInRule -Name $ruleObject.name -Scope $ruleObject.scope
+#     checkResults($ruleResult)
+#
+#     Write-Verbose "Setting rule configuration"
+#     $ruleObject.id = $ruleResult.data.management.createRule.id
+#     $setRuleResult = Set-CluedInRule -Object $ruleObject
+#     checkResults($setRuleResult)
+# }
 
 Write-Host "INFO: Import Complete" -ForegroundColor 'Green'

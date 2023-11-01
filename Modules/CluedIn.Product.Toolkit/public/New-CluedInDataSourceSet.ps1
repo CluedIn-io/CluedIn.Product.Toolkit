@@ -18,7 +18,6 @@ function New-CluedInDataSourceSet {
 
     [CmdletBinding()]
     param(
-        [Parameter(ParameterSetName = 'New')][guid]$AuthorID,
         [Parameter(ParameterSetName = 'New')][string]$DisplayName,
         [Parameter(ParameterSetName = 'Existing')][PSCustomObject]$Object
     )
@@ -26,7 +25,6 @@ function New-CluedInDataSourceSet {
     $me = Get-CluedInMe
 
     if ($PsCmdlet.ParameterSetName -eq 'Existing') {
-        $AuthorID = $me.data.administration.me.client.id
         $DisplayName = $Object.name
     }
 
@@ -36,7 +34,7 @@ function New-CluedInDataSourceSet {
         variables =@{
             dataSourceSet = @{
                 name = $DisplayName
-                author = $AuthorID
+                author = $me.data.administration.me.client.id
             }
         }
         query = $queryContent

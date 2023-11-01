@@ -1,0 +1,53 @@
+# Restores configuration from specified config files
+
+trigger: none
+
+name: ${{ parameters.organisation }}.${{ parameters.baseURL }} Restore ($(Date:yyyyMMdd)$(Rev:r))
+
+parameters:
+- name: baseURL
+  displayName: 'CluedIn Base URL'
+  type: string
+- name: organisation
+  displayName: 'CluedIn Organisation'
+  type: string
+- name: version
+  displayName: 'CluedIn Environment Version'
+  type: string
+
+variables:
+- group: CluedIn-Authentication
+
+resources:
+  repositories:
+  - repository: codeRepo # Friendly name for ADO to use
+    type: github
+    endpoint: 'CluedIn' # Service connection
+    name: 'CluedIn-io/CluedIn.Product.Toolkit' # GitHub repo name
+  pipelines:
+  - pipeline: configPipeline
+    source: Backup Config # This needs to be the name of pipelines displayName in ADO
+    #project: specify project if it's not in the current one
+
+jobs:
+- job: restoreConfiguration
+  displayName: Restore Configuration
+  steps:
+  - checkout: codeRepo
+  - download: configPipeline
+
+  - pwsh: get-childitem $(pipeline.workspace) -recurse | Out-string
+
+  - task: PowerShell@2
+    displayName: 'Restore'
+    inputs:
+      filePath: Scripts/Import-CluedInConfig.ps1
+      arguments: >-
+        -BaseURL ${{ parameters.baseURL }}
+        -Organisation ${{ parameters.organisation }}
+        -Version ${{ parameters.version }}
+        -RestorePath '$(pipeline.workspace)/configPipeline/CluedIn-Configuration'
+      pwsh: true
+    env:
+      CLUEDIN_USERNAME: $(cluedin-username) # Comes from the variable group
+      CLUEDIN_PASSWORD: $(cluedin-password) # Comes from the variable group

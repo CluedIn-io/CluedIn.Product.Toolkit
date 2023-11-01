@@ -1,0 +1,106 @@
+query getAllVocabularyKeys(
+  $searchName: String
+  $pageNumber: Int
+  $pageSize: Int
+  $dataType: String
+  $classification: String
+  $connectorId: ID
+  $isCluedInCore: Boolean
+  $isDynamic: Boolean
+  $filterIsObsolete: String
+  $isProvider: Boolean
+  $hasNoProvider: Boolean
+  $filterTypes: Int
+  $filterHasNoSource: Boolean
+) {
+  management {
+    id
+    vocabularyKeys(
+      searchName: $searchName
+      pageNumber: $pageNumber
+      pageSize: $pageSize
+      dataType: $dataType
+      classification: $classification
+      connectorId: $connectorId
+      isCluedInCore: $isCluedInCore
+      isDynamic: $isDynamic
+      filterIsObsolete: $filterIsObsolete
+      isProvider: $isProvider
+      hasNoProvider: $hasNoProvider
+      filterTypes: $filterTypes
+      filterHasNoSource: $filterHasNoSource
+    ) {
+      total
+      data {
+        ...VocabularyKey
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}
+
+fragment VocabularyKey on VocabularyKey {
+  displayName
+  vocabularyKeyId
+  vocabularyId
+  name
+  isVisible
+  isCluedInCore
+  isDynamic
+  isProvider
+  isObsolete
+  groupName
+  key
+  storage
+  dataClassificationCode
+  dataType
+  description
+  dataAnnotationsIsPrimaryKey
+  dataAnnotationsIsEditable
+  dataAnnotationsIsNullable
+  dataAnnotationsIsRequired
+  dataAnnotationsMinimumLength
+  dataAnnotationsMaximumLength
+  providerId
+  compositeVocabularyId
+  compositeVocabulary {
+    name
+    displayName
+    dataType
+    __typename
+  }
+  mapsToOtherKeyId
+  glossaryTermId
+  createdAt
+  createdBy
+  mappedKey
+  isValueChangeInsignificant
+  connector {
+    id
+    name
+    about
+    icon
+    type
+    __typename
+  }
+  vocabulary {
+    vocabularyId
+    vocabularyName
+    connector {
+      id
+      name
+      about
+      icon
+      __typename
+    }
+    __typename
+  }
+  author {
+    id
+    username
+    __typename
+  }
+  __typename
+}

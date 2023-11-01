@@ -55,12 +55,6 @@ jobs:
   - checkout: backupRepo
     persistCredentials: true
 
-  - pwsh: |
-      Write-Host "env: ${env:CLUEDIN_USERNAME} ${env:CLUEDIN_PASSWORD}"
-    env:
-      CLUEDIN_USERNAME: $(cluedin-username) # Comes from the variable group
-      CLUEDIN_PASSWORD: $(cluedin-password) # Comes from the variable group
-
   - task: PowerShell@2
     displayName: 'Backup'
     inputs:

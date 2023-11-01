@@ -2,7 +2,7 @@
 
 trigger: none
 
-name: ${{ parameters.organisation }}.${{ parameters.baseURL }} Backup ($(Date:yyyyMMdd)$(Rev:r))
+name: ${{ parameters.organisation }}.${{ parameters.baseURL }} Restore ($(Date:yyyyMMdd)$(Rev:r))
 
 parameters:
 - name: baseURL
@@ -14,31 +14,9 @@ parameters:
 - name: version
   displayName: 'CluedIn Environment Version'
   type: string
-- name: vocabKeys
-  displayName: Vocabulary Keys (guids, csv)
-  type: string
-  default: All
-- name: dataSourceSets
-  displayName: Data Source Sets (guids, csv)
-  type: string
-  default: All
-- name: dataSources
-  displayName: Data Sources (guids, csv)
-  type: string
-  default: All
-- name: dataSets
-  displayName: Data Sets (guids, csv)
-  type: string
-  default: All
-- name: annotations
-  displayName: Annotations (guids, csv)
-  type: string
-  default: All
 
 variables:
 - group: CluedIn-Authentication
-- name: BackupPath
-  value: '$(System.DefaultWorkingDirectory)/Backups'
 
 resources:
   repositories:
@@ -46,49 +24,28 @@ resources:
     type: github
     endpoint: 'CluedIn' # Service connection
     name: 'CluedIn-io/CluedIn.Product.Toolkit' # GitHub repo name
-  - repository: backupRepo
-    type: github
-    endpoint: 'CluedIn' # Service connection
-    name: 'jjrcluedin/jjr-testbackups' # GitHub repo name
+  pipelines:
+  - pipeline: configPipeline
+    source: backup-pipeline
 
 jobs:
-- job: backupConfiguration
-  displayName: Backup Configuration
+- job: restoreConfiguration
+  displayName: Restore Configuration
   steps:
   - checkout: codeRepo
-  - checkout: backupRepo
-    persistCredentials: true
 
-  - pwsh: |
-      Write-Host "env: ${env:CLUEDIN_USERNAME} ${env:CLUEDIN_PASSWORD}"
-    env:
-      CLUEDIN_USERNAME: $(cluedin-username) # Comes from the variable group
-      CLUEDIN_PASSWORD: $(cluedin-password) # Comes from the variable group
+  - download: configPipeline
 
   - task: PowerShell@2
-    displayName: 'Backup'
+    displayName: 'Restore'
     inputs:
-      filePath: CluedIn.Product.Toolkit/Scripts/Export-CluedInConfig.ps1
+      filePath: CluedIn.Product.Toolkit/Scripts/Import-CluedInConfig.ps1
       arguments: >-
         -BaseURL ${{ parameters.baseURL }}
         -Organisation ${{ parameters.organisation }}
         -Version ${{ parameters.version }}
-        -BackupPath '$(BackupPath)'
+        -RestorePath '$(pipeline.workspace)/configPipeline/CluedIn-Configuration'
       pwsh: true
     env:
       CLUEDIN_USERNAME: $(cluedin-username) # Comes from the variable group
       CLUEDIN_PASSWORD: $(cluedin-password) # Comes from the variable group
-
-  - pwsh: |
-      git config --global user.email "ado@azurepipelines.com"
-      git config --global user.name "ADO Pipeline ($(Build.DefinitionName))"
-      git checkout -b main
-
-      Copy-Item -Path '$(BackupPath)' -Destination . -Recurse
-
-      git add -A
-      git commit -m "Backup: $(Build.BuildNumber)"
-      git push --set-upstream origin main
-    displayName: Push to git
-    condition: eq( ${{ parameters.pushToRepo }}, 'true' )
-    workingDirectory: $(System.DefaultWorkingDirectory)/jjr-testbackups

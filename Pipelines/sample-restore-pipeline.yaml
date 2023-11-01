@@ -36,10 +36,12 @@ jobs:
   - checkout: codeRepo
   - download: configPipeline
 
+  - pwsh: get-childitem $(pipeline.workspace) -recurse | Out-string
+
   - task: PowerShell@2
     displayName: 'Restore'
     inputs:
-      filePath: CluedIn.Product.Toolkit/Scripts/Import-CluedInConfig.ps1
+      filePath: Scripts/Import-CluedInConfig.ps1
       arguments: >-
         -BaseURL ${{ parameters.baseURL }}
         -Organisation ${{ parameters.organisation }}

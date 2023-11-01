@@ -56,7 +56,7 @@ $dataSourceSetsPath = Join-Path -Path $dataPath -ChildPath 'SourceSets'
 $dataSourcesPath = Join-Path -Path $dataPath -ChildPath 'Sources'
 $dataSetsPath = Join-Path -Path $dataPath -ChildPath 'Sets'
 $generalPath = Join-Path -Path $RestorePath -ChildPath 'General'
-$rulesPath = Join-Path -Path $RestorePath -ChildPath 'Rules'
+# $rulesPath = Join-Path -Path $RestorePath -ChildPath 'Rules'
 
 # Test Paths
 if (!(Test-Path -Path $generalPath -PathType Container)) { throw "'$generalPath' could not be found. Please investigate" }
@@ -244,6 +244,8 @@ foreach ($dataSet in $dataSets) {
                     checkResults($setAnnotationEntityCodesResult)
                 }
 
+                # Blocked as not currently in scope
+
                 # Write-Verbose "Adding Edge Mappings"
                 # $edges = $annotationObject.annotationProperties | Where-Object {$_.annotationEdges}
 
@@ -268,21 +270,23 @@ foreach ($dataSet in $dataSets) {
     else { Write-Warning "An entry already exists" }
 }
 
+# Blocked as not currently in scope
+
 # Rules
-Write-Host "INFO: Importing Rules" -ForegroundColor 'Green'
-$rules = Get-ChildItem -Path $rulesPath -Filter "*.json" -Recurse
-foreach ($rule in $rules) {
-    $ruleJson = Get-Content -Path $rule.FullName | ConvertFrom-Json -Depth 20
-    $ruleObject = $ruleJson.data.management.rule
-
-    Write-Host "Processing Rule: $($ruleObject.name) ($($ruleObject.scope))" -ForegroundColor 'Cyan'
-    $ruleResult = New-CluedInRule -Name $ruleObject.name -Scope $ruleObject.scope
-    checkResults($ruleResult)
-
-    Write-Verbose "Setting rule configuration"
-    $ruleObject.id = $ruleResult.data.management.createRule.id
-    $setRuleResult = Set-CluedInRule -Object $ruleObject
-    checkResults($setRuleResult)
-}
+# Write-Host "INFO: Importing Rules" -ForegroundColor 'Green'
+# $rules = Get-ChildItem -Path $rulesPath -Filter "*.json" -Recurse
+# foreach ($rule in $rules) {
+#     $ruleJson = Get-Content -Path $rule.FullName | ConvertFrom-Json -Depth 20
+#     $ruleObject = $ruleJson.data.management.rule
+#
+#     Write-Host "Processing Rule: $($ruleObject.name) ($($ruleObject.scope))" -ForegroundColor 'Cyan'
+#     $ruleResult = New-CluedInRule -Name $ruleObject.name -Scope $ruleObject.scope
+#     checkResults($ruleResult)
+#
+#     Write-Verbose "Setting rule configuration"
+#     $ruleObject.id = $ruleResult.data.management.createRule.id
+#     $setRuleResult = Set-CluedInRule -Object $ruleObject
+#     checkResults($setRuleResult)
+# }
 
 Write-Host "INFO: Import Complete" -ForegroundColor 'Green'

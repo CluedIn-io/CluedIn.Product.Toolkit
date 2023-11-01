@@ -26,7 +26,7 @@ resources:
     name: 'CluedIn-io/CluedIn.Product.Toolkit' # GitHub repo name
   pipelines:
   - pipeline: configPipeline
-    source: backup-pipeline # This needs to be the name of pipelines displayName in ADO
+    source: Backup Config # This needs to be the name of pipelines displayName in ADO
     #project: specify project if it's not in the current one
 
 jobs:

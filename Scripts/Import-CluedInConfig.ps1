@@ -102,7 +102,6 @@ foreach ($vocabulary in $vocabularies) {
 }
 
 Write-Host "INFO: Importing Vocabulary Keys" -ForegroundColor 'Green'
-Write-Host "This may take a couple minutes..." -ForegroundColor 'Yellow'
 $vocabKeys = Get-ChildItem -Path $vocabKeysPath -Filter "*.json"
 foreach ($vocabKey in $vocabKeys) {
     $vocabKeyJson = Get-Content -Path $vocabKey.FullName | ConvertFrom-Json -Depth 20
@@ -128,22 +127,24 @@ foreach ($vocabKey in $vocabKeys) {
 }
 
 # Data Sources
-Write-Host "INFO: Importing Data Source Sets" -ForegroundColor 'Green'
+# Write-Host "INFO: Importing Data Source Sets" -ForegroundColor 'Green'
+#
+# $dataSourceSets = Get-Content -Path (Join-Path -Path $dataSourceSetsPath -ChildPath 'DataSourceSet.json') | ConvertFrom-Json -Depth 20
+# foreach ($dataSourceSet in $dataSourceSets.data.inbound.dataSourceSets.data) {
+#     Write-Host "Processing Data Source Set: $($dataSourceSet.name) ($($dataSourceSet.id))" -ForegroundColor Cyan
+#     Write-Debug "$($dataSourceSet | Out-String)"
+#
+#     $exists = (Get-CluedInDataSourceSet -Search $($dataSourceSet.name)).data.inbound.dataSourceSets.data
+#
+#     if (!$exists) {
+#         Write-Host "Creating '$($dataSourceSet.name)' as it doesn't exist" -ForegroundColor 'DarkCyan'
+#         $dataSourceSetResult = New-CluedInDataSourceSet -Object $dataSourceSet
+#         checkResults($dataSourceSetResult)
+#     }
+#     else { Write-Warning "An entry already exists" }
+# }
 
-$dataSourceSets = Get-Content -Path (Join-Path -Path $dataSourceSetsPath -ChildPath 'DataSourceSet.json') | ConvertFrom-Json -Depth 20
-foreach ($dataSourceSet in $dataSourceSets.data.inbound.dataSourceSets.data) {
-    Write-Host "Processing Data Source Set: $($dataSourceSet.name) ($($dataSourceSet.id))" -ForegroundColor Cyan
-    Write-Debug "$($dataSourceSet | Out-String)"
-
-    $exists = (Get-CluedInDataSourceSet -Search $($dataSourceSet.name)).data.inbound.dataSourceSets.data
-
-    if (!$exists) {
-        Write-Host "Creating '$($dataSourceSet.name)' as it doesn't exist" -ForegroundColor 'DarkCyan'
-        $dataSourceSetResult = New-CluedInDataSourceSet -Object $dataSourceSet
-        checkResults($dataSourceSetResult)
-    }
-    else { Write-Warning "An entry already exists" }
-}
+# We should only import the missing ones above based on Data Sources.
 
 Write-Host "INFO: Importing Data Sources" -ForegroundColor 'Green'
 $dataSources = Get-ChildItem -Path $dataSourcesPath -Filter "*.json"
@@ -156,7 +157,10 @@ foreach ($dataSource in $dataSources) {
     $dataSourceSet = Get-CluedInDataSourceSet -Search $dataSourceSetName
     $dataSourceSetMatch = $dataSourceSet.data.inbound.dataSourceSets.data |
         Where-Object {$_.name -match "^$dataSourceSetName$"}
-    if (!$dataSourceSetMatch) { Write-Warning "'$dataSourceSetName' was not found as a Data Source"; continue }
+    if (!$dataSourceSetMatch) {
+        Write-Warning "'$dataSourceSetName' was not found. Creating it now"
+        $dataSourceSetResult = New-CluedInDataSourceSet -Object $dataSourceSetName
+    }
     $dataSourceObject.dataSourceSet.id = $dataSourceSetMatch.id
 
     Write-Host "Processing Data Source: $($dataSourceObject.name) ($($dataSourceObject.id))" -ForegroundColor 'Cyan'

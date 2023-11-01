@@ -19,6 +19,24 @@
     .PARAMETER BackupPath
     This is the location of where to export files
 
+    .PARAMETER SelectVocabularies
+    This is a list of vocabularies (along with keys) that automatically get backed up.
+    Default value is 'None', but 'All' and guids are accepted in csv format wrapped in a string.
+
+    Example: '66505aa1-bacb-463e-832c-799c484577a8, e257a226-d91c-4946-a8af-85ef803cf55e'
+
+    .PARAMETER SelectDataSources
+    This is a list of Data Sources to backup.
+    Default value is 'None', but 'All' and ints are accepted in csv format wrapped in a string.
+
+    Example: '1, 2, 3'
+
+    .PARAMETER SelectDataSets
+    This is a list of Data Sets to backup.
+    Default value is 'None', but 'All' and ints are accepted in csv format wrapped in a string.
+
+    Example: '1, 2, 3'
+
     .EXAMPLE
     PS> ./Export-CluedInConfig.ps1 -BaseURL 'cluedin.com' -Organisation 'dev' -Version '2023.07'
 #>

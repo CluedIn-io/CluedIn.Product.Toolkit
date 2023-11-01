@@ -140,17 +140,24 @@ foreach ($dataSource in $dataSources) {
     if (!$dataSourceSetMatch) {
         Write-Warning "'$dataSourceSetName' was not found. Creating it now"
         $dataSourceSetResult = New-CluedInDataSourceSet -DisplayName $dataSourceSetName
-        $dataSourceSetId = $dataSourceSetResult.data.inbound.createDataSourceSet
+        checkResults($dataSourceSetResult)
+        $dataSourceSetMatch = (Get-CluedInDataSourceSet -Search $dataSourceSetName).data.inbound.dataSourceSets.data
     }
-    else { $dataSourceSetId = $dataSourceSetMatch.id }
-    $dataSourceObject.dataSourceSet.id = $dataSourceSetId
+    $dataSourceObject.dataSourceSet.id = $dataSourceSetMatch.id
 
     Write-Host "Processing Data Source: $($dataSourceObject.name) ($($dataSourceObject.id))" -ForegroundColor 'Cyan'
     $exists = (Get-CluedInDataSource -Search $dataSourceObject.name).data.inbound.dataSource
     if (!$exists) {
         Write-Host "Creating '$($dataSourceObject.name)' as it doesn't exist" -ForegroundColor 'DarkCyan'
         $dataSourceResult = New-CluedInDataSource -Object $dataSourceObject
+        $newDataSourceId = $dataSourceResult.data.inbound.createDataSource.id
         checkResults($dataSourceResult)
+
+        $dataSourceObject.connectorConfiguration.id =
+            (Get-CluedInDataSource -Search $dataSourceObject.name).data.inbound.dataSource.connectorConfiguration.id
+        $dataSourceObject.connectorConfiguration.configuration.DataSourceId = $newDataSourceId
+        $dataSourceConfigResult = Set-CluedInDataSourceConfiguration -Object $dataSourceObject.connectorConfiguration
+        checkResults($dataSourceConfigResult)
     }
     else { Write-Warning "An entry already exists" }
 }

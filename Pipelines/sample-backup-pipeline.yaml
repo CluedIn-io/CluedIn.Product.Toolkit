@@ -17,15 +17,15 @@ parameters:
 - name: vocabularies
   displayName: Vocabularies (guid, csv)
   type: string
-  default: All
+  default: None
 - name: dataSources
   displayName: Data Sources (int, csv)
   type: string
-  default: All
+  default: None
 - name: dataSets
   displayName: Data Sets (guid, csv)
   type: string
-  default: All
+  default: None
 - name: pushToRepo
   displayName: Push to repo
   type: boolean

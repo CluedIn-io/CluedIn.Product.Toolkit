@@ -38,7 +38,8 @@ parameters:
   default: false
 
 variables:
-- group: CluedIn-Authentication
+- group: Source-CluedIn-Authentication
+- group: Destination-CluedIn-Authentication
 - name: BackupPath
   value: '$(System.ArtifactsDirectory)/Backups'
 
@@ -75,8 +76,8 @@ jobs:
         -SelectDataSets ${{ parameters.dataSets }}
       pwsh: true
     env:
-      CLUEDIN_USERNAME: $(cluedin-username) # Comes from the variable group
-      CLUEDIN_PASSWORD: $(cluedin-password) # Comes from the variable group
+      CLUEDIN_USERNAME: $(source-cluedin-username) # Comes from the variable group
+      CLUEDIN_PASSWORD: $(source-cluedin-password) # Comes from the variable group
 
   - task: PowerShell@2
     displayName: 'Restore'
@@ -89,8 +90,8 @@ jobs:
         -RestorePath '$(BackupPath)'
       pwsh: true
     env:
-      CLUEDIN_USERNAME: $(cluedin-username) # Comes from the variable group
-      CLUEDIN_PASSWORD: $(cluedin-password) # Comes from the variable group
+      CLUEDIN_USERNAME: $(destination-cluedin-username) # Comes from the variable group
+      CLUEDIN_PASSWORD: $(destination-cluedin-password) # Comes from the variable group
 
   - pwsh: |
       git config --global user.email "ado@azurepipelines.com"

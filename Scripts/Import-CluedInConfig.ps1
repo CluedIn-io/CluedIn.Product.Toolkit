@@ -151,7 +151,7 @@ foreach ($vocabKey in $vocabKeys) {
             $key.vocabularyId = $currentVocabularyKeyObject.vocabularyId # These cannot be updated once set
             $key.name = $currentVocabularyKeyObject.name # These cannot be updated once set
 
-            Write-Host "'$($key.key)' exists, overwriting existing configuration" -ForegroundColor 'Yellow'
+            Write-Host "'$($key.key)' exists, overwriting existing configuration" -ForegroundColor 'Cyan'
             $vocabKeyUpdateResult = Set-CluedInVocabularyKey -Object $key
             checkResults($vocabKeyUpdateResult)
         }
@@ -184,14 +184,14 @@ foreach ($dataSource in $dataSources) {
         $dataSourceResult = New-CluedInDataSource -Object $dataSourceObject
         $newDataSourceId = $dataSourceResult.data.inbound.createDataSource.id
         checkResults($dataSourceResult)
-
-        $dataSourceObject.connectorConfiguration.id =
-            (Get-CluedInDataSource -Search $dataSourceObject.name).data.inbound.dataSource.connectorConfiguration.id
-        $dataSourceObject.connectorConfiguration.configuration.DataSourceId = $newDataSourceId
-        $dataSourceConfigResult = Set-CluedInDataSourceConfiguration -Object $dataSourceObject.connectorConfiguration
-        checkResults($dataSourceConfigResult)
     }
-    else { Write-Warning "An entry already exists" }
+
+    Write-Host "Updating Configuration for $($dataSourceObject.name)" -ForegroundColor 'Cyan'
+    $dataSourceObject.connectorConfiguration.id =
+        (Get-CluedInDataSource -Search $dataSourceObject.name).data.inbound.dataSource.connectorConfiguration.id
+    $dataSourceObject.connectorConfiguration.configuration.DataSourceId = $newDataSourceId
+    $dataSourceConfigResult = Set-CluedInDataSourceConfiguration -Object $dataSourceObject.connectorConfiguration
+    checkResults($dataSourceConfigResult)
 }
 
 Write-Host "INFO: Importing Data Sets" -ForegroundColor 'Green'

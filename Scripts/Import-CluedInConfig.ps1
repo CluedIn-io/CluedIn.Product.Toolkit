@@ -109,6 +109,7 @@ foreach ($vocabulary in $restoreVocabularies) {
         checkResults($vocabResult)
     }
     else {
+        # We have to get again because the `exists` section doesn't pull the configuration. Just metadata.
         $currentVocab = (Get-CluedInVocabularyById -Id $exists.vocabularyId).data.management.vocabulary
         $vocabObject.vocabularyId = $currentVocab.vocabularyId # These cannot be updated once set
         $vocabObject.vocabularyName = $currentVocab.vocabularyName # These cannot be updated once set
@@ -134,8 +135,9 @@ foreach ($vocabKey in $vocabKeys) {
         Write-Host "Processing Vocab Key: $($key.displayName) ($($key.vocabularyKeyId))" -ForegroundColor 'Cyan'
         Write-Debug "$($key | Out-String)"
 
-        $vocabularyKey = Get-CluedInVocabularyKey -Search $key.key
-        if (!$vocabularyKey.data.management.vocabularyPerKey.key) {
+        $currentVocabularyKey = Get-CluedInVocabularyKey -Search $key.key
+        $currentVocabularyKeyObject = $currentVocabularyKey.data.management.vocabularyPerKey
+        if (!$currentVocabularyKeyObject.key) {
             Write-Host "Creating '$($key.key)' as it doesn't exist" -ForegroundColor 'DarkCyan'
             $params = @{
                 Object = $key
@@ -143,6 +145,15 @@ foreach ($vocabKey in $vocabKeys) {
             }
             $vocabKeyResult = New-CluedInVocabularyKey @params
             checkResults($vocabKeyResult)
+        }
+        else {
+            $key.vocabularyKeyId = $currentVocabularyKeyObject.vocabularyKeyId # These cannot be updated once set
+            $key.vocabularyId = $currentVocabularyKeyObject.vocabularyId # These cannot be updated once set
+            $key.name = $currentVocabularyKeyObject.name # These cannot be updated once set
+
+            Write-Host "'$($key.key)' exists, overwriting existing configuration" -ForegroundColor 'Yellow'
+            $vocabKeyUpdateResult = Set-CluedInVocabularyKey -Object $key
+            checkResults($vocabKeyUpdateResult)
         }
     }
 }

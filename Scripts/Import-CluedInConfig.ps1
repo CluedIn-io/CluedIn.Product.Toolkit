@@ -88,8 +88,9 @@ foreach ($setting in $settings) {
 
 # Vocabulary
 Write-Host "INFO: Importing Vocabularies" -ForegroundColor 'Green'
-$vocabularies = Get-ChildItem -Path $vocabPath -Filter "*.json"
-foreach ($vocabulary in $vocabularies) {
+$restoreVocabularies = Get-ChildItem -Path $vocabPath -Filter "*.json"
+
+foreach ($vocabulary in $restoreVocabularies) {
     $vocabJson = Get-Content -Path $vocabulary.FullName | ConvertFrom-Json -Depth 20
     $vocabObject = $vocabJson.data.management.vocabulary
 
@@ -102,8 +103,23 @@ foreach ($vocabulary in $vocabularies) {
         checkResults($entityResult)
     }
 
-    $vocabResult = New-CluedInVocabulary -Object $vocabObject
-    checkResults($vocabResult)
+    $exists = (Get-CluedInVocabulary -Search $vocabObject.vocabularyName).data.management.vocabularies.data
+    if (!$exists) {
+        $vocabResult = New-CluedInVocabulary -Object $vocabObject
+        checkResults($vocabResult)
+    }
+    else {
+        $currentVocab = (Get-CluedInVocabularyById -Id $exists.vocabularyId).data.management.vocabulary
+        $vocabObject.vocabularyId = $currentVocab.vocabularyId
+        $vocabObject.vocabularyName = $currentVocab.vocabularyName
+        $vocabObject.keyPrefix = $currentVocab.keyPrefix
+
+        Write-Host "'$($vocabObject.vocabularyName)' already exists, overwriting existing configuration" -ForegroundColor 'Yellow'
+        Write-Verbose "Restored Config`n$($vocabObject | Out-String)"
+        Write-Verbose "Current Config`n$($currentVocab | Out-String)"
+        $vocabUpdateResult = Set-CluedInVocabulary -Object $vocabObject
+        checkResults($vocabUpdateResult)
+    }
 }
 
 Write-Host "INFO: Importing Vocabulary Keys" -ForegroundColor 'Green'

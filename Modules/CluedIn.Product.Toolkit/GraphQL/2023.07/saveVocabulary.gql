@@ -1,0 +1,38 @@
+mutation saveVocabulary($vocabulary: InputVocabulary!) {
+  management {
+    id
+    saveVocabulary(vocabulary: $vocabulary) {
+      ...Vocabulary
+      __typename
+    }
+    __typename
+  }
+}
+
+fragment Vocabulary on Vocabulary {
+  vocabularyId
+  vocabularyName
+  keyPrefix
+  isCluedInCore
+  entityTypeConfiguration {
+    icon
+    entityType
+    displayName
+    __typename
+  }
+  isDynamic
+  isProvider
+  isActive
+  grouping
+  createdAt
+  providerId
+  description
+  connector {
+    id
+    name
+    about
+    icon
+    __typename
+  }
+  __typename
+}

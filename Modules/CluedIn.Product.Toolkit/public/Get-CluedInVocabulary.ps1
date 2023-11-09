@@ -31,7 +31,8 @@ function Get-CluedInVocabulary {
     [CmdletBinding()]
     param(
         [string]$Search = "",
-        [switch]$IncludeCore
+        [switch]$IncludeCore,
+        [switch]$HardMatch
     )
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'getAllVocabularies'
@@ -55,6 +56,12 @@ function Get-CluedInVocabulary {
     if (!$IncludeCore) {
         $result.data.management.vocabularies.data = $result.data.management.vocabularies.data |
             Where-Object {$_.isCluedInCore -eq $false}
+        $result.data.management.vocabularies.total = $result.data.management.vocabularies.data.count
+    }
+
+    if ($HardMatch) {
+        $result.data.management.vocabularies.data = $result.data.management.vocabularies.data |
+            Where-Object {$_.vocabularyName -match "^$SearchName$"}
         $result.data.management.vocabularies.total = $result.data.management.vocabularies.data.count
     }
 

@@ -216,90 +216,99 @@ foreach ($dataSet in $dataSets) {
             $dataSetId = $dataSetResult.data.inbound.createDataSets.id
             $endpoint = '{0}/upload/api/endpoint/{1}' -f ${env:CLUEDIN_ENDPOINT}, $dataSetId
             Write-Host "New Endpoint created: $endPoint"
-
-            Write-Host "Processing Annotations" -ForegroundColor Cyan
-            $annotationPath = Join-Path -Path $dataSetsPath -ChildPath ('{0}-Annotation.json' -f $dataSetObject.id)
-            Try {
-                $annotationJson = Get-Content -Path $annotationPath | ConvertFrom-Json -Depth 20
-                $annotationObject = $annotationJson.data.preparation.annotation
-                $annotationObject | Add-Member -Name dataSetId -Value $dataSetId -MemberType NoteProperty
-                $annotationObject | Add-Member -Name type -Value 'endpoint' -MemberType NoteProperty
-
-                $vocabName = $annotationObject.vocabulary.vocabularyName
-                $vocabSearchResult = Get-CluedInVocabulary -Search $vocabName -IncludeCore
-                $vocabObject = $vocabSearchResult.data.management.vocabularies
-                if (!$vocabObject.total -eq 1) {
-                    Write-Error "There was an issue getting vocab '${vocabName}'"
-                    Write-Debug $($vocabObject | Out-String)
-                    continue
-                }
-                $annotationObject.vocabulary.vocabularyId = $vocabObject.data.vocabularyId
-
-                Write-Host "Creating annotation as it doesn't exist" -ForegroundColor 'DarkCyan'
-                $annotationResult = New-CluedInAnnotation -Object $annotationObject
-                checkResults($annotationResult)
-
-                Write-Verbose "Setting Annotation Configuration"
-                $annotationId = (Get-CluedInDataSet -id $dataSetId).data.inbound.dataSet.annotationId # Doesn't come from result
-                $annotationObject.id = $annotationId
-                $settings = @{
-                    useDefaultSourceCode = $annotationObject.useDefaultSourceCode
-                    useStrictEdgeCode = $annotationObject.useStrictEdgeCode
-                    descriptionKey = $annotationObject.descriptionKey
-                    nameKey = $annotationObject.nameKey
-                    originEntityCodeKey = $annotationObject.originEntityCodeKey
-                    origin = $annotationObject.origin
-                }
-                $setAnnotationResult = Set-CluedInAnnotation -Id $annotationObject.id -Settings $settings
-                checkResults($setAnnotationResult)
-
-                Write-Verbose "Configuring Mappings"
-                foreach ($mapping in $dataSetObject.fieldMappings) {
-                    $vocabularyKey = Get-CluedInVocabularyKey -Search $mapping.key
-                    $vocabularyKeyObject = $vocabularyKey.data.management.vocabularyPerKey
-                    if (!$vocabularyKeyObject.vocabularyKeyId) {
-                        Write-Error "Key: $($mapping.key) doesn't exist"
-                        continue
-                    }
-
-                    $mapping | Add-Member -MemberType 'NoteProperty' -Name 'vocabularyId' -Value $vocabularyKeyObject.vocabularyId
-                    $mapping | Add-Member -MemberType 'NoteProperty' -Name 'vocabularyKeyId' -Value $vocabularyKeyObject.vocabularyKeyId
-
-                    $dataSetMappingResult = New-CluedInDataSetMapping -Object $mapping -DataSetId $dataSetId
-                    checkResults($dataSetMappingResult)
-                }
-
-                Write-Verbose "Setting Annotation Entity Codes"
-                $entities = $annotationObject.annotationProperties | Where-Object {$_.useAsEntityCode}
-                foreach ($entity in $entities) {
-                    $setAnnotationEntityCodesResult = Set-CluedInAnnotationEntityCodes -Object $entity -Id $annotationObject.id
-                    checkResults($setAnnotationEntityCodesResult)
-                }
-
-                # Blocked as not currently in scope
-
-                # Write-Verbose "Adding Edge Mappings"
-                # $edges = $annotationObject.annotationProperties | Where-Object {$_.annotationEdges}
-
-                # foreach ($edge in $edges) {
-                #     $edge = $edge.annotationEdges
-                #     $edgeVocabulary = Get-CluedInVocabularyKey -Search $edge.edgeProperties.vocabularyKey.key
-                #     $edgeVocabularyObject = $edgeVocabulary.data.management.vocabularyPerKey
-                #     $edge.edgeProperties.vocabularyKey.vocabularyKeyId = $edgeVocabularyObject.vocabularyKeyId
-                #     $edge.edgeProperties.vocabularyKey.vocabularyId = $edgeVocabularyObject.vocabularyId
-
-                #     $edgeResult = New-CluedInEdgeMapping -Object $edge -AnnotationId $annotationObject.id
-                #     checkResults($edgeResult)
-                # }
-            }
-            catch {
-                Write-Verbose "Annotation file '$annotationPath' not found or error occured during run"
-                Write-Debug $_
-                continue
-            }
         }
     }
-    else { Write-Warning "An entry already exists" }
+
+    Write-Host "Updating Annotations for $($dataSetObject.name)" -ForegroundColor 'Cyan'
+    $annotationPath = Join-Path -Path $dataSetsPath -ChildPath ('{0}-Annotation.json' -f $dataSetObject.id)
+    Try {
+        $annotationJson = Get-Content -Path $annotationPath | ConvertFrom-Json -Depth 20
+        $annotationObject = $annotationJson.data.preparation.annotation
+
+        $vocabName = $annotationObject.vocabulary.vocabularyName
+        $vocabSearchResult = Get-CluedInVocabulary -Search $vocabName -IncludeCore -HardMatch
+        $vocabObject = $vocabSearchResult.data.management.vocabularies.data
+
+        $keyToMatch = $annotationObject.vocabulary.keyPrefix
+        $vocabObject = $vocabObject | Where-Object {$_.keyPrefix -eq $keyToMatch}
+
+        if (!$vocabObject.total -eq 1) {
+            Write-Error "There was an issue getting vocab '${vocabName}'"
+            Write-Debug $($vocabObject | Out-String)
+            continue
+        }
+
+
+        # Got to here.
+
+
+
+
+        $annotationObject.vocabulary.vocabularyId = $vocabObject.data.vocabularyId
+
+        Write-Host "Creating annotation as it doesn't exist" -ForegroundColor 'DarkCyan'
+        # We need to get dataSetId again!!
+        $annotationResult = New-CluedInAnnotation -Object $annotationObject -DataSetId $dataSetId
+        checkResults($annotationResult)
+
+        Write-Verbose "Setting Annotation Configuration"
+        $annotationId = (Get-CluedInDataSet -id $dataSetId).data.inbound.dataSet.annotationId # Doesn't come from result
+        $annotationObject.id = $annotationId
+        $settings = @{
+            useDefaultSourceCode = $annotationObject.useDefaultSourceCode
+            useStrictEdgeCode = $annotationObject.useStrictEdgeCode
+            descriptionKey = $annotationObject.descriptionKey
+            nameKey = $annotationObject.nameKey
+            originEntityCodeKey = $annotationObject.originEntityCodeKey
+            origin = $annotationObject.origin
+        }
+        $setAnnotationResult = Set-CluedInAnnotation -Id $annotationObject.id -Settings $settings
+        checkResults($setAnnotationResult)
+
+        Write-Verbose "Configuring Mappings"
+        foreach ($mapping in $dataSetObject.fieldMappings) {
+            $vocabularyKey = Get-CluedInVocabularyKey -Search $mapping.key
+            $vocabularyKeyObject = $vocabularyKey.data.management.vocabularyPerKey
+            if (!$vocabularyKeyObject.vocabularyKeyId) {
+                Write-Error "Key: $($mapping.key) doesn't exist"
+                continue
+            }
+
+            $mapping | Add-Member -MemberType 'NoteProperty' -Name 'vocabularyId' -Value $vocabularyKeyObject.vocabularyId
+            $mapping | Add-Member -MemberType 'NoteProperty' -Name 'vocabularyKeyId' -Value $vocabularyKeyObject.vocabularyKeyId
+
+            $dataSetMappingResult = New-CluedInDataSetMapping -Object $mapping -DataSetId $dataSetId
+            checkResults($dataSetMappingResult)
+        }
+
+        Write-Verbose "Setting Annotation Entity Codes"
+        $entities = $annotationObject.annotationProperties | Where-Object {$_.useAsEntityCode}
+        foreach ($entity in $entities) {
+            $setAnnotationEntityCodesResult = Set-CluedInAnnotationEntityCodes -Object $entity -Id $annotationObject.id
+            checkResults($setAnnotationEntityCodesResult)
+        }
+
+        # Blocked as not currently in scope
+
+        # Write-Verbose "Adding Edge Mappings"
+        # $edges = $annotationObject.annotationProperties | Where-Object {$_.annotationEdges}
+
+        # foreach ($edge in $edges) {
+        #     $edge = $edge.annotationEdges
+        #     $edgeVocabulary = Get-CluedInVocabularyKey -Search $edge.edgeProperties.vocabularyKey.key
+        #     $edgeVocabularyObject = $edgeVocabulary.data.management.vocabularyPerKey
+        #     $edge.edgeProperties.vocabularyKey.vocabularyKeyId = $edgeVocabularyObject.vocabularyKeyId
+        #     $edge.edgeProperties.vocabularyKey.vocabularyId = $edgeVocabularyObject.vocabularyId
+
+        #     $edgeResult = New-CluedInEdgeMapping -Object $edge -AnnotationId $annotationObject.id
+        #     checkResults($edgeResult)
+        # }
+    }
+    catch {
+        Write-Verbose "Annotation file '$annotationPath' not found or error occured during run"
+        Write-Debug $_
+        continue
+    }
 }
 
 # Blocked as not currently in scope

@@ -110,9 +110,9 @@ foreach ($vocabulary in $restoreVocabularies) {
     }
     else {
         $currentVocab = (Get-CluedInVocabularyById -Id $exists.vocabularyId).data.management.vocabulary
-        $vocabObject.vocabularyId = $currentVocab.vocabularyId
-        $vocabObject.vocabularyName = $currentVocab.vocabularyName
-        $vocabObject.keyPrefix = $currentVocab.keyPrefix
+        $vocabObject.vocabularyId = $currentVocab.vocabularyId # These cannot be updated once set
+        $vocabObject.vocabularyName = $currentVocab.vocabularyName # These cannot be updated once set
+        $vocabObject.keyPrefix = $currentVocab.keyPrefix # These cannot be updated once set
 
         Write-Host "'$($vocabObject.vocabularyName)' already exists, overwriting existing configuration" -ForegroundColor 'Yellow'
         Write-Verbose "Restored Config`n$($vocabObject | Out-String)"

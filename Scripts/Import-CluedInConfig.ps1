@@ -69,16 +69,21 @@ if (!(Test-Path -Path $dataSourceSetsPath, $dataSourcesPath, $dataSetsPath -Path
 
 # Settings
 Write-Host "INFO: Importing Admin Settings" -ForegroundColor 'Green'
-$adminSetting = Get-Content -Path (Join-Path -Path $generalPath -ChildPath 'AdminSetting.json') | ConvertFrom-Json -Depth 20
+$restoreAdminSetting = Get-Content -Path (Join-Path -Path $generalPath -ChildPath 'AdminSetting.json') | ConvertFrom-Json -Depth 20
 
-$settings = ($adminSetting.data.administration.configurationSettings).psobject.properties.name
+$settings = ($restoreAdminSetting.data.administration.configurationSettings).psobject.properties.name
+$currentSettings = (Get-CluedInAdminSetting).data.administration.configurationSettings
 
 foreach ($setting in $settings) {
     $key = $setting
-    $value = $adminSetting.data.administration.configurationSettings.$key
-    Write-Host "Processing Admin Setting: $key" -ForegroundColor 'Cyan'
-    $adminSettingResult = Set-CluedInAdminSettings -Name $key -Value $value
-    checkResults($adminSettingResult)
+    $newValue = $restoreAdminSetting.data.administration.configurationSettings.$key
+    $currentValue = $currentSettings.$key
+
+    if ($newValue -ne $currentValue) {
+        Write-Host "Processing Admin Setting '$key'. Was: $currentValue, Now: $newValue" -ForegroundColor 'Cyan'
+        $adminSettingResult = Set-CluedInAdminSettings -Name $key -Value $newValue
+        checkResults($adminSettingResult)
+    }
 }
 
 # Vocabulary

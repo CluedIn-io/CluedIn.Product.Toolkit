@@ -156,6 +156,8 @@ foreach ($vocabKey in $vocabKeys) {
             checkResults($vocabKeyUpdateResult)
         }
     }
+
+    # Need to also delete keys if deleted from the source
 }
 
 Write-Host "INFO: Importing Data Sources" -ForegroundColor 'Green'
@@ -211,9 +213,9 @@ foreach ($dataSet in $dataSets) {
         Write-Host "Creating '$($dataSetObject.name)' as it doesn't exist" -ForegroundColor 'DarkCyan'
         $dataSetResult = New-CluedInDataSet -Object $dataSetObject
         checkResults($dataSetResult)
+        $dataSetId = $dataSetResult.data.inbound.createDataSets.id
 
         if ($dataSetObject.dataSource.type -eq 'endpoint') {
-            $dataSetId = $dataSetResult.data.inbound.createDataSets.id
             $endpoint = '{0}/upload/api/endpoint/{1}' -f ${env:CLUEDIN_ENDPOINT}, $dataSetId
             Write-Host "New Endpoint created: $endPoint"
         }
@@ -232,27 +234,29 @@ foreach ($dataSet in $dataSets) {
         $keyToMatch = $annotationObject.vocabulary.keyPrefix
         $vocabObject = $vocabObject | Where-Object {$_.keyPrefix -eq $keyToMatch}
 
-        if (!$vocabObject.total -eq 1) {
+        if (!$vocabObject.count -eq 1) {
             Write-Error "There was an issue getting vocab '${vocabName}'"
             Write-Debug $($vocabObject | Out-String)
             continue
         }
 
+        $annotationObject.vocabulary.vocabularyId = $vocabObject.vocabularyId
 
-        # Got to here.
+        $dataSourceObject = (Get-CluedInDataSource -Search $dataSetObject.dataSource.name).data.inbound.dataSource
+        $dataSetObject = $dataSourceObject.dataSets | Where-Object {$_.name -eq $dataSetObject.name}
+        $dataSetId = $dataSetObject.id
+        $annotationId = $dataSetObject.annotation.id
+        if (!$dataSetId) { Write-Error "Issue getting dataSetId"; continue }
 
+        if (!$annotationId) {
+            Write-Host "Creating Annotation"
+            $annotationResult = New-CluedInAnnotation -Object $annotationObject -DataSetId $dataSetId
+            checkResults($annotationResult)
 
-
-
-        $annotationObject.vocabulary.vocabularyId = $vocabObject.data.vocabularyId
-
-        Write-Host "Creating annotation as it doesn't exist" -ForegroundColor 'DarkCyan'
-        # We need to get dataSetId again!!
-        $annotationResult = New-CluedInAnnotation -Object $annotationObject -DataSetId $dataSetId
-        checkResults($annotationResult)
+            $annotationId = (Get-CluedInDataSet -id $dataSetId).data.inbound.dataSet.annotationId
+        }
 
         Write-Verbose "Setting Annotation Configuration"
-        $annotationId = (Get-CluedInDataSet -id $dataSetId).data.inbound.dataSet.annotationId # Doesn't come from result
         $annotationObject.id = $annotationId
         $settings = @{
             useDefaultSourceCode = $annotationObject.useDefaultSourceCode

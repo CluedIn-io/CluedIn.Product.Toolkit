@@ -61,7 +61,7 @@ function Get-CluedInVocabulary {
 
     if ($HardMatch) {
         $result.data.management.vocabularies.data = $result.data.management.vocabularies.data |
-            Where-Object {$_.vocabularyName -match "^$SearchName$"}
+            Where-Object {$_.vocabularyName -match "^$Search$"}
         $result.data.management.vocabularies.total = $result.data.management.vocabularies.data.count
     }
 

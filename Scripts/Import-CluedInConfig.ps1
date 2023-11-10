@@ -278,10 +278,13 @@ foreach ($dataSet in $dataSets) {
                 continue
             }
 
-            $mapping | Add-Member -MemberType 'NoteProperty' -Name 'vocabularyId' -Value $vocabularyKeyObject.vocabularyId
-            $mapping | Add-Member -MemberType 'NoteProperty' -Name 'vocabularyKeyId' -Value $vocabularyKeyObject.vocabularyKeyId
-
-            $dataSetMappingResult = New-CluedInDataSetMapping -Object $mapping -DataSetId $dataSetId
+            $dataSetMappingParams = @{
+                Object = $mapping
+                DataSetId = $dataSetId
+                VocabularyKeyId = $vocabularyKeyObject.vocabularyKeyId
+                VocabularyId = $vocabularyKeyObject.vocabularyId
+            }
+            $dataSetMappingResult = New-CluedInDataSetMapping @dataSetMappingParams
             checkResults($dataSetMappingResult)
         }
 

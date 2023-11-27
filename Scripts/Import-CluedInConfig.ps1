@@ -56,7 +56,7 @@ $dataSourceSetsPath = Join-Path -Path $dataPath -ChildPath 'SourceSets'
 $dataSourcesPath = Join-Path -Path $dataPath -ChildPath 'Sources'
 $dataSetsPath = Join-Path -Path $dataPath -ChildPath 'Sets'
 $generalPath = Join-Path -Path $RestorePath -ChildPath 'General'
-# $rulesPath = Join-Path -Path $RestorePath -ChildPath 'Rules'
+$rulesPath = Join-Path -Path $RestorePath -ChildPath 'Rules'
 
 # Test Paths
 if (!(Test-Path -Path $generalPath -PathType Container)) { throw "'$generalPath' could not be found. Please investigate" }

@@ -194,7 +194,7 @@ switch ($SelectRules) {
 foreach ($id in $ruleIds) {
     $rule = Get-CluedInRules -Id $id
     $ruleObject = $rule.data.management.rule
-    $rule | Out-JsonFile -Path (Join-Path -Path $rulesPath -ChildPath $ruleObject.scope)
+    $rule | Out-JsonFile -Path (Join-Path -Path $rulesPath -ChildPath $ruleObject.scope) -Name $id
 }
 
 Write-Host "INFO: Backup now complete"

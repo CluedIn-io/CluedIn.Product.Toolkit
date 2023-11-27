@@ -156,8 +156,6 @@ foreach ($vocabKey in $vocabKeys) {
             checkResults($vocabKeyUpdateResult)
         }
     }
-
-    # Need to also delete keys if deleted from the source
 }
 
 Write-Host "INFO: Importing Data Sources" -ForegroundColor 'Green'
@@ -325,10 +323,17 @@ foreach ($rule in $rules) {
     $ruleJson = Get-Content -Path $rule.FullName | ConvertFrom-Json -Depth 20
     $ruleObject = $ruleJson.data.management.rule
     Write-Host "Processing Rule: $($ruleObject.name) ($($ruleObject.scope))" -ForegroundColor 'Cyan'
-    $ruleResult = New-CluedInRule -Name $ruleObject.name -Scope $ruleObject.scope
-    checkResults($ruleResult)
+
+    $exists = Get-CluedInRules -Search $ruleObject.name -Scope $ruleObject.scope
+    if (!$exists.data.management.rules.data) {
+        Write-Verbose "Creating rule as it does not exist"
+        $ruleResult = New-CluedInRule -Name $ruleObject.name -Scope $ruleObject.scope
+        checkResults($ruleResult)
+        $ruleObject.id = $ruleResult.data.management.createRule.id
+    }
+    else { $ruleObject.id = $exists.data.management.rules.data.id }
+
     Write-Verbose "Setting rule configuration"
-    $ruleObject.id = $ruleResult.data.management.createRule.id
     $setRuleResult = Set-CluedInRule -Object $ruleObject
     checkResults($setRuleResult)
 }

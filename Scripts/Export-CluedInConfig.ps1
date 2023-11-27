@@ -37,6 +37,12 @@
 
     Example: '1, 2, 3'
 
+    .PARAMETER SelectRules
+    This is a list of Rules to backup. It's agnostic as to what type of rules so long as you specify the guid.
+    Default value is 'None', but 'All' and guids are accepted in csv format wrapped in a string.
+
+    Example: '66505aa1-bacb-463e-832c-799c484577a8, e257a226-d91c-4946-a8af-85ef803cf55e'
+
     .EXAMPLE
     PS> ./Export-CluedInConfig.ps1 -BaseURL 'cluedin.com' -Organisation 'dev' -Version '2023.07'
 #>
@@ -162,7 +168,7 @@ foreach ($id in $vocabularyIds) {
 }
 
 # Rules
-Write-Host "INFO: Exporting Rules"
+Write-Host "INFO: Exporting Rules" -ForegroundColor 'Green'
 $rulesPath = Join-Path -Path $BackupPath -ChildPath 'Rules'
 $dataPartRulesPath = Join-Path -Path $rulesPath -ChildPath 'DataPart'
 $survivorshipRulesPath = Join-Path -Path $rulesPath -ChildPath 'Survivorship'
@@ -173,13 +179,12 @@ if (!(Test-Path -Path $rulesPath -PathType Container)) {
     New-Item $goldenRecordsRulesPath -ItemType Directory | Out-Null
 }
 
-
 $ruleIds = @()
 switch ($SelectRules) {
     'All' {
         foreach ($i in @('Survivorship', 'DataPart', 'Entity')) {
             $rules = Get-CluedInRules -Scope $i
-            if ($rules.data.management.rules.data) { $rulesIds += $rules.data.management.rules.data.id }
+            if ($rules.data.management.rules.data) { $ruleIds += $rules.data.management.rules.data.id }
         }
     }
     'None' { $null }

@@ -161,42 +161,40 @@ foreach ($id in $vocabularyIds) {
     $vocabKey | Out-JsonFile -Path $vocabKeysPath -Name $id
 }
 
-# Blocked as not currently in scope
-
 # Rules
-# Write-Host "INFO: Exporting Rules"
-# $rulesPath = Join-Path -Path $BackupPath -ChildPath 'Rules'
-# $dataPartRulesPath = Join-Path -Path $rulesPath -ChildPath 'DataPart'
-# $survivorshipRulesPath = Join-Path -Path $rulesPath -ChildPath 'Survivorship'
-# $goldenRecordsRulesPath = Join-Path -Path $rulesPath -ChildPath 'GoldenRecords'
-# if (!(Test-Path -Path $rulesPath -PathType Container)) {
-#     New-Item $dataPartRulesPath -ItemType Directory | Out-Null
-#     New-Item $survivorshipRulesPath -ItemType Directory | Out-Null
-#     New-Item $goldenRecordsRulesPath -ItemType Directory | Out-Null
-# }
+Write-Host "INFO: Exporting Rules"
+$rulesPath = Join-Path -Path $BackupPath -ChildPath 'Rules'
+$dataPartRulesPath = Join-Path -Path $rulesPath -ChildPath 'DataPart'
+$survivorshipRulesPath = Join-Path -Path $rulesPath -ChildPath 'Survivorship'
+$goldenRecordsRulesPath = Join-Path -Path $rulesPath -ChildPath 'GoldenRecords'
+if (!(Test-Path -Path $rulesPath -PathType Container)) {
+    New-Item $dataPartRulesPath -ItemType Directory | Out-Null
+    New-Item $survivorshipRulesPath -ItemType Directory | Out-Null
+    New-Item $goldenRecordsRulesPath -ItemType Directory | Out-Null
+}
 
-# $scope = 'Survivorship'
-# $survivorshipRules = Get-CluedInRules -Scope $scope
-# if ($survivorshipRules.data.management.rules.total -ge 1) {
-#     foreach ($rule in $survivorshipRules.data.management.rules.data) {
-#         Get-CluedInRules -Id $rule.id -Scope $scope | Out-JsonFile -Path $survivorshipRulesPath -Name $rule.id
-#     }
-# }
+$scope = 'Survivorship'
+$survivorshipRules = Get-CluedInRules -Scope $scope
+if ($survivorshipRules.data.management.rules.total -ge 1) {
+    foreach ($rule in $survivorshipRules.data.management.rules.data) {
+        Get-CluedInRules -Id $rule.id -Scope $scope | Out-JsonFile -Path $survivorshipRulesPath -Name $rule.id
+    }
+}
 
-# $scope = 'DataPart'
-# $dataPartRules = Get-CluedInRules -Scope $scope
-# if ($dataPartRules.data.management.rules.total -ge 1) {
-#     foreach ($rule in $dataPartRules.data.management.rules.data) {
-#         Get-CluedInRules -Id $rule.id -Scope $scope | Out-JsonFile -Path $dataPartRulesPath -Name $rule.id
-#     }
-# }
+$scope = 'DataPart'
+$dataPartRules = Get-CluedInRules -Scope $scope
+if ($dataPartRules.data.management.rules.total -ge 1) {
+    foreach ($rule in $dataPartRules.data.management.rules.data) {
+        Get-CluedInRules -Id $rule.id -Scope $scope | Out-JsonFile -Path $dataPartRulesPath -Name $rule.id
+    }
+}
 
-# $scope = 'Entity'
-# $goldenRecordRules = Get-CluedInRules -Scope $scope
-# if ($goldenRecordRules.data.management.rules.total -ge 1) {
-#     foreach ($rule in $goldenRecordRules.data.management.rules.data) {
-#         Get-CluedInRules -Id $rule.id -Scope $scope | Out-JsonFile -Path $goldenRecordsRulesPath -Name $rule.id
-#     }
-# }
+$scope = 'Entity'
+$goldenRecordRules = Get-CluedInRules -Scope $scope
+if ($goldenRecordRules.data.management.rules.total -ge 1) {
+    foreach ($rule in $goldenRecordRules.data.management.rules.data) {
+        Get-CluedInRules -Id $rule.id -Scope $scope | Out-JsonFile -Path $goldenRecordsRulesPath -Name $rule.id
+    }
+}
 
 Write-Host "INFO: Backup now complete"

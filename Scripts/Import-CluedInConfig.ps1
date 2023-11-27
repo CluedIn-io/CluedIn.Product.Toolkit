@@ -318,23 +318,19 @@ foreach ($dataSet in $dataSets) {
     }
 }
 
-# Blocked as not currently in scope
-
 # Rules
-# Write-Host "INFO: Importing Rules" -ForegroundColor 'Green'
-# $rules = Get-ChildItem -Path $rulesPath -Filter "*.json" -Recurse
-# foreach ($rule in $rules) {
-#     $ruleJson = Get-Content -Path $rule.FullName | ConvertFrom-Json -Depth 20
-#     $ruleObject = $ruleJson.data.management.rule
-#
-#     Write-Host "Processing Rule: $($ruleObject.name) ($($ruleObject.scope))" -ForegroundColor 'Cyan'
-#     $ruleResult = New-CluedInRule -Name $ruleObject.name -Scope $ruleObject.scope
-#     checkResults($ruleResult)
-#
-#     Write-Verbose "Setting rule configuration"
-#     $ruleObject.id = $ruleResult.data.management.createRule.id
-#     $setRuleResult = Set-CluedInRule -Object $ruleObject
-#     checkResults($setRuleResult)
-# }
+Write-Host "INFO: Importing Rules" -ForegroundColor 'Green'
+$rules = Get-ChildItem -Path $rulesPath -Filter "*.json" -Recurse
+foreach ($rule in $rules) {
+    $ruleJson = Get-Content -Path $rule.FullName | ConvertFrom-Json -Depth 20
+    $ruleObject = $ruleJson.data.management.rule
+    Write-Host "Processing Rule: $($ruleObject.name) ($($ruleObject.scope))" -ForegroundColor 'Cyan'
+    $ruleResult = New-CluedInRule -Name $ruleObject.name -Scope $ruleObject.scope
+    checkResults($ruleResult)
+    Write-Verbose "Setting rule configuration"
+    $ruleObject.id = $ruleResult.data.management.createRule.id
+    $setRuleResult = Set-CluedInRule -Object $ruleObject
+    checkResults($setRuleResult)
+}
 
 Write-Host "INFO: Import Complete" -ForegroundColor 'Green'

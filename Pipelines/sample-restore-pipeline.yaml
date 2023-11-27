@@ -36,8 +36,6 @@ jobs:
   - checkout: codeRepo
   - download: configPipeline
 
-  - pwsh: get-childitem $(pipeline.workspace) -recurse | Out-string
-
   - task: PowerShell@2
     displayName: 'Restore'
     inputs:

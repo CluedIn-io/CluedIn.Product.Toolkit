@@ -1,6 +1,7 @@
 # Backs up configuration from specified environment
 
 trigger: none
+pr: none
 
 name: ${{ parameters.organisation }}.${{ parameters.baseURL }} Backup ($(Date:yyyyMMdd)$(Rev:r))
 

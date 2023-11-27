@@ -1,6 +1,7 @@
 # Restores configuration from specified config files
 
 trigger: none
+pr: none
 
 name: ${{ parameters.organisation }}.${{ parameters.baseURL }} Restore ($(Date:yyyyMMdd)$(Rev:r))
 

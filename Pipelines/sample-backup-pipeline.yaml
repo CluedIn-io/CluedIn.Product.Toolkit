@@ -26,6 +26,10 @@ parameters:
   displayName: Data Sets (guid, csv)
   type: string
   default: None
+- name: rules
+  displayName: Rules (guid, csv)
+  type: string
+  default: None
 - name: pushToRepo
   displayName: Push to repo
   type: boolean
@@ -67,6 +71,7 @@ jobs:
         -SelectVocabularies ${{ parameters.vocabularies }}
         -SelectDataSources ${{ parameters.dataSources }}
         -SelectDataSets ${{ parameters.dataSets }}
+        -SelectRules ${{ parameters.rules }}
       pwsh: true
     env:
       CLUEDIN_USERNAME: $(cluedin-username) # Comes from the variable group

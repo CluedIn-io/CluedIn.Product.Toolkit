@@ -172,7 +172,7 @@ Write-Host "INFO: Exporting Rules" -ForegroundColor 'Green'
 $rulesPath = Join-Path -Path $BackupPath -ChildPath 'Rules'
 $dataPartRulesPath = Join-Path -Path $rulesPath -ChildPath 'DataPart'
 $survivorshipRulesPath = Join-Path -Path $rulesPath -ChildPath 'Survivorship'
-$goldenRecordsRulesPath = Join-Path -Path $rulesPath -ChildPath 'GoldenRecords'
+$goldenRecordsRulesPath = Join-Path -Path $rulesPath -ChildPath 'Entity' # Golden Records
 if (!(Test-Path -Path $rulesPath -PathType Container)) {
     New-Item $dataPartRulesPath -ItemType Directory | Out-Null
     New-Item $survivorshipRulesPath -ItemType Directory | Out-Null

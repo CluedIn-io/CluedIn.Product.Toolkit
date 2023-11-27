@@ -188,7 +188,7 @@ switch ($SelectRules) {
         }
     }
     'None' { $null }
-    default { ($SelectRules -Split ',').Trim() }
+    default { $ruleIds = ($SelectRules -Split ',').Trim() }
 }
 
 foreach ($id in $ruleIds) {

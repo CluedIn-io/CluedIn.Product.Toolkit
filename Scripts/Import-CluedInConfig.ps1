@@ -103,7 +103,7 @@ foreach ($vocabulary in $restoreVocabularies) {
         checkResults($entityResult)
     }
 
-    $exists = (Get-CluedInVocabulary -Search $vocabObject.vocabularyName).data.management.vocabularies.data
+    $exists = (Get-CluedInVocabulary -Search $vocabObject.vocabularyName -HardMatch).data.management.vocabularies.data
     if (!$exists) {
         $vocabResult = New-CluedInVocabulary -Object $vocabObject
         checkResults($vocabResult)

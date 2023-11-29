@@ -43,8 +43,7 @@ parameters:
   default: false
 
 variables:
-- group: Source-CluedIn-Authentication
-- group: Destination-CluedIn-Authentication
+- group: CluedIn-Authentication
 - name: BackupPath
   value: '$(System.ArtifactsDirectory)/Backups'
 

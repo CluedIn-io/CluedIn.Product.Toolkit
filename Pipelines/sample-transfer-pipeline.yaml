@@ -33,6 +33,10 @@ parameters:
   displayName: Data Sets (guid, csv)
   type: string
   default: None
+- name: rules
+  displayName: Rules (guid, csv)
+  type: string
+  default: None
 - name: pushToRepo
   displayName: Push to repo
   type: boolean
@@ -53,11 +57,11 @@ resources:
   - repository: backupRepo
     type: github
     endpoint: 'CluedIn' # Service connection
-    name: 'jjrcluedin/jjr-testbackups' # GitHub repo name
+    name: 'registry/repository' # GitHub repo name
 
 jobs:
-- job: backupConfiguration
-  displayName: Backup Configuration
+- job: transferConfiguration
+  displayName: Transfer Configuration
   steps:
   - checkout: codeRepo
   - checkout: backupRepo
@@ -75,6 +79,7 @@ jobs:
         -SelectVocabularies ${{ parameters.vocabularies }}
         -SelectDataSources ${{ parameters.dataSources }}
         -SelectDataSets ${{ parameters.dataSets }}
+        -SelectRules ${{ parameters.rules }}
       pwsh: true
     env:
       CLUEDIN_USERNAME: $(source-cluedin-username) # Comes from the variable group
@@ -106,4 +111,4 @@ jobs:
       git push --set-upstream origin main
     displayName: Push to git
     condition: eq( ${{ parameters.pushToRepo }}, 'true' )
-    workingDirectory: $(System.DefaultWorkingDirectory)/jjr-testbackups
+    workingDirectory: $(System.DefaultWorkingDirectory)/registry

@@ -144,7 +144,10 @@ if ($SelectVocabularies -ne 'None') {
 }
 
 $vocabularyIds = switch ($SelectVocabularies) {
-    'All' { ($vocabularies.data.management.vocabularies.data | Where-Object {$_.isCluedInCore -eq $False}).vocabularyId }
+    'All' {
+        $null # All not supported at the moment
+        #($vocabularies.data.management.vocabularies.data | Where-Object {$_.isCluedInCore -eq $False}).vocabularyId
+    }
     'None' { $null }
     default { ($SelectVocabularies -Split ',').Trim() }
 }

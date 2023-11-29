@@ -109,6 +109,8 @@ foreach ($vocabulary in $restoreVocabularies) {
         checkResults($vocabResult)
     }
     else {
+        if ($exists.count -ne 1) { Write-Warning "Issue with following:`n$exists. Only 1 should have been returned"; continue }
+
         # We have to get again because the `exists` section doesn't pull the configuration. Just metadata.
         $currentVocab = (Get-CluedInVocabularyById -Id $exists.vocabularyId).data.management.vocabulary
         $vocabObject.vocabularyId = $currentVocab.vocabularyId # These cannot be updated once set

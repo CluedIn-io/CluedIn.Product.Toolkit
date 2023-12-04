@@ -35,6 +35,16 @@ Import-Module "$PSScriptRoot/../Modules/CluedIn.Product.Toolkit"
 Write-Host "INFO: Connecting to 'https://$Organisation.$BaseURL'"
 Connect-CluedInOrganisation -BaseURL $BaseURL -Organisation $Organisation -Version $Version
 
+Write-Host @"
+`n=========================
+     Operator Chart
+
+  =  Equal
+  +  Create
+  ~  Modification
+=========================`n
+"@
+
 # Variables
 Write-Verbose "Setting Script Variables"
 $dataCatalogPath = Join-Path -Path $RestorePath -ChildPath 'DataCatalog'

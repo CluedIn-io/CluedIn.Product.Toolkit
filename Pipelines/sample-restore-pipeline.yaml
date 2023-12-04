@@ -31,8 +31,41 @@ resources:
     #project: specify project if it's not in the current one
 
 jobs:
+- job: validateConfiguration
+  displayName: Validate Configuration
+  steps:
+  - checkout: codeRepo
+  - download: configPipeline
+
+  - task: PowerShell@2
+    displayName: 'Validate'
+    inputs:
+      filePath: Scripts/Confirm-CluedInConfig.ps1
+      arguments: >-
+        -BaseURL ${{ parameters.baseURL }}
+        -Organisation ${{ parameters.organisation }}
+        -Version ${{ parameters.version }}
+        -RestorePath '$(pipeline.workspace)/configPipeline/CluedIn-Configuration'
+      pwsh: true
+    env:
+      CLUEDIN_USERNAME: $(cluedin-username) # Comes from the variable group
+      CLUEDIN_PASSWORD: $(cluedin-password) # Comes from the variable group
+
+- job: validateApproval
+  displayName: Approval
+  pool: server
+  dependsOn: validateConfiguration
+  steps:
+  - task: ManualValidation@0
+    timeoutInMinutes: 30
+    inputs:
+      notifyUsers: ''
+      instructions: 'Please validate the configuration to resume'
+      onTimeout: 'reject'
+
 - job: restoreConfiguration
   displayName: Restore Configuration
+  dependsOn: validateApproval
   steps:
   - checkout: codeRepo
   - download: configPipeline

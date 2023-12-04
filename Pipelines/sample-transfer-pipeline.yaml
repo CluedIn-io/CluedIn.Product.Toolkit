@@ -81,6 +81,20 @@ jobs:
       CLUEDIN_PASSWORD: $(source-cluedin-password) # Comes from the variable group
 
   - task: PowerShell@2
+    displayName: 'Validate'
+    inputs:
+      filePath: Scripts/Confirm-CluedInConfig.ps1
+      arguments: >-
+        -BaseURL ${{ parameters.destinationBaseURL }}
+        -Organisation ${{ parameters.destinationOrganisation }}
+        -Version ${{ parameters.version }}
+        -RestorePath '$(BackupPath)'
+      pwsh: true
+    env:
+      CLUEDIN_USERNAME: $(destination-cluedin-username) # Comes from the variable group
+      CLUEDIN_PASSWORD: $(destination-cluedin-password) # Comes from the variable group
+
+  - task: PowerShell@2
     displayName: 'Restore'
     inputs:
       filePath: Scripts/Import-CluedInConfig.ps1

@@ -54,7 +54,6 @@ param(
     [Parameter(Mandatory)][version]$Version,
     [Parameter(Mandatory)][string]$BackupPath,
     [string]$SelectVocabularies = 'None',
-    [string]$SelectDataSources = 'None',
     [string]$SelectDataSets = 'None',
     [string]$SelectRules = 'None'
 )
@@ -78,30 +77,16 @@ Get-CluedInAdminSetting | Out-JsonFile -Path $generalPath -Name 'AdminSetting'
 $path = Join-Path -Path $BackupPath -ChildPath 'Data/SourceSets'
 if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
 
-Write-Host "INFO: Exporting Data Source Sets" -ForegroundColor 'Green'
+Write-Host "INFO: Exporting Data Sources and Sets" -ForegroundColor 'Green'
 $dataSourceSets = Get-CluedInDataSourceSet
 $dataSourceSets | Out-JsonFile -Path $path -Name 'DataSourceSet'
 
-# Data Sources
-$path = Join-Path -Path $BackupPath -ChildPath 'Data/Sources'
-if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
+# Data Sources (Backup occurs during data set run only)
+$dataSourcePath = Join-Path -Path $BackupPath -ChildPath 'Data/Sources'
+if (!(Test-Path -Path $dataSourcePath -PathType Container)) { New-Item $dataSourcePath -ItemType Directory | Out-Null }
 
 $dataSources = $dataSourceSets.data.inbound.dataSourceSets.data.datasources
-
-$dataSourceIds = switch ($SelectDataSources) {
-    'All' { $dataSources.id }
-    'None' { $null }
-    default { ($SelectDataSources -Split ',').Trim() }
-}
-
-foreach ($id in $dataSourceIds) {
-    Write-Verbose "Processing id: $id"
-    $dataSource = Get-CluedInDataSource -Id $id
-    if ((!$?) -or ($dataSource.errors)) { Write-Warning "Id '$id' was not found. This won't be backed up"; continue }
-
-    Write-Host "Exporting Data Source: $($dataSource.data.inbound.dataSource.name) ($id)" -ForegroundColor 'Cyan'
-    $dataSource | Out-JsonFile -Path $path -Name ('{0}-DataSource' -f $id)
-}
+$dataSourceBackup = @{}
 
 # Data Sets and Annotations
 $path = Join-Path -Path $BackupPath -ChildPath 'Data/Sets'
@@ -116,7 +101,17 @@ $dataSetIds = switch ($SelectDataSets) {
 foreach ($id in $dataSetIds) {
     Write-Verbose "Processing id: $id"
     $set = Get-CluedInDataSet -id $id
-    if ((!$?) -or ($set.errors)) { Write-Warning "Id '$id' was not found. This won't be backed up"; continue }
+    if ((!$?) -or ($set.errors)) { Write-Warning "Data Set Id '$id' was not found. This won't be backed up"; continue }
+
+    $dataSourceId = $set.data.inbound.dataSet.dataSourceId
+    $dataSource = Get-CluedInDataSource -Id $dataSourceId
+
+    if ((!$?) -or ($dataSource.errors)) { Write-Warning "Data Source Id '$dataSourceId' was not found. This won't be backed up" }
+    if (!$dataSourceBackup[$dataSourceId]) {
+        Write-Host "Exporting Data Source Id: $dataSourceId" -ForegroundColor 'Cyan'
+        $dataSource | Out-JsonFile -Path $dataSourcePath -Name ('{0}-DataSource' -f $dataSourceId)
+        $dataSourceBackup[$dataSourceId] = $true
+    }
 
     Write-Host "Exporting Data Set: '$($set.data.inbound.dataSet.name) ($id)'" -ForegroundColor 'Cyan'
     $set | Out-JsonFile -Path $path -Name ('{0}-DataSet' -f $id)

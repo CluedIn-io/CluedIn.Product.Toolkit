@@ -19,10 +19,6 @@ parameters:
   displayName: Vocabularies (guid, csv)
   type: string
   default: None
-- name: dataSources
-  displayName: Data Sources (int, csv)
-  type: string
-  default: None
 - name: dataSets
   displayName: Data Sets (guid, csv)
   type: string
@@ -70,7 +66,6 @@ jobs:
         -Version ${{ parameters.version }}
         -BackupPath '$(BackupPath)'
         -SelectVocabularies ${{ parameters.vocabularies }}
-        -SelectDataSources ${{ parameters.dataSources }}
         -SelectDataSets ${{ parameters.dataSets }}
         -SelectRules ${{ parameters.rules }}
       pwsh: true

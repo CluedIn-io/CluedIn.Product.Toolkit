@@ -172,7 +172,6 @@ foreach ($dataSource in $dataSources) {
     $dataSourceSetMatch = $dataSourceSet.data.inbound.dataSourceSets.data |
         Where-Object {$_.name -match "^$dataSourceSetName$"}
     if (!$dataSourceSetMatch) {
-        Write-Warning "'$dataSourceSetName' was not found. Creating it now"
         $dataSourceSetResult = New-CluedInDataSourceSet -DisplayName $dataSourceSetName
         checkResults($dataSourceSetResult)
         $dataSourceSetMatch = (Get-CluedInDataSourceSet -Search $dataSourceSetName).data.inbound.dataSourceSets.data

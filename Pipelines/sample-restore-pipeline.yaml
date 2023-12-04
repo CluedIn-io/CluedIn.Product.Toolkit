@@ -51,6 +51,7 @@ jobs:
 - job: validateApproval
   displayName: Approval
   pool: server
+  dependsOn: validateConfiguration
   steps:
   - task: ManualValidation@0
     timeoutInMinutes: 30
@@ -61,6 +62,7 @@ jobs:
 
 - job: restoreConfiguration
   displayName: Restore Configuration
+  dependsOn: validateApproval
   steps:
   - checkout: codeRepo
   - download: configPipeline

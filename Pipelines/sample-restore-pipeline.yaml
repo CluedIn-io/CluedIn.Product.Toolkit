@@ -31,12 +31,9 @@ resources:
     #project: specify project if it's not in the current one
 
 jobs:
-- job: restoreConfiguration
-  displayName: Restore Configuration
+- job: validateConfiguration
+  displayName: Validate Configuration
   steps:
-  - checkout: codeRepo
-  - download: configPipeline
-
   - task: PowerShell@2
     displayName: 'Validate'
     inputs:
@@ -51,8 +48,22 @@ jobs:
       CLUEDIN_USERNAME: $(destination-cluedin-username) # Comes from the variable group
       CLUEDIN_PASSWORD: $(destination-cluedin-password) # Comes from the variable group
 
-  - deployment: approveValidation
-    environment: environment-upgrade
+- job: validateApproval
+  displayName: Approval
+  pool: server
+  steps:
+  - task: ManualValidation@0
+    timeoutInMinutes: 30
+    inputs:
+      notifyUsers: ''
+      instructions: 'Please validate the configuration to resume'
+      onTimeout: 'reject'
+
+- job: restoreConfiguration
+  displayName: Restore Configuration
+  steps:
+  - checkout: codeRepo
+  - download: configPipeline
 
   - task: PowerShell@2
     displayName: 'Restore'

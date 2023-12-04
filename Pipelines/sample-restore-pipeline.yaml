@@ -42,10 +42,10 @@ jobs:
     inputs:
       filePath: Scripts/Confirm-CluedInConfig.ps1
       arguments: >-
-        -BaseURL ${{ parameters.destinationBaseURL }}
-        -Organisation ${{ parameters.destinationOrganisation }}
+        -BaseURL ${{ parameters.baseURL }}
+        -Organisation ${{ parameters.organisation }}
         -Version ${{ parameters.version }}
-        -RestorePath '$(BackupPath)'
+        -RestorePath '$(pipeline.workspace)/configPipeline/CluedIn-Configuration'
       pwsh: true
     env:
       CLUEDIN_USERNAME: $(destination-cluedin-username) # Comes from the variable group

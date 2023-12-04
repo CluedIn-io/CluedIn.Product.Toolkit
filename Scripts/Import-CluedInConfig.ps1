@@ -56,7 +56,7 @@ $dataSourceSetsPath = Join-Path -Path $dataPath -ChildPath 'SourceSets'
 $dataSourcesPath = Join-Path -Path $dataPath -ChildPath 'Sources'
 $dataSetsPath = Join-Path -Path $dataPath -ChildPath 'Sets'
 $generalPath = Join-Path -Path $RestorePath -ChildPath 'General'
-# $rulesPath = Join-Path -Path $RestorePath -ChildPath 'Rules'
+$rulesPath = Join-Path -Path $RestorePath -ChildPath 'Rules'
 
 # Test Paths
 if (!(Test-Path -Path $generalPath -PathType Container)) { throw "'$generalPath' could not be found. Please investigate" }
@@ -69,22 +69,28 @@ if (!(Test-Path -Path $dataSourceSetsPath, $dataSourcesPath, $dataSetsPath -Path
 
 # Settings
 Write-Host "INFO: Importing Admin Settings" -ForegroundColor 'Green'
-$adminSetting = Get-Content -Path (Join-Path -Path $generalPath -ChildPath 'AdminSetting.json') | ConvertFrom-Json -Depth 20
+$restoreAdminSetting = Get-Content -Path (Join-Path -Path $generalPath -ChildPath 'AdminSetting.json') | ConvertFrom-Json -Depth 20
 
-$settings = ($adminSetting.data.administration.configurationSettings).psobject.properties.name
+$settings = ($restoreAdminSetting.data.administration.configurationSettings).psobject.properties.name
+$currentSettings = (Get-CluedInAdminSetting).data.administration.configurationSettings
 
 foreach ($setting in $settings) {
     $key = $setting
-    $value = $adminSetting.data.administration.configurationSettings.$key
-    Write-Host "Processing Admin Setting: $key" -ForegroundColor 'Cyan'
-    $adminSettingResult = Set-CluedInAdminSettings -Name $key -Value $value
-    checkResults($adminSettingResult)
+    $newValue = $restoreAdminSetting.data.administration.configurationSettings.$key
+    $currentValue = $currentSettings.$key
+
+    if ($newValue -ne $currentValue) {
+        Write-Host "Processing Admin Setting '$key'. Was: $currentValue, Now: $newValue" -ForegroundColor 'Cyan'
+        $adminSettingResult = Set-CluedInAdminSettings -Name $key -Value $newValue
+        checkResults($adminSettingResult)
+    }
 }
 
 # Vocabulary
 Write-Host "INFO: Importing Vocabularies" -ForegroundColor 'Green'
-$vocabularies = Get-ChildItem -Path $vocabPath -Filter "*.json"
-foreach ($vocabulary in $vocabularies) {
+$restoreVocabularies = Get-ChildItem -Path $vocabPath -Filter "*.json"
+
+foreach ($vocabulary in $restoreVocabularies) {
     $vocabJson = Get-Content -Path $vocabulary.FullName | ConvertFrom-Json -Depth 20
     $vocabObject = $vocabJson.data.management.vocabulary
 
@@ -97,8 +103,26 @@ foreach ($vocabulary in $vocabularies) {
         checkResults($entityResult)
     }
 
-    $vocabResult = New-CluedInVocabulary -Object $vocabObject
-    checkResults($vocabResult)
+    $exists = (Get-CluedInVocabulary -Search $vocabObject.vocabularyName -HardMatch).data.management.vocabularies.data
+    if (!$exists) {
+        $vocabResult = New-CluedInVocabulary -Object $vocabObject
+        checkResults($vocabResult)
+    }
+    else {
+        if ($exists.count -ne 1) { Write-Warning "Issue with following:`n$exists. Only 1 should have been returned"; continue }
+
+        # We have to get again because the `exists` section doesn't pull the configuration. Just metadata.
+        $currentVocab = (Get-CluedInVocabularyById -Id $exists.vocabularyId).data.management.vocabulary
+        $vocabObject.vocabularyId = $currentVocab.vocabularyId # These cannot be updated once set
+        $vocabObject.vocabularyName = $currentVocab.vocabularyName # These cannot be updated once set
+        $vocabObject.keyPrefix = $currentVocab.keyPrefix # These cannot be updated once set
+
+        Write-Host "'$($vocabObject.vocabularyName)' already exists, overwriting existing configuration" -ForegroundColor 'Yellow'
+        Write-Verbose "Restored Config`n$($vocabObject | Out-String)"
+        Write-Verbose "Current Config`n$($currentVocab | Out-String)"
+        $vocabUpdateResult = Set-CluedInVocabulary -Object $vocabObject
+        checkResults($vocabUpdateResult)
+    }
 }
 
 Write-Host "INFO: Importing Vocabulary Keys" -ForegroundColor 'Green'
@@ -113,8 +137,9 @@ foreach ($vocabKey in $vocabKeys) {
         Write-Host "Processing Vocab Key: $($key.displayName) ($($key.vocabularyKeyId))" -ForegroundColor 'Cyan'
         Write-Debug "$($key | Out-String)"
 
-        $vocabularyKey = Get-CluedInVocabularyKey -Search $key.key
-        if (!$vocabularyKey.data.management.vocabularyPerKey.key) {
+        $currentVocabularyKey = Get-CluedInVocabularyKey -Search $key.key
+        $currentVocabularyKeyObject = $currentVocabularyKey.data.management.vocabularyPerKey
+        if (!$currentVocabularyKeyObject.key) {
             Write-Host "Creating '$($key.key)' as it doesn't exist" -ForegroundColor 'DarkCyan'
             $params = @{
                 Object = $key
@@ -122,6 +147,15 @@ foreach ($vocabKey in $vocabKeys) {
             }
             $vocabKeyResult = New-CluedInVocabularyKey @params
             checkResults($vocabKeyResult)
+        }
+        else {
+            $key.vocabularyKeyId = $currentVocabularyKeyObject.vocabularyKeyId # These cannot be updated once set
+            $key.vocabularyId = $currentVocabularyKeyObject.vocabularyId # These cannot be updated once set
+            $key.name = $currentVocabularyKeyObject.name # These cannot be updated once set
+
+            Write-Host "'$($key.key)' exists, overwriting existing configuration" -ForegroundColor 'Cyan'
+            $vocabKeyUpdateResult = Set-CluedInVocabularyKey -Object $key
+            checkResults($vocabKeyUpdateResult)
         }
     }
 }
@@ -152,14 +186,14 @@ foreach ($dataSource in $dataSources) {
         $dataSourceResult = New-CluedInDataSource -Object $dataSourceObject
         $newDataSourceId = $dataSourceResult.data.inbound.createDataSource.id
         checkResults($dataSourceResult)
-
-        $dataSourceObject.connectorConfiguration.id =
-            (Get-CluedInDataSource -Search $dataSourceObject.name).data.inbound.dataSource.connectorConfiguration.id
-        $dataSourceObject.connectorConfiguration.configuration.DataSourceId = $newDataSourceId
-        $dataSourceConfigResult = Set-CluedInDataSourceConfiguration -Object $dataSourceObject.connectorConfiguration
-        checkResults($dataSourceConfigResult)
     }
-    else { Write-Warning "An entry already exists" }
+
+    Write-Host "Updating Configuration for $($dataSourceObject.name)" -ForegroundColor 'Cyan'
+    $dataSourceObject.connectorConfiguration.id =
+        (Get-CluedInDataSource -Search $dataSourceObject.name).data.inbound.dataSource.connectorConfiguration.id
+    $dataSourceObject.connectorConfiguration.configuration.DataSourceId = $newDataSourceId
+    $dataSourceConfigResult = Set-CluedInDataSourceConfiguration -Object $dataSourceObject.connectorConfiguration
+    checkResults($dataSourceConfigResult)
 }
 
 Write-Host "INFO: Importing Data Sets" -ForegroundColor 'Green'
@@ -179,114 +213,131 @@ foreach ($dataSet in $dataSets) {
         Write-Host "Creating '$($dataSetObject.name)' as it doesn't exist" -ForegroundColor 'DarkCyan'
         $dataSetResult = New-CluedInDataSet -Object $dataSetObject
         checkResults($dataSetResult)
+        $dataSetId = $dataSetResult.data.inbound.createDataSets.id
 
         if ($dataSetObject.dataSource.type -eq 'endpoint') {
-            $dataSetId = $dataSetResult.data.inbound.createDataSets.id
             $endpoint = '{0}/upload/api/endpoint/{1}' -f ${env:CLUEDIN_ENDPOINT}, $dataSetId
             Write-Host "New Endpoint created: $endPoint"
-
-            Write-Host "Processing Annotations" -ForegroundColor Cyan
-            $annotationPath = Join-Path -Path $dataSetsPath -ChildPath ('{0}-Annotation.json' -f $dataSetObject.id)
-            Try {
-                $annotationJson = Get-Content -Path $annotationPath | ConvertFrom-Json -Depth 20
-                $annotationObject = $annotationJson.data.preparation.annotation
-                $annotationObject | Add-Member -Name dataSetId -Value $dataSetId -MemberType NoteProperty
-                $annotationObject | Add-Member -Name type -Value 'endpoint' -MemberType NoteProperty
-
-                $vocabName = $annotationObject.vocabulary.vocabularyName
-                $vocabSearchResult = Get-CluedInVocabulary -Search $vocabName -IncludeCore
-                $vocabObject = $vocabSearchResult.data.management.vocabularies
-                if (!$vocabObject.total -eq 1) {
-                    Write-Error "There was an issue getting vocab '${vocabName}'"
-                    Write-Debug $($vocabObject | Out-String)
-                    continue
-                }
-                $annotationObject.vocabulary.vocabularyId = $vocabObject.data.vocabularyId
-
-                Write-Host "Creating annotation as it doesn't exist" -ForegroundColor 'DarkCyan'
-                $annotationResult = New-CluedInAnnotation -Object $annotationObject
-                checkResults($annotationResult)
-
-                Write-Verbose "Setting Annotation Configuration"
-                $annotationId = (Get-CluedInDataSet -id $dataSetId).data.inbound.dataSet.annotationId # Doesn't come from result
-                $annotationObject.id = $annotationId
-                $settings = @{
-                    useDefaultSourceCode = $annotationObject.useDefaultSourceCode
-                    useStrictEdgeCode = $annotationObject.useStrictEdgeCode
-                    descriptionKey = $annotationObject.descriptionKey
-                    nameKey = $annotationObject.nameKey
-                    originEntityCodeKey = $annotationObject.originEntityCodeKey
-                    origin = $annotationObject.origin
-                }
-                $setAnnotationResult = Set-CluedInAnnotation -Id $annotationObject.id -Settings $settings
-                checkResults($setAnnotationResult)
-
-                Write-Verbose "Configuring Mappings"
-                foreach ($mapping in $dataSetObject.fieldMappings) {
-                    $vocabularyKey = Get-CluedInVocabularyKey -Search $mapping.key
-                    $vocabularyKeyObject = $vocabularyKey.data.management.vocabularyPerKey
-                    if (!$vocabularyKeyObject.vocabularyKeyId) {
-                        Write-Error "Key: $($mapping.key) doesn't exist"
-                        continue
-                    }
-
-                    $mapping | Add-Member -MemberType 'NoteProperty' -Name 'vocabularyId' -Value $vocabularyKeyObject.vocabularyId
-                    $mapping | Add-Member -MemberType 'NoteProperty' -Name 'vocabularyKeyId' -Value $vocabularyKeyObject.vocabularyKeyId
-
-                    $dataSetMappingResult = New-CluedInDataSetMapping -Object $mapping -DataSetId $dataSetId
-                    checkResults($dataSetMappingResult)
-                }
-
-                Write-Verbose "Setting Annotation Entity Codes"
-                $entities = $annotationObject.annotationProperties | Where-Object {$_.useAsEntityCode}
-                foreach ($entity in $entities) {
-                    $setAnnotationEntityCodesResult = Set-CluedInAnnotationEntityCodes -Object $entity -Id $annotationObject.id
-                    checkResults($setAnnotationEntityCodesResult)
-                }
-
-                # Blocked as not currently in scope
-
-                # Write-Verbose "Adding Edge Mappings"
-                # $edges = $annotationObject.annotationProperties | Where-Object {$_.annotationEdges}
-
-                # foreach ($edge in $edges) {
-                #     $edge = $edge.annotationEdges
-                #     $edgeVocabulary = Get-CluedInVocabularyKey -Search $edge.edgeProperties.vocabularyKey.key
-                #     $edgeVocabularyObject = $edgeVocabulary.data.management.vocabularyPerKey
-                #     $edge.edgeProperties.vocabularyKey.vocabularyKeyId = $edgeVocabularyObject.vocabularyKeyId
-                #     $edge.edgeProperties.vocabularyKey.vocabularyId = $edgeVocabularyObject.vocabularyId
-
-                #     $edgeResult = New-CluedInEdgeMapping -Object $edge -AnnotationId $annotationObject.id
-                #     checkResults($edgeResult)
-                # }
-            }
-            catch {
-                Write-Verbose "Annotation file '$annotationPath' not found or error occured during run"
-                Write-Debug $_
-                continue
-            }
         }
     }
-    else { Write-Warning "An entry already exists" }
+
+    Write-Host "Updating Annotations for $($dataSetObject.name)" -ForegroundColor 'Cyan'
+    $annotationPath = Join-Path -Path $dataSetsPath -ChildPath ('{0}-Annotation.json' -f $dataSetObject.id)
+    Try {
+        $annotationJson = Get-Content -Path $annotationPath | ConvertFrom-Json -Depth 20
+        $annotationObject = $annotationJson.data.preparation.annotation
+
+        $vocabName = $annotationObject.vocabulary.vocabularyName
+        $vocabSearchResult = Get-CluedInVocabulary -Search $vocabName -IncludeCore -HardMatch
+        $vocabObject = $vocabSearchResult.data.management.vocabularies.data
+
+        $keyToMatch = $annotationObject.vocabulary.keyPrefix
+        $vocabObject = $vocabObject | Where-Object {$_.keyPrefix -eq $keyToMatch}
+
+        if (!$vocabObject.count -eq 1) {
+            Write-Error "There was an issue getting vocab '${vocabName}'"
+            Write-Debug $($vocabObject | Out-String)
+            continue
+        }
+
+        $annotationObject.vocabulary.vocabularyId = $vocabObject.vocabularyId
+
+        $dataSourceObject = (Get-CluedInDataSource -Search $dataSetObject.dataSource.name).data.inbound.dataSource
+        $dataSetObject = $dataSourceObject.dataSets | Where-Object {$_.name -eq $dataSetObject.name}
+        $dataSetId = $dataSetObject.id
+        $annotationId = $dataSetObject.annotation.id
+        if (!$dataSetId) { Write-Error "Issue getting dataSetId"; continue }
+
+        if (!$annotationId) {
+            Write-Host "Creating Annotation"
+            $annotationResult = New-CluedInAnnotation -Object $annotationObject -DataSetId $dataSetId
+            checkResults($annotationResult)
+
+            $annotationId = (Get-CluedInDataSet -id $dataSetId).data.inbound.dataSet.annotationId
+        }
+
+        Write-Verbose "Setting Annotation Configuration"
+        $annotationObject.id = $annotationId
+        $settings = @{
+            useDefaultSourceCode = $annotationObject.useDefaultSourceCode
+            useStrictEdgeCode = $annotationObject.useStrictEdgeCode
+            descriptionKey = $annotationObject.descriptionKey
+            nameKey = $annotationObject.nameKey
+            originEntityCodeKey = $annotationObject.originEntityCodeKey
+            origin = $annotationObject.origin
+        }
+        $setAnnotationResult = Set-CluedInAnnotation -Id $annotationObject.id -Settings $settings
+        checkResults($setAnnotationResult)
+
+        Write-Verbose "Configuring Mappings"
+        foreach ($mapping in $dataSetObject.fieldMappings) {
+            $vocabularyKey = Get-CluedInVocabularyKey -Search $mapping.key
+            $vocabularyKeyObject = $vocabularyKey.data.management.vocabularyPerKey
+            if (!$vocabularyKeyObject.vocabularyKeyId) {
+                Write-Error "Key: $($mapping.key) doesn't exist"
+                continue
+            }
+
+            $dataSetMappingParams = @{
+                Object = $mapping
+                DataSetId = $dataSetId
+                VocabularyKeyId = $vocabularyKeyObject.vocabularyKeyId
+                VocabularyId = $vocabularyKeyObject.vocabularyId
+            }
+            $dataSetMappingResult = New-CluedInDataSetMapping @dataSetMappingParams
+            checkResults($dataSetMappingResult)
+        }
+
+        Write-Verbose "Setting Annotation Entity Codes"
+        $entities = $annotationObject.annotationProperties | Where-Object {$_.useAsEntityCode}
+        foreach ($entity in $entities) {
+            $setAnnotationEntityCodesResult = Set-CluedInAnnotationEntityCodes -Object $entity -Id $annotationObject.id
+            checkResults($setAnnotationEntityCodesResult)
+        }
+
+        # Blocked as not currently in scope
+
+        # Write-Verbose "Adding Edge Mappings"
+        # $edges = $annotationObject.annotationProperties | Where-Object {$_.annotationEdges}
+
+        # foreach ($edge in $edges) {
+        #     $edge = $edge.annotationEdges
+        #     $edgeVocabulary = Get-CluedInVocabularyKey -Search $edge.edgeProperties.vocabularyKey.key
+        #     $edgeVocabularyObject = $edgeVocabulary.data.management.vocabularyPerKey
+        #     $edge.edgeProperties.vocabularyKey.vocabularyKeyId = $edgeVocabularyObject.vocabularyKeyId
+        #     $edge.edgeProperties.vocabularyKey.vocabularyId = $edgeVocabularyObject.vocabularyId
+
+        #     $edgeResult = New-CluedInEdgeMapping -Object $edge -AnnotationId $annotationObject.id
+        #     checkResults($edgeResult)
+        # }
+    }
+    catch {
+        Write-Verbose "Annotation file '$annotationPath' not found or error occured during run"
+        Write-Debug $_
+        continue
+    }
 }
 
-# Blocked as not currently in scope
-
 # Rules
-# Write-Host "INFO: Importing Rules" -ForegroundColor 'Green'
-# $rules = Get-ChildItem -Path $rulesPath -Filter "*.json" -Recurse
-# foreach ($rule in $rules) {
-#     $ruleJson = Get-Content -Path $rule.FullName | ConvertFrom-Json -Depth 20
-#     $ruleObject = $ruleJson.data.management.rule
-#
-#     Write-Host "Processing Rule: $($ruleObject.name) ($($ruleObject.scope))" -ForegroundColor 'Cyan'
-#     $ruleResult = New-CluedInRule -Name $ruleObject.name -Scope $ruleObject.scope
-#     checkResults($ruleResult)
-#
-#     Write-Verbose "Setting rule configuration"
-#     $ruleObject.id = $ruleResult.data.management.createRule.id
-#     $setRuleResult = Set-CluedInRule -Object $ruleObject
-#     checkResults($setRuleResult)
-# }
+Write-Host "INFO: Importing Rules" -ForegroundColor 'Green'
+$rules = Get-ChildItem -Path $rulesPath -Filter "*.json" -Recurse
+foreach ($rule in $rules) {
+    $ruleJson = Get-Content -Path $rule.FullName | ConvertFrom-Json -Depth 20
+    $ruleObject = $ruleJson.data.management.rule
+    Write-Host "Processing Rule: $($ruleObject.name) ($($ruleObject.scope))" -ForegroundColor 'Cyan'
+
+    $exists = Get-CluedInRules -Search $ruleObject.name -Scope $ruleObject.scope
+    if (!$exists.data.management.rules.data) {
+        Write-Verbose "Creating rule as it does not exist"
+        $ruleResult = New-CluedInRule -Name $ruleObject.name -Scope $ruleObject.scope
+        checkResults($ruleResult)
+        $ruleObject.id = $ruleResult.data.management.createRule.id
+    }
+    else { $ruleObject.id = $exists.data.management.rules.data.id }
+
+    Write-Verbose "Setting rule configuration"
+    $setRuleResult = Set-CluedInRule -Object $ruleObject
+    checkResults($setRuleResult)
+}
 
 Write-Host "INFO: Import Complete" -ForegroundColor 'Green'

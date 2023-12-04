@@ -18,6 +18,8 @@ function New-CluedInAnnotation {
 
     [CmdletBinding()]
     param(
+        [Parameter(Mandatory)][string]$DataSetId,
+        [string]$AnnotationType = 'endpoint',
         [PSCustomObject]$Object
     )
 
@@ -25,8 +27,8 @@ function New-CluedInAnnotation {
 
     $query = @{
         variables =@{
-            dataSetId = $Object.dataSetId
-            type = $Object.type
+            dataSetId = $DataSetId
+            type = $AnnotationType
             mappingConfiguration = @{
                 entityTypeConfiguration = @{
                     new = $false

@@ -30,7 +30,7 @@ function Get-CluedInRules {
     param(
         [Parameter(ParameterSetName = 'Id')][guid]$Id,
         [Parameter(ParameterSetName = 'Search')][string]$Search = "",
-        [Parameter(Mandatory)][ValidateSet('Survivorship', 'DataPart', 'Entity')][string]$Scope
+        [Parameter(ParameterSetName = 'Search', Mandatory)][ValidateSet('Survivorship', 'DataPart', 'Entity')][string]$Scope
     )
 
     switch ($PsCmdlet.ParameterSetName) {

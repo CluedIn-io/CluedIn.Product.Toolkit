@@ -1,6 +1,7 @@
 # Restores configuration from specified config files
 
 trigger: none
+pr: none
 
 name: ${{ parameters.organisation }}.${{ parameters.baseURL }} Restore ($(Date:yyyyMMdd)$(Rev:r))
 
@@ -35,8 +36,6 @@ jobs:
   steps:
   - checkout: codeRepo
   - download: configPipeline
-
-  - pwsh: get-childitem $(pipeline.workspace) -recurse | Out-string
 
   - task: PowerShell@2
     displayName: 'Restore'

@@ -21,6 +21,8 @@ function New-CluedInDataSetMapping {
     [CmdletBinding()]
     param(
         [guid]$DataSetId,
+        [string]$VocabularyId,
+        [string]$VocabularyKeyId,
         [PSCustomObject]$Object
     )
 
@@ -35,8 +37,8 @@ function New-CluedInDataSetMapping {
                 useAsEntityCode = $false
                 vocabularyKeyConfiguration = @{
                     new = $false
-                    vocabularyId = $Object.vocabularyId
-                    vocabularyKeyId = $Object.vocabularyKeyId
+                    vocabularyId = $VocabularyId
+                    vocabularyKeyId = $VocabularyKeyId
                 }
             }
         }

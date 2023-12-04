@@ -37,6 +37,12 @@
 
     Example: '1, 2, 3'
 
+    .PARAMETER SelectRules
+    This is a list of Rules to backup. It's agnostic as to what type of rules so long as you specify the guid.
+    Default value is 'None', but 'All' and guids are accepted in csv format wrapped in a string.
+
+    Example: '66505aa1-bacb-463e-832c-799c484577a8, e257a226-d91c-4946-a8af-85ef803cf55e'
+
     .EXAMPLE
     PS> ./Export-CluedInConfig.ps1 -BaseURL 'cluedin.com' -Organisation 'dev' -Version '2023.07'
 #>
@@ -138,7 +144,10 @@ if ($SelectVocabularies -ne 'None') {
 }
 
 $vocabularyIds = switch ($SelectVocabularies) {
-    'All' { ($vocabularies.data.management.vocabularies.data | Where-Object {$_.isCluedInCore -eq $False}).vocabularyId }
+    'All' {
+        $null # All not supported at the moment
+        #($vocabularies.data.management.vocabularies.data | Where-Object {$_.isCluedInCore -eq $False}).vocabularyId
+    }
     'None' { $null }
     default { ($SelectVocabularies -Split ',').Trim() }
 }
@@ -161,42 +170,34 @@ foreach ($id in $vocabularyIds) {
     $vocabKey | Out-JsonFile -Path $vocabKeysPath -Name $id
 }
 
-# Blocked as not currently in scope
-
 # Rules
-# Write-Host "INFO: Exporting Rules"
-# $rulesPath = Join-Path -Path $BackupPath -ChildPath 'Rules'
-# $dataPartRulesPath = Join-Path -Path $rulesPath -ChildPath 'DataPart'
-# $survivorshipRulesPath = Join-Path -Path $rulesPath -ChildPath 'Survivorship'
-# $goldenRecordsRulesPath = Join-Path -Path $rulesPath -ChildPath 'GoldenRecords'
-# if (!(Test-Path -Path $rulesPath -PathType Container)) {
-#     New-Item $dataPartRulesPath -ItemType Directory | Out-Null
-#     New-Item $survivorshipRulesPath -ItemType Directory | Out-Null
-#     New-Item $goldenRecordsRulesPath -ItemType Directory | Out-Null
-# }
+Write-Host "INFO: Exporting Rules" -ForegroundColor 'Green'
+$rulesPath = Join-Path -Path $BackupPath -ChildPath 'Rules'
+$dataPartRulesPath = Join-Path -Path $rulesPath -ChildPath 'DataPart'
+$survivorshipRulesPath = Join-Path -Path $rulesPath -ChildPath 'Survivorship'
+$goldenRecordsRulesPath = Join-Path -Path $rulesPath -ChildPath 'Entity' # Golden Records
+if (!(Test-Path -Path $rulesPath -PathType Container)) {
+    New-Item $dataPartRulesPath -ItemType Directory | Out-Null
+    New-Item $survivorshipRulesPath -ItemType Directory | Out-Null
+    New-Item $goldenRecordsRulesPath -ItemType Directory | Out-Null
+}
 
-# $scope = 'Survivorship'
-# $survivorshipRules = Get-CluedInRules -Scope $scope
-# if ($survivorshipRules.data.management.rules.total -ge 1) {
-#     foreach ($rule in $survivorshipRules.data.management.rules.data) {
-#         Get-CluedInRules -Id $rule.id -Scope $scope | Out-JsonFile -Path $survivorshipRulesPath -Name $rule.id
-#     }
-# }
+$ruleIds = @()
+switch ($SelectRules) {
+    'All' {
+        foreach ($i in @('Survivorship', 'DataPart', 'Entity')) {
+            $rules = Get-CluedInRules -Scope $i
+            if ($rules.data.management.rules.data) { $ruleIds += $rules.data.management.rules.data.id }
+        }
+    }
+    'None' { $null }
+    default { $ruleIds = ($SelectRules -Split ',').Trim() }
+}
 
-# $scope = 'DataPart'
-# $dataPartRules = Get-CluedInRules -Scope $scope
-# if ($dataPartRules.data.management.rules.total -ge 1) {
-#     foreach ($rule in $dataPartRules.data.management.rules.data) {
-#         Get-CluedInRules -Id $rule.id -Scope $scope | Out-JsonFile -Path $dataPartRulesPath -Name $rule.id
-#     }
-# }
-
-# $scope = 'Entity'
-# $goldenRecordRules = Get-CluedInRules -Scope $scope
-# if ($goldenRecordRules.data.management.rules.total -ge 1) {
-#     foreach ($rule in $goldenRecordRules.data.management.rules.data) {
-#         Get-CluedInRules -Id $rule.id -Scope $scope | Out-JsonFile -Path $goldenRecordsRulesPath -Name $rule.id
-#     }
-# }
+foreach ($id in $ruleIds) {
+    $rule = Get-CluedInRules -Id $id
+    $ruleObject = $rule.data.management.rule
+    $rule | Out-JsonFile -Path (Join-Path -Path $rulesPath -ChildPath $ruleObject.scope) -Name $id
+}
 
 Write-Host "INFO: Backup now complete"

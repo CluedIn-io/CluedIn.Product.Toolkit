@@ -109,7 +109,7 @@ foreach ($id in $dataSetIds) {
     if ((!$?) -or ($dataSource.errors)) { Write-Warning "Data Source Id '$dataSourceId' was not found. This won't be backed up" }
     if (!$dataSourceBackup[$dataSourceId]) {
         Write-Host "Exporting Data Source Id: $dataSourceId" -ForegroundColor 'Cyan'
-        $dataSource | Out-JsonFile -Path $dataSourcePath -Name ('{0}-DataSource' -f $id)
+        $dataSource | Out-JsonFile -Path $dataSourcePath -Name ('{0}-DataSource' -f $dataSourceId)
         $dataSourceBackup[$dataSourceId] = $true
     }
 

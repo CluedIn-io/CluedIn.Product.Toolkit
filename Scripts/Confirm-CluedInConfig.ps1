@@ -69,7 +69,7 @@ foreach ($setting in $settings) {
     $currentValue = $currentSettings.$key
 
     $operator = if ($newValue -ne $currentValue) { '~' } else { '=' }
-    Write-Host "$operator ${setting} ($(if ($operator -eq '~') {$newValue}))"
+    Write-Host "$operator ${setting} $(if ($operator -eq '~') {"($newValue)"})`n"
 }
 
 # Vocabulary
@@ -187,4 +187,4 @@ foreach ($rule in $rules) {
     }
 }
 
-Write-Host "INFO: Import Complete" -ForegroundColor 'Green'
+Write-Host "INFO: Comparing Complete" -ForegroundColor 'Green'

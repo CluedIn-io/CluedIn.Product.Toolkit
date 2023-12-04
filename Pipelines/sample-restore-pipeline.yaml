@@ -45,8 +45,8 @@ jobs:
         -RestorePath '$(pipeline.workspace)/configPipeline/CluedIn-Configuration'
       pwsh: true
     env:
-      CLUEDIN_USERNAME: $(destination-cluedin-username) # Comes from the variable group
-      CLUEDIN_PASSWORD: $(destination-cluedin-password) # Comes from the variable group
+      CLUEDIN_USERNAME: $(cluedin-username) # Comes from the variable group
+      CLUEDIN_PASSWORD: $(cluedin-password) # Comes from the variable group
 
 - job: validateApproval
   displayName: Approval

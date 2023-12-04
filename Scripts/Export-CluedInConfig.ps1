@@ -77,7 +77,7 @@ Get-CluedInAdminSetting | Out-JsonFile -Path $generalPath -Name 'AdminSetting'
 $path = Join-Path -Path $BackupPath -ChildPath 'Data/SourceSets'
 if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
 
-Write-Host "INFO: Exporting Data Source Sets" -ForegroundColor 'Green'
+Write-Host "INFO: Exporting Data Sources and Sets" -ForegroundColor 'Green'
 $dataSourceSets = Get-CluedInDataSourceSet
 $dataSourceSets | Out-JsonFile -Path $path -Name 'DataSourceSet'
 
@@ -108,7 +108,7 @@ foreach ($id in $dataSetIds) {
 
     if ((!$?) -or ($dataSource.errors)) { Write-Warning "Data Source Id '$dataSourceId' was not found. This won't be backed up" }
     if (!$dataSourceBackup[$dataSourceId]) {
-        Write-Host "Exporting Data Source: $($dataSource.data.inbound.dataSource.name) ($id)" -ForegroundColor 'Cyan'
+        Write-Host "Exporting Data Source Id: $dataSourceId" -ForegroundColor 'Cyan'
         $dataSource | Out-JsonFile -Path $dataSourcePath -Name ('{0}-DataSource' -f $id)
         $dataSourceBackup[$dataSourceId] = $true
     }

@@ -34,6 +34,9 @@ jobs:
 - job: validateConfiguration
   displayName: Validate Configuration
   steps:
+  - checkout: codeRepo
+  - download: configPipeline
+
   - task: PowerShell@2
     displayName: 'Validate'
     inputs:

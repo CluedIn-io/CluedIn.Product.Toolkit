@@ -86,6 +86,7 @@ $dataSourcePath = Join-Path -Path $BackupPath -ChildPath 'Data/Sources'
 if (!(Test-Path -Path $dataSourcePath -PathType Container)) { New-Item $dataSourcePath -ItemType Directory | Out-Null }
 
 $dataSources = $dataSourceSets.data.inbound.dataSourceSets.data.datasources
+$dataSourceBackup = @{}
 
 # Data Sets and Annotations
 $path = Join-Path -Path $BackupPath -ChildPath 'Data/Sets'
@@ -100,14 +101,16 @@ $dataSetIds = switch ($SelectDataSets) {
 foreach ($id in $dataSetIds) {
     Write-Verbose "Processing id: $id"
     $set = Get-CluedInDataSet -id $id
-    if ((!$?) -or ($set.errors)) { Write-Warning "Id '$id' was not found. This won't be backed up"; continue }
+    if ((!$?) -or ($set.errors)) { Write-Warning "Data Set Id '$id' was not found. This won't be backed up"; continue }
 
     $dataSourceId = $set.data.inbound.dataSet.dataSourceId
     $dataSource = Get-CluedInDataSource -Id $dataSourceId
+
     if ((!$?) -or ($dataSource.errors)) { Write-Warning "Data Source Id '$dataSourceId' was not found. This won't be backed up" }
-    else {
+    if (!$dataSourceBackup[$dataSourceId]) {
         Write-Host "Exporting Data Source: $($dataSource.data.inbound.dataSource.name) ($id)" -ForegroundColor 'Cyan'
         $dataSource | Out-JsonFile -Path $dataSourcePath -Name ('{0}-DataSource' -f $id)
+        $dataSourceBackup[$dataSourceId] = $true
     }
 
     Write-Host "Exporting Data Set: '$($set.data.inbound.dataSet.name) ($id)'" -ForegroundColor 'Cyan'

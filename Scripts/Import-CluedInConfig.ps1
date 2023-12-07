@@ -186,11 +186,12 @@ foreach ($dataSource in $dataSources) {
         $newDataSourceId = $dataSourceResult.data.inbound.createDataSource.id
         checkResults($dataSourceResult)
     }
+    $dataSourceId = $exists.id ?? $dataSourceResult.data.inbound.createDataSource.id
 
     Write-Host "Updating Configuration for $($dataSourceObject.name)" -ForegroundColor 'Cyan'
     $dataSourceObject.connectorConfiguration.id =
         (Get-CluedInDataSource -Search $dataSourceObject.name).data.inbound.dataSource.connectorConfiguration.id
-    $dataSourceObject.connectorConfiguration.configuration.DataSourceId = $newDataSourceId
+    $dataSourceObject.connectorConfiguration.configuration.DataSourceId = $dataSourceId
     $dataSourceConfigResult = Set-CluedInDataSourceConfiguration -Object $dataSourceObject.connectorConfiguration
     checkResults($dataSourceConfigResult)
 }

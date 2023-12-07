@@ -183,7 +183,6 @@ foreach ($dataSource in $dataSources) {
     if (!$exists) {
         Write-Host "Creating '$($dataSourceObject.name)' as it doesn't exist" -ForegroundColor 'DarkCyan'
         $dataSourceResult = New-CluedInDataSource -Object $dataSourceObject
-        $newDataSourceId = $dataSourceResult.data.inbound.createDataSource.id
         checkResults($dataSourceResult)
     }
     $dataSourceId = $exists.id ?? $dataSourceResult.data.inbound.createDataSource.id

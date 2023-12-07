@@ -183,14 +183,14 @@ foreach ($dataSource in $dataSources) {
     if (!$exists) {
         Write-Host "Creating '$($dataSourceObject.name)' as it doesn't exist" -ForegroundColor 'DarkCyan'
         $dataSourceResult = New-CluedInDataSource -Object $dataSourceObject
-        $newDataSourceId = $dataSourceResult.data.inbound.createDataSource.id
         checkResults($dataSourceResult)
     }
+    $dataSourceId = $exists.id ?? $dataSourceResult.data.inbound.createDataSource.id
 
     Write-Host "Updating Configuration for $($dataSourceObject.name)" -ForegroundColor 'Cyan'
     $dataSourceObject.connectorConfiguration.id =
         (Get-CluedInDataSource -Search $dataSourceObject.name).data.inbound.dataSource.connectorConfiguration.id
-    $dataSourceObject.connectorConfiguration.configuration.DataSourceId = $newDataSourceId
+    $dataSourceObject.connectorConfiguration.configuration.DataSourceId = $dataSourceId
     $dataSourceConfigResult = Set-CluedInDataSourceConfiguration -Object $dataSourceObject.connectorConfiguration
     checkResults($dataSourceConfigResult)
 }
@@ -231,7 +231,7 @@ foreach ($dataSet in $dataSets) {
         $vocabObject = $vocabSearchResult.data.management.vocabularies.data
 
         $keyToMatch = $annotationObject.vocabulary.keyPrefix
-        $vocabObject = $vocabObject | Where-Object {$_.keyPrefix -eq $keyToMatch}
+        $vocabObject = $vocabObject | Where-Object { $_.keyPrefix -eq $keyToMatch }
 
         if (!$vocabObject.count -eq 1) {
             Write-Error "There was an issue getting vocab '${vocabName}'"
@@ -242,11 +242,11 @@ foreach ($dataSet in $dataSets) {
         $annotationObject.vocabulary.vocabularyId = $vocabObject.vocabularyId
 
         $dataSourceObject = (Get-CluedInDataSource -Search $dataSetObject.dataSource.name).data.inbound.dataSource
-        $dataSetObject = $dataSourceObject.dataSets | Where-Object {$_.name -eq $dataSetObject.name}
-        $dataSetId = $dataSetObject.id
-        $annotationId = $dataSetObject.annotation.id
+        $destinationDataSetObject = $dataSourceObject.dataSets | Where-Object { $_.name -eq $dataSetObject.name }
+        $dataSetId = $destinationDataSetObject.id
         if (!$dataSetId) { Write-Error "Issue getting dataSetId"; continue }
 
+        $annotationId = $destinationDataSetObject.annotation.id
         if (!$annotationId) {
             Write-Host "Creating Annotation"
             $annotationResult = New-CluedInAnnotation -Object $annotationObject -DataSetId $dataSetId
@@ -269,6 +269,7 @@ foreach ($dataSet in $dataSets) {
         checkResults($setAnnotationResult)
 
         Write-Verbose "Configuring Mappings"
+        if (!$dataSetObject.fieldMappings) { Write-Warning "No field mappings detected." }
         foreach ($mapping in $dataSetObject.fieldMappings) {
             $vocabularyKey = Get-CluedInVocabularyKey -Search $mapping.key
             $vocabularyKeyObject = $vocabularyKey.data.management.vocabularyPerKey
@@ -288,7 +289,7 @@ foreach ($dataSet in $dataSets) {
         }
 
         Write-Verbose "Setting Annotation Entity Codes"
-        $entities = $annotationObject.annotationProperties | Where-Object {$_.useAsEntityCode}
+        $entities = $annotationObject.annotationProperties | Where-Object { $_.useAsEntityCode }
         foreach ($entity in $entities) {
             $setAnnotationEntityCodesResult = Set-CluedInAnnotationEntityCodes -Object $entity -Id $annotationObject.id
             checkResults($setAnnotationEntityCodesResult)

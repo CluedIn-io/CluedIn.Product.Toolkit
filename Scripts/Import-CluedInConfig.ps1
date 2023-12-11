@@ -107,8 +107,6 @@ foreach ($vocabulary in $restoreVocabularies) {
     if (!$exists) {
         $vocabResult = New-CluedInVocabulary -Object $vocabObject
         checkResults($vocabResult)
-
-        Enable-CluedInVocabulary -Id $vocabResult.data.management.createVocabulary.vocabularyId | Out-Null
     }
     else {
         if ($exists.count -ne 1) { Write-Warning "Issue with following:`n$exists. Only 1 should have been returned"; continue }
@@ -118,6 +116,8 @@ foreach ($vocabulary in $restoreVocabularies) {
         $vocabObject.vocabularyId = $currentVocab.vocabularyId # These cannot be updated once set
         $vocabObject.vocabularyName = $currentVocab.vocabularyName # These cannot be updated once set
         $vocabObject.keyPrefix = $currentVocab.keyPrefix # These cannot be updated once set
+
+
 
         Write-Host "'$($vocabObject.vocabularyName)' already exists, overwriting existing configuration" -ForegroundColor 'Yellow'
         Write-Verbose "Restored Config`n$($vocabObject | Out-String)"

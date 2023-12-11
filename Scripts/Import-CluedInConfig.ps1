@@ -107,6 +107,8 @@ foreach ($vocabulary in $restoreVocabularies) {
     if (!$exists) {
         $vocabResult = New-CluedInVocabulary -Object $vocabObject
         checkResults($vocabResult)
+
+        Enable-CluedInVocabulary -Id $vocabResult.data.management.createVocabulary.vocabularyId | Out-Null
     }
     else {
         if ($exists.count -ne 1) { Write-Warning "Issue with following:`n$exists. Only 1 should have been returned"; continue }

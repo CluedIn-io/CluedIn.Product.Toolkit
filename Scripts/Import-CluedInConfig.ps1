@@ -222,6 +222,8 @@ foreach ($dataSet in $dataSets) {
 
     Write-Host "Updating Annotations for $($dataSetObject.name)" -ForegroundColor 'Cyan'
     $annotationPath = Join-Path -Path $dataSetsPath -ChildPath ('{0}-Annotation.json' -f $dataSetObject.id)
+    if (!(Test-Path -Path $annotationPath -PathType 'Leaf')) { Write-Warning "No annotation to import"; continue }
+
     Try {
         $annotationJson = Get-Content -Path $annotationPath | ConvertFrom-Json -Depth 20
         $annotationObject = $annotationJson.data.preparation.annotation

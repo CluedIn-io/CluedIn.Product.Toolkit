@@ -32,7 +32,7 @@ function Set-CluedInAnnotationEntityCodes {
             batchPropertyMappings = @{
                 propertyMappingSettings = @(
                     @{
-                        vocabKey = $Object.vocabularyKey.key
+                        vocabKey = $Object.vocabKey
                         entityCodeOrigin = $Object.entityCodeOrigin
                         useAsEntityCode = $Object.useAsEntityCode
                         useSourceCode = $Object.useSourceCode

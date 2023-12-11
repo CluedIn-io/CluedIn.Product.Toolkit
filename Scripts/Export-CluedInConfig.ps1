@@ -120,9 +120,14 @@ foreach ($id in $dataSetIds) {
         Get-CluedInDataSetContent -id $id | Out-JsonFile -Path $path -Name ('{0}-DataSetContent' -f $id)
     }
 
-    Write-Host "Exporting Annotation" -ForegroundColor 'Cyan'
     $annotationId = $set.data.inbound.dataSet.annotationId
-    Get-CluedInAnnotations -id $annotationId | Out-JsonFile -Path $path -Name ('{0}-Annotation' -f $id)
+    switch ($annotationId) {
+        $null { Write-Warning "No annotation detected. Skipping export of annotations" }
+        default {
+            Write-Host "Exporting Annotation" -ForegroundColor 'Cyan'
+            Get-CluedInAnnotations -id $annotationId | Out-JsonFile -Path $path -Name ('{0}-Annotation' -f $id)
+        }
+    }
 }
 
 # Vocabulary

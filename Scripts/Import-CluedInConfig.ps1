@@ -273,11 +273,14 @@ foreach ($dataSet in $dataSets) {
         Write-Verbose "Configuring Mappings"
         if (!$dataSetObject.fieldMappings) { Write-Warning "No field mappings detected." }
         foreach ($mapping in $dataSetObject.fieldMappings) {
-            $vocabularyKey = Get-CluedInVocabularyKey -Search $mapping.key
-            $vocabularyKeyObject = $vocabularyKey.data.management.vocabularyPerKey
-            if (!$vocabularyKeyObject.vocabularyKeyId) {
-                Write-Error "Key: $($mapping.key) doesn't exist"
-                continue
+            # --ignore-- is not actually a vocabulary key but a placeholder
+            if ($mapping.key -ne '--ignore--') {
+                $vocabularyKey = Get-CluedInVocabularyKey -Search $mapping.key
+                $vocabularyKeyObject = $vocabularyKey.data.management.vocabularyPerKey
+                if (!$vocabularyKeyObject.vocabularyKeyId) {
+                    Write-Error "Key: $($mapping.key) doesn't exist"
+                    continue
+                }
             }
 
             $dataSetMappingParams = @{

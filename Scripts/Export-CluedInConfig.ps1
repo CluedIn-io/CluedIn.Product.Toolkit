@@ -106,7 +106,9 @@ foreach ($id in $dataSetIds) {
     $dataSourceId = $set.data.inbound.dataSet.dataSourceId
     $dataSource = Get-CluedInDataSource -Id $dataSourceId
 
-    if ((!$?) -or ($dataSource.errors)) { Write-Warning "Data Source Id '$dataSourceId' was not found. This won't be backed up" }
+    if (!($dataSource.data.inbound.dataSource)) { Write-Warning "Data Source Id '$dataSourceId' was not found. This won't be backed up"; continue }
+
+    # Caching of exports to avoid duplicated work.
     if (!$dataSourceBackup[$dataSourceId]) {
         Write-Host "Exporting Data Source Id: $dataSourceId" -ForegroundColor 'Cyan'
         $dataSource | Out-JsonFile -Path $dataSourcePath -Name ('{0}-DataSource' -f $dataSourceId)

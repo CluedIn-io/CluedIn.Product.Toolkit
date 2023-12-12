@@ -278,7 +278,7 @@ foreach ($dataSet in $dataSets) {
                 $vocabularyKey = Get-CluedInVocabularyKey -Search $mapping.key
                 $vocabularyKeyObject = $vocabularyKey.data.management.vocabularyPerKey
                 if (!$vocabularyKeyObject.vocabularyKeyId) {
-                    Write-Error "Key: $($mapping.key) doesn't exist"
+                    Write-Warning "Key: $($mapping.key) doesn't exist. Mapping will be skipped for '$($mapping.originalField)'"
                     continue
                 }
             }

@@ -276,22 +276,32 @@ foreach ($dataSet in $dataSets) {
         Write-Verbose "Configuring Mappings"
         if (!$dataSetObject.fieldMappings) { Write-Warning "No field mappings detected." }
         foreach ($mapping in $dataSetObject.fieldMappings) {
-            # --ignore-- is not actually a vocabulary key but a placeholder
-            if ($mapping.key -ne '--ignore--') {
-                $vocabularyKey = Get-CluedInVocabularyKey -Search $mapping.key
-                $vocabularyKeyObject = $vocabularyKey.data.management.vocabularyPerKey
-                if (!$vocabularyKeyObject.vocabularyKeyId) {
-                    Write-Warning "Key: $($mapping.key) doesn't exist. Mapping will be skipped for '$($mapping.originalField)'"
-                    continue
+            switch ($mapping.key) {
+                '--ignore--' {
+                    # --ignore-- is not actually a vocabulary key but a placeholder
+                    $dataSetMappingParams = @{
+                        Object = $mapping
+                        DataSetId = $dataSetId
+                        IgnoreField = $true
+                    }
+                }
+                default {
+                    $vocabularyKey = Get-CluedInVocabularyKey -Search $mapping.key
+                    $vocabularyKeyObject = $vocabularyKey.data.management.vocabularyPerKey
+                    if (!$vocabularyKeyObject.vocabularyKeyId) {
+                        Write-Warning "Key: $($mapping.key) doesn't exist. Mapping will be skipped for '$($mapping.originalField)'"
+                        continue
+                    }
+
+                    $dataSetMappingParams = @{
+                        Object = $mapping
+                        DataSetId = $dataSetId
+                        VocabularyKeyId = $vocabularyKeyObject.vocabularyKeyId
+                        VocabularyId = $vocabularyKeyObject.vocabularyId
+                    }
                 }
             }
 
-            $dataSetMappingParams = @{
-                Object = $mapping
-                DataSetId = $dataSetId
-                VocabularyKeyId = $vocabularyKeyObject.vocabularyKeyId
-                VocabularyId = $vocabularyKeyObject.vocabularyId
-            }
             $dataSetMappingResult = New-CluedInDataSetMapping @dataSetMappingParams
             checkResults($dataSetMappingResult)
         }

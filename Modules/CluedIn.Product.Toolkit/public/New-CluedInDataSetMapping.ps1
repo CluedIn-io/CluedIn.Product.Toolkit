@@ -23,26 +23,45 @@ function New-CluedInDataSetMapping {
         [guid]$DataSetId,
         [string]$VocabularyId,
         [string]$VocabularyKeyId,
-        [PSCustomObject]$Object
+        [PSCustomObject]$Object,
+        [switch]$IgnoreField
     )
 
-    $queryContent = Get-CluedInGQLQuery -OperationName 'addPropertyMappingToCluedMappingConfiguration'
+    if (!$IgnoreField) {
+        $queryContent = Get-CluedInGQLQuery -OperationName 'addPropertyMappingToCluedMappingConfiguration'
 
-    $query = @{
-        variables =@{
-            dataSetId = $DataSetId
-            propertyMappingConfiguration = @{
-                originalField = $Object.originalField
-                useAsAlias = $false
-                useAsEntityCode = $false
-                vocabularyKeyConfiguration = @{
-                    new = $false
-                    vocabularyId = $VocabularyId
-                    vocabularyKeyId = $VocabularyKeyId
+        $query = @{
+            variables = @{
+                dataSetId = $DataSetId
+                propertyMappingConfiguration = @{
+                    originalField = $Object.originalField
+                    useAsAlias = $false
+                    useAsEntityCode = $false
+                    vocabularyKeyConfiguration = @{
+                        new = $false
+                        vocabularyId = $VocabularyId
+                        vocabularyKeyId = $VocabularyKeyId
+                    }
                 }
             }
+            query = $queryContent
         }
-        query = $queryContent
+    }
+    else {
+        $queryContent = Get-CluedInGQLQuery -OperationName 'addAnnotationMappingToDataSet'
+
+        $query = @{
+            variables = @{
+                dataSetId = $DataSetId
+                fieldMappings = @(
+                    @{
+                        originalField = $Object.originalField
+                        key = '--ignore--'
+                    }
+                )
+            }
+            query = $queryContent
+        }
     }
 
     return Invoke-CluedInGraphQL -Query $query

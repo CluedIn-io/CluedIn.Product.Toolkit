@@ -21,17 +21,7 @@ function Set-CluedInDataSetMapping {
     $query = @{
         variables = @{
             dataSetId = $DataSetId
-            fieldMappings = @(
-                @{
-                    originalField = $Object.originalField
-                    key = '--ignore--'
-                },
-                @{
-                    id = "26D2BA68-D12A-47AB-BC18-9ACCC6CD9B4B"
-                    originalField = "AccountShortNameC"
-                    key = "ajgglobalniche.AJGGlobalIndustryNicheName"
-                }
-            )
+            fieldMappings = $FieldMappings
         }
         query = $queryContent
     }

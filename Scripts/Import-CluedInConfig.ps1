@@ -209,6 +209,9 @@ foreach ($dataSet in $dataSets) {
 
     $exists = ($dataSetObject.name -in $dataSource.data.inbound.dataSource.dataSets.name)
     if (!$exists) {
+        # Force autoSubmit to false as we don't want it to process automatically when transferred
+        $dataSetObject.configuration.object.autoSubmit = $false
+
         Write-Host "Creating '$($dataSetObject.name)' as it doesn't exist" -ForegroundColor 'DarkCyan'
         $dataSetResult = New-CluedInDataSet -Object $dataSetObject
         checkResults($dataSetResult)

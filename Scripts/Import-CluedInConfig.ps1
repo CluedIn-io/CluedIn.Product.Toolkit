@@ -117,7 +117,7 @@ foreach ($vocabulary in $restoreVocabularies) {
         $vocabObject.vocabularyName = $currentVocab.vocabularyName # These cannot be updated once set
         $vocabObject.keyPrefix = $currentVocab.keyPrefix # These cannot be updated once set
 
-        Write-Host "'$($vocabObject.vocabularyName)' already exists, overwriting existing configuration" -ForegroundColor 'Yellow'
+        Write-Verbose "'$($vocabObject.vocabularyName)' already exists, overwriting existing configuration"
         Write-Verbose "Restored Config`n$($vocabObject | Out-String)"
         Write-Verbose "Current Config`n$($currentVocab | Out-String)"
         $vocabUpdateResult = Set-CluedInVocabulary -Object $vocabObject
@@ -153,7 +153,7 @@ foreach ($vocabKey in $vocabKeys) {
             $key.vocabularyId = $currentVocabularyKeyObject.vocabularyId # These cannot be updated once set
             $key.name = $currentVocabularyKeyObject.name # These cannot be updated once set
 
-            Write-Host "'$($key.key)' exists, overwriting existing configuration" -ForegroundColor 'Yellow'
+            Write-Verbose "'$($key.key)' exists, overwriting existing configuration"
             $vocabKeyUpdateResult = Set-CluedInVocabularyKey -Object $key
             checkResults($vocabKeyUpdateResult)
         }

@@ -278,8 +278,9 @@ foreach ($dataSet in $dataSets) {
         else { $currentFieldMappings = (Get-CluedInDataSet -Id $dataSetId).data.inbound.dataSet.fieldMappings }
 
         foreach ($mapping in $dataSetObject.fieldMappings) {
+            $skipCreation = $false
             if ($mapping.originalField -notin $currentFieldMappings.originalField) {
-                Write-Verbose "Creating field mapping '$($mapping.originalField)'"
+                Write-Host "Creating field mapping '$($mapping.originalField)'" -ForegroundColor 'cyan'
                 switch ($mapping.key) {
                     '--ignore--' {
                         $dataSetMappingParams = @{
@@ -293,7 +294,7 @@ foreach ($dataSet in $dataSets) {
                         $vocabularyKeyObject = $vocabularyKey.data.management.vocabularyPerKey
                         if (!$vocabularyKeyObject.vocabularyKeyId) {
                             Write-Warning "Key: $($mapping.key) doesn't exist. Mapping will be skipped for '$($mapping.originalField)'"
-                            continue
+                            $skipCreation = $true; continue
                         }
 
                         $dataSetMappingParams = @{
@@ -305,15 +306,15 @@ foreach ($dataSet in $dataSets) {
                     }
                 }
 
+                if ($skipCreation) { continue }
                 $dataSetMappingResult = New-CluedInDataSetMapping @dataSetMappingParams
                 checkResults($dataSetMappingResult)
             }
             else {
                 $currentMappingObject = $currentFieldMappings | Where-Object {$_.originalField -eq $mapping.originalField}
                 $currentKey = $currentMappingObject.key
-                $mapMatches = $mapping.key -eq $currentKey
-                if (!$mapMatches) {
-                    Write-Verbose "Updating field mapping '$($mapping.originalField)' as there is drift"
+                if (!($mapping.key -eq $currentKey)) {
+                    Write-Host "Updating field mapping '$($mapping.originalField)' as there is drift" -ForegroundColor 'cyan'
                     $dataSetMappingsParams = @{
                         DataSetId = $dataSetId
                         FieldMappings = @{

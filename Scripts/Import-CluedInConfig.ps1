@@ -76,6 +76,12 @@ $currentSettings = (Get-CluedInAdminSetting).data.administration.configurationSe
 
 foreach ($setting in $settings) {
     $key = $setting
+
+    if ($key -notin $currentSettings.psobject.properties.name) {
+        Write-Verbose "Skipping '$key' as it's not a current setting"
+        continue
+    }
+
     $newValue = $restoreAdminSetting.data.administration.configurationSettings.$key
     $currentValue = $currentSettings.$key
 
@@ -117,7 +123,7 @@ foreach ($vocabulary in $restoreVocabularies) {
         $vocabObject.vocabularyName = $currentVocab.vocabularyName # These cannot be updated once set
         $vocabObject.keyPrefix = $currentVocab.keyPrefix # These cannot be updated once set
 
-        Write-Host "'$($vocabObject.vocabularyName)' already exists, overwriting existing configuration" -ForegroundColor 'Yellow'
+        Write-Verbose "'$($vocabObject.vocabularyName)' already exists, overwriting existing configuration"
         Write-Verbose "Restored Config`n$($vocabObject | Out-String)"
         Write-Verbose "Current Config`n$($currentVocab | Out-String)"
         $vocabUpdateResult = Set-CluedInVocabulary -Object $vocabObject
@@ -153,7 +159,7 @@ foreach ($vocabKey in $vocabKeys) {
             $key.vocabularyId = $currentVocabularyKeyObject.vocabularyId # These cannot be updated once set
             $key.name = $currentVocabularyKeyObject.name # These cannot be updated once set
 
-            Write-Host "'$($key.key)' exists, overwriting existing configuration" -ForegroundColor 'Cyan'
+            Write-Verbose "'$($key.key)' exists, overwriting existing configuration"
             $vocabKeyUpdateResult = Set-CluedInVocabularyKey -Object $key
             checkResults($vocabKeyUpdateResult)
         }
@@ -209,6 +215,9 @@ foreach ($dataSet in $dataSets) {
 
     $exists = ($dataSetObject.name -in $dataSource.data.inbound.dataSource.dataSets.name)
     if (!$exists) {
+        # Force autoSubmit to false as we don't want it to process automatically when transferred
+        $dataSetObject.configuration.object.autoSubmit = $false
+
         Write-Host "Creating '$($dataSetObject.name)' as it doesn't exist" -ForegroundColor 'DarkCyan'
         $dataSetResult = New-CluedInDataSet -Object $dataSetObject
         checkResults($dataSetResult)
@@ -272,25 +281,58 @@ foreach ($dataSet in $dataSets) {
 
         Write-Verbose "Configuring Mappings"
         if (!$dataSetObject.fieldMappings) { Write-Warning "No field mappings detected." }
+        else { $currentFieldMappings = (Get-CluedInDataSet -Id $dataSetId).data.inbound.dataSet.fieldMappings }
+
         foreach ($mapping in $dataSetObject.fieldMappings) {
-            # --ignore-- is not actually a vocabulary key but a placeholder
-            if ($mapping.key -ne '--ignore--') {
-                $vocabularyKey = Get-CluedInVocabularyKey -Search $mapping.key
-                $vocabularyKeyObject = $vocabularyKey.data.management.vocabularyPerKey
-                if (!$vocabularyKeyObject.vocabularyKeyId) {
-                    Write-Warning "Key: $($mapping.key) doesn't exist. Mapping will be skipped for '$($mapping.originalField)'"
-                    continue
+            $skipCreation = $false
+            if ($mapping.originalField -notin $currentFieldMappings.originalField) {
+                Write-Host "Creating field mapping '$($mapping.originalField)'" -ForegroundColor 'Cyan'
+                switch ($mapping.key) {
+                    '--ignore--' {
+                        $dataSetMappingParams = @{
+                            Object = $mapping
+                            DataSetId = $dataSetId
+                            IgnoreField = $true
+                        }
+                    }
+                    default {
+                        $vocabularyKey = Get-CluedInVocabularyKey -Search $mapping.key
+                        $vocabularyKeyObject = $vocabularyKey.data.management.vocabularyPerKey
+                        if (!$vocabularyKeyObject.vocabularyKeyId) {
+                            Write-Warning "Key: $($mapping.key) doesn't exist. Mapping will be skipped for '$($mapping.originalField)'"
+                            $skipCreation = $true; continue
+                        }
+
+                        $dataSetMappingParams = @{
+                            Object = $mapping
+                            DataSetId = $dataSetId
+                            VocabularyKeyId = $vocabularyKeyObject.vocabularyKeyId
+                            VocabularyId = $vocabularyKeyObject.vocabularyId
+                        }
+                    }
+                }
+
+                if ($skipCreation) { continue }
+                $dataSetMappingResult = New-CluedInDataSetMapping @dataSetMappingParams
+                checkResults($dataSetMappingResult)
+            }
+            else {
+                $currentMappingObject = $currentFieldMappings | Where-Object {$_.originalField -eq $mapping.originalField}
+                $currentKey = $currentMappingObject.key
+                if (!($mapping.key -eq $currentKey)) {
+                    Write-Host "Updating field mapping '$($mapping.originalField)' as there is drift" -ForegroundColor 'Yellow'
+                    $dataSetMappingsParams = @{
+                        DataSetId = $dataSetId
+                        FieldMappings = @{
+                            originalField = $mapping.originalField
+                            key = $mapping.key
+                            id = $currentMappingObject.id
+                        }
+                    }
+                    $dataSetMappingResult = Set-CluedInDataSetMapping @dataSetMappingsParams
+                    checkResults($dataSetMappingResult)
                 }
             }
-
-            $dataSetMappingParams = @{
-                Object = $mapping
-                DataSetId = $dataSetId
-                VocabularyKeyId = $vocabularyKeyObject.vocabularyKeyId
-                VocabularyId = $vocabularyKeyObject.vocabularyId
-            }
-            $dataSetMappingResult = New-CluedInDataSetMapping @dataSetMappingParams
-            checkResults($dataSetMappingResult)
         }
 
         Write-Verbose "Setting Annotation Entity Codes"

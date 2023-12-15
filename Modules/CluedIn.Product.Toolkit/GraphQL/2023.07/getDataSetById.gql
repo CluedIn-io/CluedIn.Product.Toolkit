@@ -12,6 +12,20 @@ query getDataSetById($id: ID!) {
       expectedTotal
       lastPurgedAt
       lastPurgedBy
+      isBridge
+      isArchive
+      hasQuarantineData
+      archivedBy
+      fileSize
+      currentLoadedSize
+      hasValidationParsingError
+      failedLoadingTotal
+      hasFailureInLoading
+      archivedByUser {
+        id
+        username
+        __typename
+      }
       lastPurgedByUser {
         id
         username
@@ -38,6 +52,8 @@ query getDataSetById($id: ID!) {
         id
         name
         type
+        stopped
+        crashedDuringUpload
         dataSourceSet {
           id
           name
@@ -56,6 +72,7 @@ query getDataSetById($id: ID!) {
       fieldMappings {
         originalField
         key
+        id
         edges {
           edgeType
           dataSetId

@@ -275,35 +275,57 @@ foreach ($dataSet in $dataSets) {
 
         Write-Verbose "Configuring Mappings"
         if (!$dataSetObject.fieldMappings) { Write-Warning "No field mappings detected." }
+        else { $currentFieldMappings = (Get-CluedInDataSet -Id $dataSetId).data.inbound.dataSet.fieldMappings }
+
         foreach ($mapping in $dataSetObject.fieldMappings) {
-            switch ($mapping.key) {
-                '--ignore--' {
-                    # --ignore-- is not actually a vocabulary key but a placeholder
-                    $dataSetMappingParams = @{
-                        Object = $mapping
-                        DataSetId = $dataSetId
-                        IgnoreField = $true
+            if ($mapping.originalField -notin $currentFieldMappings.originalField) {
+                Write-Verbose "Creating field mapping '$($mapping.originalField)'"
+                switch ($mapping.key) {
+                    '--ignore--' {
+                        $dataSetMappingParams = @{
+                            Object = $mapping
+                            DataSetId = $dataSetId
+                            IgnoreField = $true
+                        }
+                    }
+                    default {
+                        $vocabularyKey = Get-CluedInVocabularyKey -Search $mapping.key
+                        $vocabularyKeyObject = $vocabularyKey.data.management.vocabularyPerKey
+                        if (!$vocabularyKeyObject.vocabularyKeyId) {
+                            Write-Warning "Key: $($mapping.key) doesn't exist. Mapping will be skipped for '$($mapping.originalField)'"
+                            continue
+                        }
+
+                        $dataSetMappingParams = @{
+                            Object = $mapping
+                            DataSetId = $dataSetId
+                            VocabularyKeyId = $vocabularyKeyObject.vocabularyKeyId
+                            VocabularyId = $vocabularyKeyObject.vocabularyId
+                        }
                     }
                 }
-                default {
-                    $vocabularyKey = Get-CluedInVocabularyKey -Search $mapping.key
-                    $vocabularyKeyObject = $vocabularyKey.data.management.vocabularyPerKey
-                    if (!$vocabularyKeyObject.vocabularyKeyId) {
-                        Write-Warning "Key: $($mapping.key) doesn't exist. Mapping will be skipped for '$($mapping.originalField)'"
-                        continue
-                    }
 
-                    $dataSetMappingParams = @{
-                        Object = $mapping
+                $dataSetMappingResult = New-CluedInDataSetMapping @dataSetMappingParams
+                checkResults($dataSetMappingResult)
+            }
+            else {
+                $currentMappingObject = $currentFieldMappings | Where-Object {$_.originalField -eq $mapping.originalField}
+                $currentKey = $currentMappingObject.key
+                $mapMatches = $mapping.key -eq $currentKey
+                if (!$mapMatches) {
+                    Write-Verbose "Updating field mapping '$($mapping.originalField)' as there is drift"
+                    $dataSetMappingsParams = @{
                         DataSetId = $dataSetId
-                        VocabularyKeyId = $vocabularyKeyObject.vocabularyKeyId
-                        VocabularyId = $vocabularyKeyObject.vocabularyId
+                        FieldMappings = @{
+                            originalField = $mapping.originalField
+                            key = $mapping.key
+                            id = $currentMappingObject.id
+                        }
                     }
+                    $dataSetMappingResult = Set-CluedInDataSetMapping @dataSetMappingsParams
+                    checkResults($dataSetMappingResult)
                 }
             }
-
-            $dataSetMappingResult = New-CluedInDataSetMapping @dataSetMappingParams
-            checkResults($dataSetMappingResult)
         }
 
         Write-Verbose "Setting Annotation Entity Codes"

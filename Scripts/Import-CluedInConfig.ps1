@@ -76,6 +76,12 @@ $currentSettings = (Get-CluedInAdminSetting).data.administration.configurationSe
 
 foreach ($setting in $settings) {
     $key = $setting
+
+    if ($key -notin $currentSettings.psobject.properties.name) {
+        Write-Verbose "Skipping '$key' as it's not a current setting"
+        continue
+    }
+
     $newValue = $restoreAdminSetting.data.administration.configurationSettings.$key
     $currentValue = $currentSettings.$key
 

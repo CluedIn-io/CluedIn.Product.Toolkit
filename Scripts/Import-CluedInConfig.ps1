@@ -153,7 +153,7 @@ foreach ($vocabKey in $vocabKeys) {
             $key.vocabularyId = $currentVocabularyKeyObject.vocabularyId # These cannot be updated once set
             $key.name = $currentVocabularyKeyObject.name # These cannot be updated once set
 
-            Write-Host "'$($key.key)' exists, overwriting existing configuration" -ForegroundColor 'Cyan'
+            Write-Host "'$($key.key)' exists, overwriting existing configuration" -ForegroundColor 'Yellow'
             $vocabKeyUpdateResult = Set-CluedInVocabularyKey -Object $key
             checkResults($vocabKeyUpdateResult)
         }
@@ -280,7 +280,7 @@ foreach ($dataSet in $dataSets) {
         foreach ($mapping in $dataSetObject.fieldMappings) {
             $skipCreation = $false
             if ($mapping.originalField -notin $currentFieldMappings.originalField) {
-                Write-Host "Creating field mapping '$($mapping.originalField)'" -ForegroundColor 'cyan'
+                Write-Host "Creating field mapping '$($mapping.originalField)'" -ForegroundColor 'Cyan'
                 switch ($mapping.key) {
                     '--ignore--' {
                         $dataSetMappingParams = @{
@@ -314,7 +314,7 @@ foreach ($dataSet in $dataSets) {
                 $currentMappingObject = $currentFieldMappings | Where-Object {$_.originalField -eq $mapping.originalField}
                 $currentKey = $currentMappingObject.key
                 if (!($mapping.key -eq $currentKey)) {
-                    Write-Host "Updating field mapping '$($mapping.originalField)' as there is drift" -ForegroundColor 'cyan'
+                    Write-Host "Updating field mapping '$($mapping.originalField)' as there is drift" -ForegroundColor 'Yellow'
                     $dataSetMappingsParams = @{
                         DataSetId = $dataSetId
                         FieldMappings = @{

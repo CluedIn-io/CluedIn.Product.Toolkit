@@ -318,6 +318,18 @@ foreach ($dataSet in $dataSets) {
             }
             else {
                 $currentMappingObject = $currentFieldMappings | Where-Object {$_.originalField -eq $mapping.originalField}
+
+                # In 2023.07, it is not possible to have multiple mappings per column key. However,
+                # this may change in the future and logic here may need to change.
+                if ($currentMappingObject.count -gt 1) {
+                    Write-Host "Cleaning up excess field mappings as these are not supported currently" -ForegroundColor 'Cyan'
+                    $currentMappingObject[1..($currentMappingObject.count-1)].ForEach({
+                        Write-Verbose "Removing mapping '$($_.id)'"
+                        Remove-CluedInDataSetMapping -DataSetId $dataSetId -PropertyId $_.id | Out-Null
+                    })
+                    $currentMappingObject = $currentMappingObject[0]
+                }
+
                 $currentKey = $currentMappingObject.key
                 if (!($mapping.key -eq $currentKey)) {
                     Write-Host "Updating field mapping '$($mapping.originalField)' as there is drift" -ForegroundColor 'Yellow'

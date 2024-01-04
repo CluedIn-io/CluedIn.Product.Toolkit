@@ -268,15 +268,7 @@ foreach ($dataSet in $dataSets) {
 
         Write-Verbose "Setting Annotation Configuration"
         $annotationObject.id = $annotationId
-        $settings = @{
-            useDefaultSourceCode = $annotationObject.useDefaultSourceCode
-            useStrictEdgeCode = $annotationObject.useStrictEdgeCode
-            descriptionKey = $annotationObject.descriptionKey
-            nameKey = $annotationObject.nameKey
-            originEntityCodeKey = $annotationObject.originEntityCodeKey
-            origin = $annotationObject.origin
-        }
-        $setAnnotationResult = Set-CluedInAnnotation -Id $annotationObject.id -Settings $settings
+        $setAnnotationResult = Set-CluedInAnnotation -Id $annotationObject.id -Object $annotationObject
         checkResults($setAnnotationResult)
 
         Write-Verbose "Configuring Mappings"

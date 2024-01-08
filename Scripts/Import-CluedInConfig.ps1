@@ -143,8 +143,8 @@ foreach ($vocabKey in $vocabKeys) {
         Write-Host "Processing Vocab Key: $($key.displayName) ($($key.vocabularyKeyId))" -ForegroundColor 'Cyan'
         Write-Debug "$($key | Out-String)"
 
-        $currentVocabularyKey = Get-CluedInVocabularyKey -Search $key.key
-        $currentVocabularyKeyObject = $currentVocabularyKey.data.management.vocabularyPerKey
+        $currentVocabularyKey = Get-CluedInVocabularyKey -Search $key.key -HardMatch
+        $currentVocabularyKeyObject = $currentVocabularyKey.data.management.vocabularyKeys.data
         if (!$currentVocabularyKeyObject.key) {
             Write-Host "Creating '$($key.key)' as it doesn't exist" -ForegroundColor 'DarkCyan'
             $params = @{
@@ -286,7 +286,7 @@ foreach ($dataSet in $dataSets) {
         foreach ($mapping in $dataSetObject.fieldMappings) {
             $skipCreation = $false
             $vocabularyKey = Get-CluedInVocabularyKey -Search $mapping.key
-            $vocabularyKeyObject = $vocabularyKey.data.management.vocabularyPerKey
+            $vocabularyKeyObject = $vocabularyKey.data.management.vocabularyKeys.data
 
             if ($mapping.originalField -notin $currentFieldMappings.originalField) {
                 Write-Host "Creating field mapping '$($mapping.originalField)'" -ForegroundColor 'Cyan'

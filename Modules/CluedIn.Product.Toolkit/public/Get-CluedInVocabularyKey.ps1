@@ -27,7 +27,8 @@ function Get-CluedInVocabularyKey {
     param (
         [Parameter(ParameterSetName = 'Id')][guid]$Id,
         [Parameter(ParameterSetName = 'Search')][string]$Search = "",
-        [Parameter(ParameterSetName = 'All')][switch]$All
+        [Parameter(ParameterSetName = 'All')][switch]$All,
+        [switch]$HardMatch
     )
 
     switch ($PsCmdlet.ParameterSetName) {
@@ -41,16 +42,10 @@ function Get-CluedInVocabularyKey {
                 filterIsObsolete = 'All'
             }
         }
-        'Search' {
-            $queryContent = Get-CluedInGQLQuery -OperationName 'getVocabularyKey'
-            $variables = @{
-                key = $Search
-            }
-        }
-        'All' {
+        {'All' -or 'Search'} {
             $queryContent = Get-CluedInGQLQuery -OperationName 'getAllVocabularyKeys'
             $variables = @{
-                searchName = $null
+                searchName = $Search
                 pageNumber = 1
                 pageSize = 20
                 dataType = $null
@@ -68,5 +63,13 @@ function Get-CluedInVocabularyKey {
         query = $queryContent
     }
 
-    return Invoke-CluedInGraphQL -Query $query
+    $result = Invoke-CluedInGraphQL -Query $query
+
+    if ($HardMatch) {
+        $result.data.management.vocabularyKeys.data = $result.data.management.vocabularyKeys.data |
+            Where-Object { $_.name -ceq $Search }
+        $result.data.management.vocabularyKeys.total = $result.data.management.vocabularyKeys.data.count
+    }
+
+    return $result
 }

@@ -42,7 +42,7 @@ function Get-CluedInVocabularyKey {
                 filterIsObsolete = 'All'
             }
         }
-        {'All' -or 'Search'} {
+        ('All' -or 'Search') {
             $queryContent = Get-CluedInGQLQuery -OperationName 'getAllVocabularyKeys'
             $variables = @{
                 searchName = $Search

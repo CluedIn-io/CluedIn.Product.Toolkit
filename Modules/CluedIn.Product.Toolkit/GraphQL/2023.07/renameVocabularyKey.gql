@@ -1,0 +1,15 @@
+mutation renameVocabularyKey(
+  $vocabularyId: ID!
+  $vocabularyKeyId: ID!
+  $newName: String!
+) {
+  management {
+    id
+    renameVocabularyKey(
+      vocabularyId: $vocabularyId
+      vocabularyKeyId: $vocabularyKeyId
+      newName: $newName
+    )
+    __typename
+  }
+}

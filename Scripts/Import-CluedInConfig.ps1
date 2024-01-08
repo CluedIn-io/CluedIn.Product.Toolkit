@@ -327,7 +327,9 @@ foreach ($dataSet in $dataSets) {
 
                     if ($vocabularyKeyObject.key) {
                         $mapping.key = $vocabularyKeyObject.key # To cover case sensitive process
+                        Write-Verbose "Updated key to '$($mapping.key)'"
                     }
+                    else { Write-Verbose "Using existing key '$($mapping.key)' as current one couldn't be found" }
 
                     $dataSetMappingsParams = @{
                         DataSetId = $dataSetId

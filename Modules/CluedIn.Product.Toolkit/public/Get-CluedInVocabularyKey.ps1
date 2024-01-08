@@ -67,7 +67,7 @@ function Get-CluedInVocabularyKey {
 
     if ($HardMatch) {
         $result.data.management.vocabularyKeys.data = $result.data.management.vocabularyKeys.data |
-            Where-Object { $_.name -ceq $Search }
+            Where-Object { $_.key -ceq $Search }
         $result.data.management.vocabularyKeys.total = $result.data.management.vocabularyKeys.data.count
     }
 

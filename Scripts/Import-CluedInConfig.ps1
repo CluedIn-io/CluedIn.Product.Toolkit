@@ -285,6 +285,9 @@ foreach ($dataSet in $dataSets) {
 
         foreach ($mapping in $dataSetObject.fieldMappings) {
             $skipCreation = $false
+            $vocabularyKey = Get-CluedInVocabularyKey -Search $mapping.key
+            $vocabularyKeyObject = $vocabularyKey.data.management.vocabularyPerKey
+
             if ($mapping.originalField -notin $currentFieldMappings.originalField) {
                 Write-Host "Creating field mapping '$($mapping.originalField)'" -ForegroundColor 'Cyan'
                 switch ($mapping.key) {
@@ -296,15 +299,12 @@ foreach ($dataSet in $dataSets) {
                         }
                     }
                     default {
-                        $vocabularyKey = Get-CluedInVocabularyKey -Search $mapping.key
-                        $vocabularyKeyObject = $vocabularyKey.data.management.vocabularyPerKey
                         if (!$vocabularyKeyObject.vocabularyKeyId) {
                             Write-Warning "Key: $($mapping.key) doesn't exist. Mapping will be skipped for '$($mapping.originalField)'"
                             $skipCreation = $true; continue
                         }
 
-                        # To cover case sensitive process
-                        $mapping.key = $vocabularyKeyObject.key
+                        $mapping.key = $vocabularyKeyObject.key # To cover case sensitive process
 
                         $dataSetMappingParams = @{
                             Object = $mapping
@@ -322,8 +322,13 @@ foreach ($dataSet in $dataSets) {
             else {
                 $currentMappingObject = $currentFieldMappings | Where-Object {$_.originalField -eq $mapping.originalField}
                 $currentKey = $currentMappingObject.key
-                if (!($mapping.key -eq $currentKey)) {
+                if (!($mapping.key -ceq $currentKey)) {
                     Write-Host "Updating field mapping '$($mapping.originalField)' as there is drift" -ForegroundColor 'Yellow'
+
+                    if ($vocabularyKeyObject.key) {
+                        $mapping.key = $vocabularyKeyObject.key # To cover case sensitive process
+                    }
+
                     $dataSetMappingsParams = @{
                         DataSetId = $dataSetId
                         FieldMappings = @{

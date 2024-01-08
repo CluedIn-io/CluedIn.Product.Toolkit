@@ -303,6 +303,9 @@ foreach ($dataSet in $dataSets) {
                             $skipCreation = $true; continue
                         }
 
+                        # To cover case sensitive process
+                        $mapping.key = $vocabularyKeyObject.key
+
                         $dataSetMappingParams = @{
                             Object = $mapping
                             DataSetId = $dataSetId

@@ -143,8 +143,8 @@ foreach ($vocabKey in $vocabKeys) {
         Write-Host "Processing Vocab Key: $($key.displayName) ($($key.vocabularyKeyId))" -ForegroundColor 'Cyan'
         Write-Debug "$($key | Out-String)"
 
-        $currentVocabularyKey = Get-CluedInVocabularyKey -Search $key.key
-        $currentVocabularyKeyObject = $currentVocabularyKey.data.management.vocabularyPerKey
+        $currentVocabularyKey = Get-CluedInVocabularyKey -Search $key.key -HardMatch
+        $currentVocabularyKeyObject = $currentVocabularyKey.data.management.vocabularyKeys.data
         if (!$currentVocabularyKeyObject.key) {
             Write-Host "Creating '$($key.key)' as it doesn't exist" -ForegroundColor 'DarkCyan'
             $params = @{
@@ -285,6 +285,9 @@ foreach ($dataSet in $dataSets) {
 
         foreach ($mapping in $dataSetObject.fieldMappings) {
             $skipCreation = $false
+            $vocabularyKey = Get-CluedInVocabularyKey -Search $mapping.key
+            $vocabularyKeyObject = $vocabularyKey.data.management.vocabularyKeys.data
+
             if ($mapping.originalField -notin $currentFieldMappings.originalField) {
                 Write-Host "Creating field mapping '$($mapping.originalField)'" -ForegroundColor 'Cyan'
                 switch ($mapping.key) {
@@ -296,12 +299,12 @@ foreach ($dataSet in $dataSets) {
                         }
                     }
                     default {
-                        $vocabularyKey = Get-CluedInVocabularyKey -Search $mapping.key
-                        $vocabularyKeyObject = $vocabularyKey.data.management.vocabularyPerKey
                         if (!$vocabularyKeyObject.vocabularyKeyId) {
                             Write-Warning "Key: $($mapping.key) doesn't exist. Mapping will be skipped for '$($mapping.originalField)'"
                             $skipCreation = $true; continue
                         }
+
+                        $mapping.key = $vocabularyKeyObject.key # To cover case sensitive process
 
                         $dataSetMappingParams = @{
                             Object = $mapping
@@ -319,8 +322,15 @@ foreach ($dataSet in $dataSets) {
             else {
                 $currentMappingObject = $currentFieldMappings | Where-Object {$_.originalField -eq $mapping.originalField}
                 $currentKey = $currentMappingObject.key
-                if (!($mapping.key -eq $currentKey)) {
+                if (!($mapping.key -ceq $currentKey)) {
                     Write-Host "Updating field mapping '$($mapping.originalField)' as there is drift" -ForegroundColor 'Yellow'
+
+                    if ($vocabularyKeyObject.key) {
+                        $mapping.key = $vocabularyKeyObject.key # To cover case sensitive process
+                        Write-Verbose "Updated key to '$($mapping.key)'"
+                    }
+                    else { Write-Verbose "Using existing key '$($mapping.key)' as current one couldn't be found" }
+
                     $dataSetMappingsParams = @{
                         DataSetId = $dataSetId
                         FieldMappings = @{

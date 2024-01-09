@@ -143,7 +143,7 @@ foreach ($vocabKey in $vocabKeys) {
         Write-Host "Processing Vocab Key: $($key.displayName) ($($key.vocabularyKeyId))" -ForegroundColor 'Cyan'
         Write-Debug "$($key | Out-String)"
 
-        $currentVocabularyKey = Get-CluedInVocabularyKey -Search $key.key -HardMatch
+        $currentVocabularyKey = Get-CluedInVocabularyKey -Search $key.key
         $currentVocabularyKeyObject = $currentVocabularyKey.data.management.vocabularyKeys.data
         if (!$currentVocabularyKeyObject.key) {
             Write-Host "Creating '$($key.key)' as it doesn't exist" -ForegroundColor 'DarkCyan'

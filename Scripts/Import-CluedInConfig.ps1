@@ -315,8 +315,8 @@ foreach ($dataSet in $dataSets) {
                         $dataSetMappingParams = @{
                             Object = $mapping
                             DataSetId = $dataSetId
-                            VocabularyKeyId = $vocabularyKeyObject.vocabularyKeyId
-                            VocabularyId = $vocabularyKeyObject.vocabularyId
+                            VocabularyKeyId = $fieldVocabKeyObject.vocabularyKeyId
+                            VocabularyId = $fieldVocabKeyObject.vocabularyId
                         }
                     }
                 }

@@ -139,12 +139,17 @@ foreach ($vocabKey in $vocabKeys) {
 
     $vocabName = $vocabKeyObject.vocabulary.vocabularyName | Select-Object -First 1
     $vocabulary = Get-CluedInVocabulary -Search $vocabName -IncludeCore
+    $vocabularyId = $vocabulary.data.management.vocabularies.data.vocabularyId
     foreach ($key in $vocabKeyObject) {
+        if ($key.isObsolete) { Write-Verbose "Not importing: '$($key.key)' as it's obsolete"; continue }
+
         Write-Host "Processing Vocab Key: $($key.displayName) ($($key.vocabularyKeyId))" -ForegroundColor 'Cyan'
         Write-Debug "$($key | Out-String)"
 
-        $currentVocabularyKey = Get-CluedInVocabularyKey -Search $key.key -HardMatch
-        $currentVocabularyKeyObject = $currentVocabularyKey.data.management.vocabularyKeys.data
+        $currentKeys = Get-CluedInVocabularyKey -Id $vocabularyId
+        $currentKeysObject = $currentKeys.data.management.vocabularyKeysFromVocabularyId.data
+        $currentVocabularyKeyObject = $currentKeysObject | Where-Object { $_.key -eq $key.key }
+
         if (!$currentVocabularyKeyObject.key) {
             Write-Host "Creating '$($key.key)' as it doesn't exist" -ForegroundColor 'DarkCyan'
             $params = @{
@@ -277,8 +282,9 @@ foreach ($dataSet in $dataSets) {
 
         foreach ($mapping in $dataSetObject.fieldMappings) {
             $skipCreation = $false
-            $vocabularyKey = Get-CluedInVocabularyKey -Search $mapping.key
-            $vocabularyKeyObject = $vocabularyKey.data.management.vocabularyKeys.data
+
+            $fieldVocabKey = Get-CluedInVocabularyKey -Search $mapping.key
+            $fieldVocabKeyObject = $fieldVocabKey.data.management.vocabularyPerKey
 
             if ($mapping.originalField -notin $currentFieldMappings.originalField) {
                 Write-Host "Creating field mapping '$($mapping.originalField)'" -ForegroundColor 'Cyan'
@@ -291,18 +297,18 @@ foreach ($dataSet in $dataSets) {
                         }
                     }
                     default {
-                        if (!$vocabularyKeyObject.vocabularyKeyId) {
+                        if (!$fieldVocabKeyObject.vocabularyKeyId) {
                             Write-Warning "Key: $($mapping.key) doesn't exist. Mapping will be skipped for '$($mapping.originalField)'"
                             $skipCreation = $true; continue
                         }
 
-                        $mapping.key = $vocabularyKeyObject.key # To cover case sensitive process
+                        $mapping.key = $fieldVocabKeyObject.key # To cover case sensitive process
 
                         $dataSetMappingParams = @{
                             Object = $mapping
                             DataSetId = $dataSetId
-                            VocabularyKeyId = $vocabularyKeyObject.vocabularyKeyId
-                            VocabularyId = $vocabularyKeyObject.vocabularyId
+                            VocabularyKeyId = $fieldVocabKeyObject.vocabularyKeyId
+                            VocabularyId = $fieldVocabKeyObject.vocabularyId
                         }
                     }
                 }
@@ -312,7 +318,7 @@ foreach ($dataSet in $dataSets) {
                 checkResults($dataSetMappingResult)
             }
             else {
-                $currentMappingObject = $currentFieldMappings | Where-Object {$_.originalField -eq $mapping.originalField}
+                $currentMappingObject = $currentFieldMappings | Where-Object { $_.originalField -eq $mapping.originalField }
 
                 # In 2023.07, it is not possible to have multiple mappings per column key. However,
                 # this may change in the future and logic here may need to change.
@@ -329,17 +335,17 @@ foreach ($dataSet in $dataSets) {
                 if (!($mapping.key -ceq $currentKey)) {
                     Write-Host "Updating field mapping '$($mapping.originalField)' as there is drift" -ForegroundColor 'Yellow'
 
-                    if ($vocabularyKeyObject.key) {
-                        $mapping.key = $vocabularyKeyObject.key # To cover case sensitive process
-                        Write-Verbose "Updated key to '$($mapping.key)'"
+                    if (!$fieldVocabKeyObject.key) {
+                        Write-Warning "Unable to update field mapping '$($mapping.originalField)' as key '$($mapping.key)' could not be found"; continue
                     }
-                    else { Write-Verbose "Using existing key '$($mapping.key)' as current one couldn't be found" }
+
+                    if ($mapping.key -eq $currentKey) { Write-Host "Drift is due to casing. The correct casing key will be used." }
 
                     $dataSetMappingsParams = @{
                         DataSetId = $dataSetId
                         FieldMappings = @{
                             originalField = $mapping.originalField
-                            key = $mapping.key
+                            key = $fieldVocabKeyObject.key
                             id = $currentMappingObject.id
                         }
                     }

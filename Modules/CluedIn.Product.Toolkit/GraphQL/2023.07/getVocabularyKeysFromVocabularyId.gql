@@ -4,6 +4,7 @@ query getVocabularyKeysFromVocabularyId(
   $dataType: String
   $classification: String
   $filterIsObsolete: String
+  $skipFilterVisibility: Boolean
 ) {
   management {
     id
@@ -13,6 +14,7 @@ query getVocabularyKeysFromVocabularyId(
       dataType: $dataType
       classification: $classification
       filterIsObsolete: $filterIsObsolete
+      skipFilterVisibility: $skipFilterVisibility
     ) {
       total
       data {
@@ -49,7 +51,14 @@ fragment VocabularyKey on VocabularyKey {
   dataAnnotationsMaximumLength
   providerId
   compositeVocabularyId
+  compositeVocabulary {
+    name
+    displayName
+    dataType
+    __typename
+  }
   mapsToOtherKeyId
+  glossaryTermId
   createdAt
   createdBy
   mappedKey

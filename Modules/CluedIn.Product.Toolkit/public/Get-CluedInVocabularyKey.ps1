@@ -27,9 +27,46 @@ function Get-CluedInVocabularyKey {
     param (
         [Parameter(ParameterSetName = 'Id')][guid]$Id,
         [Parameter(ParameterSetName = 'Search')][string]$Search = "",
-        [Parameter(ParameterSetName = 'All')][switch]$All,
-        [switch]$HardMatch
+        [Parameter(ParameterSetName = 'All')][switch]$All
     )
+
+    function SearchAll($searchName = $null) {
+        # Null is all results.
+        Write-Verbose "Searching for '$searchName'"
+        $script:queryContent = Get-CluedInGQLQuery -OperationName 'getAllVocabularyKeys'
+        $script:variables = @{
+            searchName = $searchName
+            pageNumber = 1
+            pageSize = 20
+            dataType = $null
+            classification = $null
+            connectorId = $null
+            filterTypes = $null
+            filterHasNoSource = $null
+            filterIsObsolete = 'All'
+        }
+
+        return GetResult
+    }
+
+    function SearchSensitive() {
+        # Case sensitive search
+        $script:queryContent = Get-CluedInGQLQuery -OperationName 'getVocabularyKey'
+        $script:variables = @{
+            key = $Search
+        }
+
+        return GetResult
+    }
+
+    function GetResult() {
+        $query = @{
+            variables = $variables
+            query = $queryContent
+        }
+
+        return Invoke-CluedInGraphQL -Query $query
+    }
 
     switch ($PsCmdlet.ParameterSetName) {
         'Id' {
@@ -41,34 +78,21 @@ function Get-CluedInVocabularyKey {
                 classification = $null
                 filterIsObsolete = 'All'
             }
+
+            $result = GetResult
         }
-        { $_ -in @('All', 'Search') } {
-            $queryContent = Get-CluedInGQLQuery -OperationName 'getAllVocabularyKeys'
-            $variables = @{
-                searchName = $Search
-                pageNumber = 1
-                pageSize = 20
-                dataType = $null
-                classification = $null
-                connectorId = $null
-                filterTypes = $null
-                filterHasNoSource = $null
-                filterIsObsolete = 'All'
+        'Search' {
+            $result = SearchSensitive
+            if (!$result.data.management.vocabularyPerKey.key) {
+                Write-Verbose "Cannot find key. Searching without case sensitivity"
+                $secondResult = SearchAll($Search)
+                if ($secondResult.data.management.vocabularyKeys.total.count -eq 1) {
+                    Write-Verbose "Case insensitive match found"
+                    $result.data.management.vocabularyPerKey = $secondResult.data.management.vocabularyKeys.data[0]
+                }
             }
         }
-    }
-
-    $query = @{
-        variables = $variables
-        query = $queryContent
-    }
-
-    $result = Invoke-CluedInGraphQL -Query $query
-
-    if ($HardMatch) {
-        $result.data.management.vocabularyKeys.data = $result.data.management.vocabularyKeys.data |
-            Where-Object { $_.key -ceq $Search }
-        $result.data.management.vocabularyKeys.total = $result.data.management.vocabularyKeys.data.count
+        'All' { $result = SearchAll }
     }
 
     return $result

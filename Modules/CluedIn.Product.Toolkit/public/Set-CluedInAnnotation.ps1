@@ -9,7 +9,7 @@ function Set-CluedInAnnotation {
         .PARAMETER Id
         This is the annotationId we want to set these settings against
 
-        .PARAMETER Settings
+        .PARAMETER Object
         This needs to be passed in as a hashtable. Some examples are:
         [bool]useDefaultSourceCode, [bool]useStrictEdgeCode, [string]descriptionKey, [string]nameKey,
         [string]originEntityCodeKey, [string]origin
@@ -24,7 +24,7 @@ function Set-CluedInAnnotation {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)][int]$Id,
-        [Parameter(Mandatory)][hashtable]$Settings
+        [Parameter(Mandatory)][PSCustomObject]$Object
     )
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'modifyAnnotation'
@@ -33,13 +33,15 @@ function Set-CluedInAnnotation {
         variables = @{
             annotation = @{
                 id = $Id
-                #useDefaultSourceCode = $true
-                #useStrictEdgeCode = $true
-                #descriptionKey = ''
-                #nameKey = ''
-                #originEntityCodeKey = ''
-                #origin = ''
-            } + $Settings
+                useDefaultSourceCode = $Object.useDefaultSourceCode
+                useStrictEdgeCode = $Object.useStrictEdgeCode
+                descriptionKey = $Object.descriptionKey
+                nameKey = $Object.nameKey
+                originEntityCodeKey = $Object.originEntityCodeKey
+                origin = $Object.origin
+                createdDateMap = $Object.createdDateMap
+                modifiedDateMap = $Object.modifiedDateMap
+            }
         }
         query = $queryContent
     }

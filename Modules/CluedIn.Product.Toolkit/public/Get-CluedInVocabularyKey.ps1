@@ -70,12 +70,13 @@ function Get-CluedInVocabularyKey {
 
     switch ($PsCmdlet.ParameterSetName) {
         'Id' {
-            $queryContent = Get-CluedInGQLQuery -OperationName 'getVocabularyKeysFromVocabularyId'
+            $script:queryContent = Get-CluedInGQLQuery -OperationName 'getVocabularyKeysFromVocabularyId'
             $variables = @{
                 id = $Id
                 searchName = $null
                 dataType = $null
                 classification = $null
+                skipFilterVisibility = $true
                 filterIsObsolete = 'All'
             }
 
@@ -85,7 +86,7 @@ function Get-CluedInVocabularyKey {
             $result = SearchSensitive
             if (!$result.data.management.vocabularyPerKey.key) {
                 Write-Verbose "Cannot find key. Searching without case sensitivity"
-                $secondResult = SearchAll($Search)
+                $secondResult = SearchAll($Search) # Will not find key if IsVisible is set to false
                 if ($secondResult.data.management.vocabularyKeys.total -eq 1) {
                     $result.data.management.vocabularyPerKey = $secondResult.data.management.vocabularyKeys.data[0]
                 }

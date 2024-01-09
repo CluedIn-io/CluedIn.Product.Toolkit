@@ -139,12 +139,17 @@ foreach ($vocabKey in $vocabKeys) {
 
     $vocabName = $vocabKeyObject.vocabulary.vocabularyName | Select-Object -First 1
     $vocabulary = Get-CluedInVocabulary -Search $vocabName -IncludeCore
+    $vocabularyId = $vocabulary.data.management.vocabularies.data.vocabularyId
     foreach ($key in $vocabKeyObject) {
+        if ($key.isObsolete) { Write-Verbose "Not importing: '$($key.key)' as it's obsolete"; continue }
+
         Write-Host "Processing Vocab Key: $($key.displayName) ($($key.vocabularyKeyId))" -ForegroundColor 'Cyan'
         Write-Debug "$($key | Out-String)"
 
-        $currentVocabularyKey = Get-CluedInVocabularyKey -Search $key.key
-        $currentVocabularyKeyObject = $currentVocabularyKey.data.management.vocabularyPerKey
+        $currentKeys = Get-CluedInVocabularyKey -Id $vocabularyId
+        $currentKeysObject = $currentKeys.data.management.vocabularyKeysFromVocabularyId.data
+        $currentVocabularyKeyObject = $currentKeysObject | Where-Object { $_.key -eq $key.key }
+
         if (!$currentVocabularyKeyObject.key) {
             Write-Host "Creating '$($key.key)' as it doesn't exist" -ForegroundColor 'DarkCyan'
             $params = @{

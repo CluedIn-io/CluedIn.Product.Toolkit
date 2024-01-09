@@ -86,8 +86,7 @@ function Get-CluedInVocabularyKey {
             if (!$result.data.management.vocabularyPerKey.key) {
                 Write-Verbose "Cannot find key. Searching without case sensitivity"
                 $secondResult = SearchAll($Search)
-                if ($secondResult.data.management.vocabularyKeys.total.count -eq 1) {
-                    Write-Verbose "Case insensitive match found"
+                if ($secondResult.data.management.vocabularyKeys.total -eq 1) {
                     $result.data.management.vocabularyPerKey = $secondResult.data.management.vocabularyKeys.data[0]
                 }
             }

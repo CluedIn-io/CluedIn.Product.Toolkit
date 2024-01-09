@@ -290,8 +290,9 @@ foreach ($dataSet in $dataSets) {
 
         foreach ($mapping in $dataSetObject.fieldMappings) {
             $skipCreation = $false
-            $vocabularyKey = Get-CluedInVocabularyKey -Search $mapping.key
-            $vocabularyKeyObject = $currentVocabularyKey.data.management.vocabularyPerKey
+
+            $fieldVocabKey = Get-CluedInVocabularyKey -Search $mapping.key
+            $fieldVocabKeyObject = $fieldVocabKey.data.management.vocabularyPerKey
 
             if ($mapping.originalField -notin $currentFieldMappings.originalField) {
                 Write-Host "Creating field mapping '$($mapping.originalField)'" -ForegroundColor 'Cyan'
@@ -304,12 +305,12 @@ foreach ($dataSet in $dataSets) {
                         }
                     }
                     default {
-                        if (!$vocabularyKeyObject.vocabularyKeyId) {
+                        if (!$fieldVocabKeyObject.vocabularyKeyId) {
                             Write-Warning "Key: $($mapping.key) doesn't exist. Mapping will be skipped for '$($mapping.originalField)'"
                             $skipCreation = $true; continue
                         }
 
-                        $mapping.key = $vocabularyKeyObject.key # To cover case sensitive process
+                        $mapping.key = $fieldVocabKeyObject.key # To cover case sensitive process
 
                         $dataSetMappingParams = @{
                             Object = $mapping
@@ -325,22 +326,21 @@ foreach ($dataSet in $dataSets) {
                 checkResults($dataSetMappingResult)
             }
             else {
-                $currentMappingObject = $currentFieldMappings | Where-Object {$_.originalField -eq $mapping.originalField}
+                $currentMappingObject = $currentFieldMappings | Where-Object { $_.originalField -eq $mapping.originalField }
                 $currentKey = $currentMappingObject.key
                 if (!($mapping.key -ceq $currentKey)) {
                     Write-Host "Updating field mapping '$($mapping.originalField)' as there is drift" -ForegroundColor 'Yellow'
 
-                    if ($vocabularyKeyObject.key) {
-                        $mapping.key = $vocabularyKeyObject.key # To cover case sensitive process
-                        Write-Verbose "Updated key to '$($mapping.key)'"
+
+                    if (!$fieldVocabKeyObject.key) {
+                        Write-Warning "Unable to update field mapping '$($mapping.originalField)' as it could not be found in vocabulary keys"; continue
                     }
-                    else { Write-Verbose "Using existing key '$($mapping.key)' as current one couldn't be found" }
 
                     $dataSetMappingsParams = @{
                         DataSetId = $dataSetId
                         FieldMappings = @{
                             originalField = $mapping.originalField
-                            key = $mapping.key
+                            key = $fieldVocabKeyObject.key
                             id = $currentMappingObject.id
                         }
                     }

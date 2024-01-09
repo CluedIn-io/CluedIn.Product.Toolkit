@@ -1,0 +1,9 @@
+mutation deleteAnnotationMappingInDataSet($dataSetId: ID, $propertyId: ID) {
+  inbound {
+    deleteAnnotationMappingInDataSet(
+      dataSetId: $dataSetId
+      propertyId: $propertyId
+    )
+    __typename
+  }
+}

@@ -32,8 +32,9 @@ function New-CluedInVocabularyKey {
         $Description = $Object.description
         $Prefix = $Object.name
         $isVisible = $Object.isVisible
+        $isObsolete = $object.isObsolete
     }
-    else { $isVisible = $true }
+    else { $isVisible = $true; $isObsolete = $false }
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'createVocabularyKey'
 
@@ -45,6 +46,7 @@ function New-CluedInVocabularyKey {
                 name = $Prefix
                 groupName = $GroupName
                 isVisible = $isVisible
+                isObsolete = $isObsolete
                 dataType = $DataType
                 description = $Description
             }

@@ -331,10 +331,11 @@ foreach ($dataSet in $dataSets) {
                 if (!($mapping.key -ceq $currentKey)) {
                     Write-Host "Updating field mapping '$($mapping.originalField)' as there is drift" -ForegroundColor 'Yellow'
 
-
                     if (!$fieldVocabKeyObject.key) {
-                        Write-Warning "Unable to update field mapping '$($mapping.originalField)' as it could not be found in vocabulary keys"; continue
+                        Write-Warning "Unable to update field mapping '$($mapping.originalField)' as key '$($mapping.key)' could not be found"; continue
                     }
+
+                    if ($mapping.key -eq $currentKey) { Write-Host "Drift is due to casing. The correct casing key will be used." }
 
                     $dataSetMappingsParams = @{
                         DataSetId = $dataSetId

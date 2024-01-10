@@ -15,7 +15,7 @@ parameters:
   default: '*'
 - name: publish
   type: boolean
-  default: false
+  default: true
 
 variables:
 - name: moduleName
@@ -104,6 +104,27 @@ steps:
     versionEnvVar: MODULE_VERSION
     packagesToPack: $(Build.ArtifactStagingDirectory)/${{ variables.moduleName }}
     packDestination: '$(Build.ArtifactStagingDirectory)'
+
+# customer package work here
+- pwsh: |
+    $wd = '$(Agent.TempDirectory)/CluedIn.Product.Toolkit'
+
+    New-Item -Path $wd -ItemType 'Directory' -Force
+    Get-ChildItem . | Copy-Item -Destination $wd -Recurse
+
+    @(
+      "$wd/README.md"
+      "$wd/Pipelines/publish-powershell-module.yaml"
+      "$wd/Modules/CluedIn.Product.Toolkit/CluedIn.Product.Toolkit.nuspec"
+      "$wd/Modules/CluedIn.Product.Toolkit/tests"
+    ) | ForEach-Object { Remove-Item -Path $_ -Force -Recurse }
+
+    Move-Item -Path "$wd/Pipelines/README.md" -Destination $wd
+
+    $destinationZip = '$(Build.ArtifactStagingDirectory)/CluedIn.Product.Toolkit_$(MODULE_VERSION).zip'
+    Compress-Archive -Path $wd -DestinationPath $destinationZip
+
+  displayName: Package Customer Version
 
 - publish: $(Build.ArtifactStagingDirectory)
   artifact: PowershellModule

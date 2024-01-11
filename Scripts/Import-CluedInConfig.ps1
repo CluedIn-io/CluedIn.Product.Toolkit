@@ -180,7 +180,7 @@ foreach ($vocabKey in $vocabKeys) {
             $keyLookupId = $keyLookup.data.management.vocabularyPerKey.vocabularyKeyId
 
             if ($keyLookupId) {
-                Write-Host "Setting Vocab Key mapping '$($key.key)' to '$($key.mappedKey.key)'" -ForegroundColor 'Cyan'
+                Write-Host "Setting Vocab Key mapping '$($key.key)' to '$($key.mappedKey.key)'" -ForegroundColor 'DarkCyan'
                 $mapResult = Set-CluedInVocabularyKeyMapping -Source $key.vocabularyKeyId -Destination $keyLookupId
                 checkResults($mapResult)
             }

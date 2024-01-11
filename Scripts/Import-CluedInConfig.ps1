@@ -158,6 +158,11 @@ foreach ($vocabKey in $vocabKeys) {
             }
             $vocabKeyResult = New-CluedInVocabularyKey @params
             checkResults($vocabKeyResult)
+
+            if ($?) {
+                $key.vocabularyId = $vocabKeyResult.data.management.createVocabularyKey.vocabularyId
+                $key.vocabularyKeyId = $vocabKeyResult.data.management.createVocabularyKey.vocabularyKeyId
+            }
         }
         else {
             $key.vocabularyKeyId = $currentVocabularyKeyObject.vocabularyKeyId # These cannot be updated once set
@@ -167,6 +172,18 @@ foreach ($vocabKey in $vocabKeys) {
             Write-Verbose "'$($key.key)' exists, overwriting existing configuration"
             $vocabKeyUpdateResult = Set-CluedInVocabularyKey -Object $key
             checkResults($vocabKeyUpdateResult)
+        }
+
+        if ($key.mapsToOtherKeyId) {
+            Write-Verbose "Processing Vocabulary Key Mapping"
+            $keyLookup = Get-CluedInVocabularyKey -Search $key.mappedKey.key
+            $keyLookupId = $keyLookup.data.management.vocabularyPerKey.vocabularyKeyId
+
+            if ($keyLookupId) {
+                Write-Host "Setting Vocab Key mapping '$($key.key)' to '$($key.mappedKey.key)'" -ForegroundColor 'DarkCyan'
+                $mapResult = Set-CluedInVocabularyKeyMapping -Source $key.vocabularyKeyId -Destination $keyLookupId
+                checkResults($mapResult)
+            }
         }
     }
 }

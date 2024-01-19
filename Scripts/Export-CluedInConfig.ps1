@@ -202,4 +202,16 @@ foreach ($id in $ruleIds) {
     $rule | Out-JsonFile -Path (Join-Path -Path $rulesPath -ChildPath $ruleObject.scope) -Name $id
 }
 
+# Export Targets
+Write-Host "INFO: Exporting Export Targets (Connectors)" -ForegroundColor 'Green'
+$exportTargetsPath = Join-Path -Path $BackupPath -ChildPath 'ExportTargets'
+if (!(Test-Path -Path $exportTargetsPath -PathType Container)) { New-Item $exportTargetsPath -ItemType Directory | Out-Null }
+
+$exportTargets = Get-CluedInExportTargets
+$exportTargetsObject = $exportTargets.data.inbound.connectorConfigurations
+foreach ($configuration in $exportTargetsObject.configurations) {
+    $exportTargetConfig = Get-CluedInExportTarget -Id $configuration.id
+    $exportTargetConfig | Out-JsonFile -Path $exportTargetsPath -Name $configuration.id
+}
+
 Write-Host "INFO: Backup now complete"

@@ -7,9 +7,7 @@ function Set-CluedInDataSourceConfiguration {
         GraphQL Query: Sets the quality configuration against a Data Source
 
         .EXAMPLE
-        PS> Set-CluedInDataSourceConfiguration -Name $guid -ExpiredInHours 24
-
-        Returns a new API Token that is valid for 24 hours. It's only limited scope and not full admin permission.
+        PS> Set-CluedInDataSourceConfiguration -Object $CustomObject
     #>
 
     [CmdletBinding()]

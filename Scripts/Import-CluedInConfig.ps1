@@ -428,20 +428,29 @@ foreach ($rule in $rules) {
 # Export Targets
 Write-Host "INFO: Importing Export Targets" -ForegroundColor 'Green'
 $exportTargets = Get-ChildItem -Path $exportTargetsPath -Filter "*.json" -Recurse
+$installedExportTargets = (Get-CluedInInstalledExportTargets).data.inbound.connectors
+
 foreach ($target in $exportTargets) {
     $targetJson = Get-Content -Path $target.FullName | ConvertFrom-Json -Depth 20
     $targetObject = $targetJson.data.inbound.connectorConfiguration
+
+    Write-Host "Processing Export Target: $($targetObject.accountId)" -ForegroundColor 'Cyan'
 
     $currentExportTargets = (Get-CluedInExportTargets).data.inbound.connectorConfigurations.configurations
 
     $targetExists = $targetObject.accountId -in $currentExportTargets.accountId
     if (!$targetExists) {
-        Write-Verbose "Creating Export Target '$($targetObject.accountId)'"
+        if ($targetObject.providerId -notin $installedExportTargets.id) {
+            Write-Warning "Export Target '$($targetObject.connector.name)' could not be found. Skipping creation."
+            continue
+        }
+
+        Write-Verbose "Creating Export Target"
         $targetResult = New-CluedInExportTarget -ConnectorId $targetObject.providerId -Configuration $targetObject.helperConfiguration
         checkResults($targetResult)
     }
     else {
-        Write-Verbose "Setting configuration for '$($targetObject.accountId)'"
+        Write-Verbose "Export target exists. Setting configuration"
         $id = ($currentExportTargets | Where-Object {$_.accountId -eq $targetObject.accountId}).id
         $setTargetResult = Set-CluedInExportTargetConfiguration -Id $id -Configuration $targetObject.Configuration
         checkResults($setTargetResult)

@@ -71,7 +71,7 @@ Copyright = '(c) CluedIn. All rights reserved.'
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
 FunctionsToExport = 'Connect-CluedInOrganisation', 'Get-CluedInAdminSetting',
                'Get-CluedInAnnotations', 'Get-CluedInAPIToken',
-               'Get-CluedInConnectors', 'Get-CluedInCurrentOrganisation',
+               'Get-CluedInExportTargets', 'Get-CluedInCurrentOrganisation',
                'Get-CluedInDataSet', 'Get-CluedInDataSetContent',
                'Get-CluedInDataSource', 'Get-CluedInDataSourceSet',
                'Get-CluedInEntityType', 'Get-CluedInGlossary',

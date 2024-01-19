@@ -28,8 +28,8 @@ function Get-CluedInConnectors {
     $query = @{
         variables = @{
             searchName = $Search
-            itemsPerPage = 10 # Not the same as other gets (https://dev.azure.com/CluedIn-io/CluedIn/_workitems/edit/28552)
-            pageNo = 1 # Not the same as other gets (https://dev.azure.com/CluedIn-io/CluedIn/_workitems/edit/28552)
+            itemsPerPage = 10
+            pageNo = 1
             sortBy = $null
             sortDirection = $null
             status = 'All'

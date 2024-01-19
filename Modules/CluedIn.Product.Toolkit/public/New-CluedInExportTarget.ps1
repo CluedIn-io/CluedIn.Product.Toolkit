@@ -18,15 +18,15 @@ function New-CluedInExportTarget {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)][guid]$ConnectorId,
-        [PSCustomObject]$AuthInfo
+        [PSCustomObject]$Configuration
     )
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'createConnection'
 
     $query = @{
         variables = @{
-            connectorId = $ConnectorId # This is ID of connector. Not sure if different each env
-            authInfo = $AuthInfo # This changes each kind of connector, but variables are same
+            connectorId = $ConnectorId
+            authInfo = $Configuration
         }
         query = $queryContent
     }

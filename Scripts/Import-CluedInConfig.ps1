@@ -57,6 +57,7 @@ $dataSourcesPath = Join-Path -Path $dataPath -ChildPath 'Sources'
 $dataSetsPath = Join-Path -Path $dataPath -ChildPath 'Sets'
 $generalPath = Join-Path -Path $RestorePath -ChildPath 'General'
 $rulesPath = Join-Path -Path $RestorePath -ChildPath 'Rules'
+$exportTargetsPath = Join-Path -Path $RestorePath -ChildPath 'ExportTargets'
 
 # Test Paths
 if (!(Test-Path -Path $generalPath -PathType Container)) { throw "'$generalPath' could not be found. Please investigate" }
@@ -422,6 +423,29 @@ foreach ($rule in $rules) {
     Write-Verbose "Setting rule configuration"
     $setRuleResult = Set-CluedInRule -Object $ruleObject
     checkResults($setRuleResult)
+}
+
+# Export Targets
+Write-Host "INFO: Importing Export Targets" -ForegroundColor 'Green'
+$exportTargets = Get-ChildItem -Path $exportTargetsPath -Filter "*.json" -Recurse
+foreach ($target in $exportTargets) {
+    $targetJson = Get-Content -Path $target.FullName | ConvertFrom-Json -Depth 20
+    $targetObject = $targetJson.data.inbound.connectorConfiguration
+
+    $currentExportTargets = (Get-CluedInExportTargets).data.inbound.connectorConfigurations.configurations
+
+    $targetExists = $targetObject.accountId -in $currentExportTargets.accountId
+    if (!$targetExists) {
+        Write-Verbose "Creating Export Target '$($targetObject.accountId)'"
+        $targetResult = New-CluedInExportTarget -ConnectorId $targetObject.providerId -Configuration $targetObject.helperConfiguration
+        checkResults($targetResult)
+    }
+    else {
+        Write-Verbose "Setting configuration for '$($targetObject.accountId)'"
+        $id = ($currentExportTargets | Where-Object {$_.accountId -eq $targetObject.accountId}).id
+        $setTargetResult = Set-CluedInExportTargetConfiguration -Id $id -Configuration $targetObject.Configuration
+        checkResults($setTargetResult)
+    }
 }
 
 Write-Host "INFO: Import Complete" -ForegroundColor 'Green'

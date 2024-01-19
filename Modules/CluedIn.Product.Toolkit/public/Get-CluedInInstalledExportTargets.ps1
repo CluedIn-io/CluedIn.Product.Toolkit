@@ -16,6 +16,7 @@ function Get-CluedInInstalledExportTargets {
     $queryContent = Get-CluedInGQLQuery -OperationName 'getInstalledConnectors'
 
     $query = @{
+        variables = @{}
         query = $queryContent
     }
 

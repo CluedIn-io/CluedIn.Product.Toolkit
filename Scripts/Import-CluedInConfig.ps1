@@ -442,6 +442,7 @@ foreach ($target in $exportTargets) {
     if (!$targetExists) {
         if ($targetObject.providerId -notin $installedExportTargets.id) {
             Write-Warning "Export Target '$($targetObject.connector.name)' could not be found. Skipping creation."
+            Write-Warning "Please install connector and try again"
             continue
         }
 

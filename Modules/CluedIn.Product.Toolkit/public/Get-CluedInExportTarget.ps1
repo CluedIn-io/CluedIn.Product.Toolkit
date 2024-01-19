@@ -1,10 +1,10 @@
-function Get-CluedInExportTargets {
+function Get-CluedInExportTarget {
     <#
         .SYNOPSIS
-        GraphQL Query: Gets all Export Targets (Connectors)
+        GraphQL Query: Gets configuration of an Export Target (Connector)
 
         .DESCRIPTION
-        GraphQL Query: Gets all Export Targets (Connectors)
+        GraphQL Query: Gets configuration of an Export Target (Connector)
 
         .PARAMETER Search
         Allows you to filter results rather than returning everything
@@ -20,19 +20,14 @@ function Get-CluedInExportTargets {
 
     [CmdletBinding()]
     param(
-        [string]$Search = ''
+        [Parameter(Mandatory)][guid]$Id
     )
 
-    $queryContent = Get-CluedInGQLQuery -OperationName 'getAllConnectors'
+    $queryContent = Get-CluedInGQLQuery -OperationName 'connectorConfigurationById'
 
     $query = @{
         variables = @{
-            searchName = $Search
-            itemsPerPage = 10
-            pageNo = 1
-            sortBy = $null
-            sortDirection = $null
-            status = 'All'
+            id = $Id
         }
         query = $queryContent
     }

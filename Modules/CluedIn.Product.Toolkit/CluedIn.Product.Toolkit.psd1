@@ -92,7 +92,8 @@ FunctionsToExport = 'Connect-CluedInOrganisation', 'Get-CluedInAdminSetting',
                'Enable-CluedInVocabulary', 'Set-CluedInDataSetMapping',
                'Remove-CluedInDataSetMapping', 'Rename-CluedInVocabularyKey',
                'Set-CluedInVocabularyKeyMapping', 'New-CluedInStream',
-               'Set-CluedInStream', 'Get-CluedInStream'
+               'Set-CluedInStream', 'Get-CluedInStream',
+               'New-CluedInExportTarget', 'Get-CluedInExportTarget'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()

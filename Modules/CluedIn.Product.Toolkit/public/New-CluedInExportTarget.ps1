@@ -18,7 +18,7 @@ function New-CluedInExportTarget {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)][guid]$ConnectorId,
-        [hashtable]$AuthInfo
+        [PSCustomObject]$AuthInfo
     )
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'createConnection'

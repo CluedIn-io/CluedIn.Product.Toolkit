@@ -58,6 +58,7 @@ $dataSetsPath = Join-Path -Path $dataPath -ChildPath 'Sets'
 $generalPath = Join-Path -Path $RestorePath -ChildPath 'General'
 $rulesPath = Join-Path -Path $RestorePath -ChildPath 'Rules'
 $exportTargetsPath = Join-Path -Path $RestorePath -ChildPath 'ExportTargets'
+$streamsPath = Join-Path -Path $RestorePath -ChildPath 'Streams'
 
 # Test Paths
 if (!(Test-Path -Path $generalPath -PathType Container)) { throw "'$generalPath' could not be found. Please investigate" }
@@ -456,6 +457,39 @@ foreach ($target in $exportTargets) {
         $setTargetResult = Set-CluedInExportTargetConfiguration -Id $id -Configuration $targetObject.Configuration
         checkResults($setTargetResult)
     }
+}
+
+# Streams
+Write-Host "INFO: Importing Streams" -ForegroundColor 'Green'
+$streams = Get-ChildItem -Path $streamsPath -Filter "*.json" -Recurse
+$existingStreams = (Get-CluedInStreams).data.consume.streams.data
+
+foreach ($stream in $streams) {
+    $streamJson = Get-Content -Path $stream.FullName | ConvertFrom-Json -Depth 20
+    $streamObject = $streamJson.data.consume.stream
+
+    Write-Host "Processing Stream: $($streamObject.name)" -ForegroundColor 'Cyan'
+
+    $streamExists = $existingStreams | Where-Object {$_.name -eq $streamObject.name}
+    switch ($StreamExists.count) {
+        '0' {
+            Write-Verbose "Creating Stream"
+            $newStream = New-CluedInStream -Name $streamObject.name
+            $streamId = $newStream.data.consume.createStream.id
+        }
+        '1' {
+            Write-Verbose "Stream Exists. Updating"
+            $streamId = $streamExists.id
+        }
+        default { Write-Warning "Too many streams exist with name '$($streamObject.name)'"; continue }
+    }
+
+    Write-Verbose "Setting configuration"
+    $setResult = Set-CluedInStream -Id $streamId -Object $streamObject
+    checkResults($setResult)
+
+    $setStreamExportResult = Set-CluedInStreamExportTarget -Id $streamId -Object $streamObject
+    checkResults($setStreamExportResult)
 }
 
 Write-Host "INFO: Import Complete" -ForegroundColor 'Green'

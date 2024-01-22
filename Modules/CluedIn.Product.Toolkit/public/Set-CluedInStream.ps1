@@ -6,6 +6,9 @@ function Set-CluedInStream {
         .DESCRIPTION
         GraphQL Query: Sets a streams configuration
 
+        .PARAMETER Id
+        This is the guid Id of the stream being updated
+
         .PARAMETER Object
         This is a Stream object obtained from Get-CluedInStream. It must be passed in full.
 

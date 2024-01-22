@@ -214,4 +214,16 @@ foreach ($configuration in $exportTargetsObject.configurations) {
     $exportTargetConfig | Out-JsonFile -Path $exportTargetsPath -Name $configuration.id
 }
 
+# Steams
+Write-Host "INFO: Exporting Streams" -ForegroundColor 'Green'
+$exportStreamsPath = Join-Path -Path $BackupPath -ChildPath 'Streams'
+if (!(Test-Path -Path $exportStreamsPath -PathType Container)) { New-Item $exportStreamsPath -ItemType Directory | Out-Null }
+
+$streams = Get-CluedInStreams
+$streamsObject = $streams.data.consume.streams.data
+foreach ($stream in $streamsObject) {
+    $streamConfig = Get-CluedInStream -Id $stream.id
+    $streamConfig | Out-JsonFile -Path $exportStreamsPath -Name $stream.id
+}
+
 Write-Host "INFO: Backup now complete"

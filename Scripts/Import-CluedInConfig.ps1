@@ -431,15 +431,26 @@ Write-Host "INFO: Importing Export Targets" -ForegroundColor 'Green'
 $exportTargets = Get-ChildItem -Path $exportTargetsPath -Filter "*.json" -Recurse
 $installedExportTargets = (Get-CluedInInstalledExportTargets).data.inbound.connectors
 
+$cleanProperties = @(
+    'connectinString', 'password', 'host'
+    'AccountKey', 'AccountName', 'authorization'
+)
+
 foreach ($target in $exportTargets) {
     $targetJson = Get-Content -Path $target.FullName | ConvertFrom-Json -Depth 20
     $targetObject = $targetJson.data.inbound.connectorConfiguration
+    $targetProperties = ($targetObject.helperConfiguration | Get-Member -MemberType 'NoteProperty').Name
 
-    Write-Host "Processing Export Target: $($targetObject.accountId)" -ForegroundColor 'Cyan'
+    Write-Host "Processing Export Target: $($targetObject.accountDisplay)" -ForegroundColor 'Cyan'
 
+    $cleanProperties.ForEach({
+        if ($_ -in $targetProperties) { $targetObject.helperConfiguration.$_ = $null }
+    })
+
+    # We should constantly get latest as we may create a new one in prior iteration.
     $currentExportTargets = (Get-CluedInExportTargets).data.inbound.connectorConfigurations.configurations
 
-    $targetExists = $targetObject.accountId -in $currentExportTargets.accountId
+    $targetExists = $targetObject.accountDisplay -in $currentExportTargets.accountDisplay
     if (!$targetExists) {
         if ($targetObject.providerId -notin $installedExportTargets.id) {
             Write-Warning "Export Target '$($targetObject.connector.name)' could not be found. Skipping creation."
@@ -453,10 +464,13 @@ foreach ($target in $exportTargets) {
     }
     else {
         Write-Verbose "Export target exists. Setting configuration"
-        $id = ($currentExportTargets | Where-Object {$_.accountId -eq $targetObject.accountId}).id
-        $setTargetResult = Set-CluedInExportTargetConfiguration -Id $id -Configuration $targetObject.Configuration
+        $id = ($currentExportTargets | Where-Object {$_.accountDisplay -eq $targetObject.accountDisplay}).id
+        $setTargetResult = Set-CluedInExportTargetConfiguration -Id $id -Configuration $targetObject.helperConfiguration
         checkResults($setTargetResult)
     }
+
+    Write-Verbose "Setting Permissions"
+    # Need a user to progress past this step.
 }
 
 # Streams
@@ -485,6 +499,7 @@ foreach ($stream in $streams) {
     }
 
     Write-Verbose "Setting configuration"
+    $streamObject.isActive = $false
     $setResult = Set-CluedInStream -Id $streamId -Object $streamObject
     checkResults($setResult)
 

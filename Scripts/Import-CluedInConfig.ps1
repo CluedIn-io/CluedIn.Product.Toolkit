@@ -60,6 +60,8 @@ $rulesPath = Join-Path -Path $RestorePath -ChildPath 'Rules'
 $exportTargetsPath = Join-Path -Path $RestorePath -ChildPath 'ExportTargets'
 $streamsPath = Join-Path -Path $RestorePath -ChildPath 'Streams'
 
+$allUsers = (Get-CluedInUsers).data.administration.users # Caching for use down below
+
 # Test Paths
 if (!(Test-Path -Path $generalPath -PathType Container)) { throw "'$generalPath' could not be found. Please investigate" }
 if (!(Test-Path -Path $vocabPath, $vocabKeysPath -PathType Container)) {
@@ -441,7 +443,13 @@ foreach ($target in $exportTargets) {
     $targetObject = $targetJson.data.inbound.connectorConfiguration
     $targetProperties = ($targetObject.helperConfiguration | Get-Member -MemberType 'NoteProperty').Name
 
-    Write-Host "Processing Export Target: $($targetObject.accountDisplay)" -ForegroundColor 'Cyan'
+    Write-Host "Processing Export Target: $($targetObject.accountId)" -ForegroundColor 'Cyan'
+
+    if (!$targetObject.accountId) {
+        Write-Warning "Account Id is null, cannot compare. Skipping."
+        Write-Host "You will need to manually add the '$($targetObject.name)' connector"
+        continue
+    }
 
     $cleanProperties.ForEach({
         if ($_ -in $targetProperties) { $targetObject.helperConfiguration.$_ = $null }
@@ -450,7 +458,7 @@ foreach ($target in $exportTargets) {
     # We should constantly get latest as we may create a new one in prior iteration.
     $currentExportTargets = (Get-CluedInExportTargets).data.inbound.connectorConfigurations.configurations
 
-    $targetExists = $targetObject.accountDisplay -in $currentExportTargets.accountDisplay
+    $targetExists = $targetObject.accountId -in $currentExportTargets.accountId
     if (!$targetExists) {
         if ($targetObject.providerId -notin $installedExportTargets.id) {
             Write-Warning "Export Target '$($targetObject.connector.name)' could not be found. Skipping creation."
@@ -461,16 +469,27 @@ foreach ($target in $exportTargets) {
         Write-Verbose "Creating Export Target"
         $targetResult = New-CluedInExportTarget -ConnectorId $targetObject.providerId -Configuration $targetObject.helperConfiguration
         checkResults($targetResult)
+
+        $id = $targetResult.data.inbound.createConnection.id
     }
     else {
         Write-Verbose "Export target exists. Setting configuration"
-        $id = ($currentExportTargets | Where-Object {$_.accountDisplay -eq $targetObject.accountDisplay}).id
+        $id = ($currentExportTargets | Where-Object {$_.accountId -eq $targetObject.accountId}).id
         $setTargetResult = Set-CluedInExportTargetConfiguration -Id $id -Configuration $targetObject.helperConfiguration
         checkResults($setTargetResult)
     }
 
     Write-Verbose "Setting Permissions"
-    # Need a user to progress past this step.
+    $currentTarget = (Get-CluedInExportTarget -Id $id).data.inbound.connectorConfiguration
+    $usersToAdd = Compare-Object -ReferenceObject $currentTarget.users.username -DifferenceObject $targetObject.users.username -PassThru |
+        Where-Object {$_.SideIndicator -eq '=>'}
+
+    $idsToSet = @()
+    foreach ($user in $usersToAdd) {
+        $idsToSet += ($allUsers | Where-Object {$_.account.UserName -eq $user}).id
+    }
+
+    if ($idsToSet) { Set-CluedInExportTargetPermissions -ConnectorId $id -UserId $idsToSet }
 }
 
 # Streams

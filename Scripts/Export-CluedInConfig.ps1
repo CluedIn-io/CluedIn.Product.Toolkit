@@ -25,12 +25,6 @@
 
     Example: '66505aa1-bacb-463e-832c-799c484577a8, e257a226-d91c-4946-a8af-85ef803cf55e'
 
-    .PARAMETER SelectDataSources
-    This is a list of Data Sources to backup.
-    Default value is 'None', but 'All' and ints are accepted in csv format wrapped in a string.
-
-    Example: '1, 2, 3'
-
     .PARAMETER SelectDataSets
     This is a list of Data Sets to backup.
     Default value is 'None', but 'All' and ints are accepted in csv format wrapped in a string.
@@ -55,7 +49,9 @@ param(
     [Parameter(Mandatory)][string]$BackupPath,
     [string]$SelectVocabularies = 'None',
     [string]$SelectDataSets = 'None',
-    [string]$SelectRules = 'None'
+    [string]$SelectRules = 'None',
+    [string]$SelectExportTargets = 'None',
+    [string]$SelectStreams = 'None'
 )
 
 Write-Verbose "Importing modules"
@@ -200,6 +196,44 @@ foreach ($id in $ruleIds) {
     $rule = Get-CluedInRules -Id $id
     $ruleObject = $rule.data.management.rule
     $rule | Out-JsonFile -Path (Join-Path -Path $rulesPath -ChildPath $ruleObject.scope) -Name $id
+}
+
+# Export Targets
+Write-Host "INFO: Exporting Export Targets (Connectors)" -ForegroundColor 'Green'
+$exportTargetsPath = Join-Path -Path $BackupPath -ChildPath 'ExportTargets'
+if (!(Test-Path -Path $exportTargetsPath -PathType Container)) { New-Item $exportTargetsPath -ItemType Directory | Out-Null }
+
+switch ($SelectExportTargets) {
+    'All' {
+        $exportTargets = Get-CluedInExportTargets
+        $exportTargetsId = $exportTargets.data.inbound.connectorConfigurations.configurations.id
+    }
+    'None' { $null }
+    default { $exportTargetsId = ($SelectExportTargets -Split ',').Trim() }
+}
+
+foreach ($id in $exportTargetsId) {
+    $exportTargetConfig = Get-CluedInExportTarget -Id $id
+    $exportTargetConfig | Out-JsonFile -Path $exportTargetsPath -Name $id
+}
+
+# Steams
+Write-Host "INFO: Exporting Streams" -ForegroundColor 'Green'
+$exportStreamsPath = Join-Path -Path $BackupPath -ChildPath 'Streams'
+if (!(Test-Path -Path $exportStreamsPath -PathType Container)) { New-Item $exportStreamsPath -ItemType Directory | Out-Null }
+
+switch ($SelectStreams) {
+    'All' {
+        $streams = Get-CluedInStreams
+        $streamsId = $streams.data.consume.streams.data.id
+    }
+    'None' { $null }
+    default { $streamsId = ($SelectStreams -Split ',').Trim() }
+}
+
+foreach ($id in $streamsId) {
+    $streamConfig = Get-CluedInStream -Id $id
+    $streamConfig | Out-JsonFile -Path $exportStreamsPath -Name $id
 }
 
 Write-Host "INFO: Backup now complete"

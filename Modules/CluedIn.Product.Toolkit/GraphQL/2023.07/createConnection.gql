@@ -1,0 +1,9 @@
+mutation createConnection($connectorId: ID, $authInfo: JSON) {
+  inbound {
+    createConnection(connectorId: $connectorId, authInfo: $authInfo) {
+      id
+      __typename
+    }
+    __typename
+  }
+}

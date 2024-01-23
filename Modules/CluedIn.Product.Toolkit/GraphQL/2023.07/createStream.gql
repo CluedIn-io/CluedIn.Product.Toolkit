@@ -1,0 +1,36 @@
+mutation createStream($stream: InputCreateStream!) {
+  consume {
+    id
+    createStream(stream: $stream) {
+      ...Stream
+      __typename
+    }
+    __typename
+  }
+}
+
+fragment Stream on Stream {
+  id
+  name
+  isActive
+  createdBy
+  modifiedBy
+  type
+  modifiedAt
+  createdAt
+  ownedBy
+  condition
+  rules
+  numberOfRecords
+  rulesApplied
+  containerName
+  mode
+  exportOutgoingEdges
+  exportIncomingEdges
+  author {
+    id
+    username
+    __typename
+  }
+  __typename
+}

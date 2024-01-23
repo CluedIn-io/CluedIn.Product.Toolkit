@@ -1,21 +1,21 @@
-function Get-CluedInConnectors {
+function Get-CluedInExportTargets {
     <#
         .SYNOPSIS
-        GraphQL Query: Gets all connectors (Export Targets)
+        GraphQL Query: Gets all Export Targets (Connectors)
 
         .DESCRIPTION
-        GraphQL Query: Gets all connectors (Export Targets)
+        GraphQL Query: Gets all Export Targets (Connectors)
 
         .PARAMETER Search
         Allows you to filter results rather than returning everything
 
         .EXAMPLE
-        PS> Get-CluedInConnectors
+        PS> Get-CluedInExportTargets
 
         If no -Search is specified, it will return everything
 
         .EXAMPLE
-        PS> Get-CluedInConnectors -Search "SampleStream"
+        PS> Get-CluedInExportTargets -Search "SampleStream"
     #>
 
     [CmdletBinding()]
@@ -28,8 +28,8 @@ function Get-CluedInConnectors {
     $query = @{
         variables = @{
             searchName = $Search
-            itemsPerPage = 10 # Not the same as other gets (https://dev.azure.com/CluedIn-io/CluedIn/_workitems/edit/28552)
-            pageNo = 1 # Not the same as other gets (https://dev.azure.com/CluedIn-io/CluedIn/_workitems/edit/28552)
+            itemsPerPage = 10
+            pageNo = 1
             sortBy = $null
             sortDirection = $null
             status = 'All'

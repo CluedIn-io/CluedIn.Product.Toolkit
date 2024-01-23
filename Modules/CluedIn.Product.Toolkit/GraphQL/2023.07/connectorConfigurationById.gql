@@ -1,0 +1,50 @@
+query connectorConfigurationById($id: ID) {
+  inbound {
+    id
+    connectorConfiguration(id: $id) {
+      id
+      name
+      accountDisplay
+      accountId
+      active
+      autoSync
+      codeName
+      configuration
+      connector {
+        id
+        icon
+        name
+        authMethods
+        properties
+        streamModes
+        __typename
+      }
+      createdDate
+      entityId
+      failingAuthentication
+      guide
+      helperConfiguration
+      providerId
+      reAuthEndpoint
+      source
+      sourceQuality
+      stats
+      status
+      supportsAutomaticWebhookCreation
+      supportsConfiguration
+      supportsWebhooks
+      userId
+      userName
+      users {
+        id
+        username
+        roles
+        __typename
+      }
+      webhookManagementEndpoints
+      webhooks
+      __typename
+    }
+    __typename
+  }
+}

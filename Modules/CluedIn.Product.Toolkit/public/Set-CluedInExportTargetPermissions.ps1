@@ -6,16 +6,16 @@ function Set-CluedInExportTargetPermissions {
         .DESCRIPTION
         GraphQL Query: Sets the Export Target permissions
 
-        .PARAMETER Id
-        This is the Id of the export target you want to update. It's not the be confused with the connectId a.k.a providerId
+        .PARAMETER ConnectorId
+        This is the Id of the connector where permissions are to be set.
 
-        .PARAMETER Configuration
-        This is the PSCustomObject from the source material for the configuration property
+        .PARAMETER UserId
+        This is the id(s) of the users being granted to this export target
 
         .EXAMPLE
-        PS> Set-CluedInExportTargetConfiguration -ConnectorId '87e51d3c-a0fa-4c7e-aa62-68d2ec1c3f35' -AuthInfo $AuthInfo
+        PS> Set-CluedInExportTargetPermissions -ConnectorId '87e51d3c-a0fa-4c7e-aa62-68d2ec1c3f35' -UserId @('653ba074-b932-49af-9a50-d39eb63ba726', '05f86861-1614-4736-bc51-69041feb9e01')
 
-        Sets Export Target Configuration to desired state
+        Grants permissions to the two user ids listed above against the specified connector
     #>
 
     [CmdletBinding()]

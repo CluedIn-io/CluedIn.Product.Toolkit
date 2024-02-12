@@ -17,9 +17,6 @@ function Connect-CluedInOrganisation {
         This is the organisation to connect to. This can be determined on the url as it precedes the base url.
         ie. If you normally access on 'org.customer.com', please only use 'org'
 
-        .PARAMETER Version
-        This is the environments version to ensure we're using correct GraphQL queries downstream.
-
         .PARAMETER APIToken
         Can pass in a CluedIn API token that grants access to PublicAPI and Server UI Components only
 
@@ -28,7 +25,7 @@ function Connect-CluedInOrganisation {
         against environments you're destroying and recreating.
 
         .EXAMPLE
-        PS> Connect-CluedInOrganisation -BaseURL 'customer.com' -Orgnisation 'org' -Version '2023.07'
+        PS> Connect-CluedInOrganisation -BaseURL 'customer.com' -Orgnisation 'org'
 
         This will attempt to connect to https://org.customer.com and authenticate
     #>

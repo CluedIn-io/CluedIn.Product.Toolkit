@@ -63,7 +63,7 @@ function Connect-CluedInOrganisation {
     if (!$version) { throw "Issue obtaining version. Version returned: '$version'" }
     if ($version -lt [version]'3.7.0') { throw "This toolkit only supports versions greater than 2023.07/3.7.0" }
 
-    [string]$envVersion = '{0}.{1}' -f $Version.Major, ([string]$Version.Minor).PadLeft(2, '0')
+    [string]$envVersion = '{0}.{1}.{2}' -f $Version.Major, $Version.Minor, $Version.Build
 
     if (!$Force) {
         if (${env:CLUEDIN_JWTOKEN}) {

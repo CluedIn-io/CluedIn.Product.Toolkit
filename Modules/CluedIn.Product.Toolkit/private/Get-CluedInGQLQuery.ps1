@@ -27,7 +27,8 @@ function Get-CluedInGQLQuery {
         $folderVersion = (Get-ChildItem -Path $graphQLFolder).name | Sort-Object -Descending
         foreach ($version in $folderVersion) {
             Write-Debug "Working on $version"
-            if ($version -eq ${env:CLUEDIN_CURRENTVERSION}) {Write-Debug "Skipping"; continue }
+            if ($version -eq ${env:CLUEDIN_CURRENTVERSION}) { Write-Debug "Skipping"; continue }
+            if ([version]$version -gt [version]${env:CLUEDIN_CURRENTVERSION}) { Write-Debug "Skipping"; continue }
 
             $testPath = "$PSScriptRoot/../GraphQL/$version/$operationName.gql"
             if (Test-Path -Path $testPath) {

@@ -37,7 +37,6 @@ function Connect-CluedInOrganisation {
     param(
         [Parameter(Mandatory)][string]$BaseURL,
         [Parameter(Mandatory)][string]$Organisation,
-        [Parameter(Mandatory)][version]$Version,
         [string]$APIToken,
         [switch]$Force
     )
@@ -58,13 +57,14 @@ function Connect-CluedInOrganisation {
         return $refreshRequired
     }
 
-    function getVersion() {
+    function getCluedInVersion() {
         $uri = 'https://{0}.{1}/api/status' -f $Organisation, $BaseUrl
-        $version = [version](Invoke-WebRequest -uri $uri).headers.'x-cluedin-version'[0]
-        return $version
+        return [version](Invoke-WebRequest -uri $uri).headers.'x-cluedin-version'[0]
     }
 
-    if ($Version -lt [version]'2023.07') { throw "This toolkit only supports versions greater than 2023.07" }
+    $version = getCluedInVersion
+    if (!$version) { throw "Issue obtaining version. Version returned: '$version'" }
+    if ($version -lt [version]'3.7.0') { throw "This toolkit only supports versions greater than 2023.07/3.7.0" }
 
     [string]$envVersion = '{0}.{1}' -f $Version.Major, ([string]$Version.Minor).PadLeft(2, '0')
 

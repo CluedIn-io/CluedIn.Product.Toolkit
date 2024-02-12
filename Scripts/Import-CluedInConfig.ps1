@@ -13,14 +13,11 @@
     .PARAMETER Organisation
     This is the section before your base URL. If you access CluedIn by https://cluedin.domain.com, the Organisation is 'cluedin'
 
-    .PARAMETER Version
-    This is the version of your current CluedIn environment in the format of '2023.01'
-
     .PARAMETER RestorePath
     This is the location of the export files ran by Export-CluedInConfig
 
     .EXAMPLE
-    PS> ./Import-CluedInConfig.ps1 -BaseURL 'cluedin.com' -Organisation 'dev' -Version '2023.07' -RestorePath /path/to/backups
+    PS> ./Import-CluedInConfig.ps1 -BaseURL 'cluedin.com' -Organisation 'dev' -RestorePath /path/to/backups
 #>
 
 [CmdletBinding()]
@@ -44,7 +41,7 @@ Write-Verbose "Importing modules"
 Import-Module "$PSScriptRoot/../Modules/CluedIn.Product.Toolkit"
 
 Write-Host "INFO: Connecting to 'https://$Organisation.$BaseURL'"
-Connect-CluedInOrganisation -BaseURL $BaseURL -Organisation $Organisation -Version $Version
+Connect-CluedInOrganisation -BaseURL $BaseURL -Organisation $Organisation
 
 # Variables
 Write-Verbose "Setting Script Variables"

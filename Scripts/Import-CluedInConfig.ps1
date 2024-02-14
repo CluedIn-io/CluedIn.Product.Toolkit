@@ -56,6 +56,7 @@ $generalPath = Join-Path -Path $RestorePath -ChildPath 'General'
 $rulesPath = Join-Path -Path $RestorePath -ChildPath 'Rules'
 $exportTargetsPath = Join-Path -Path $RestorePath -ChildPath 'ExportTargets'
 $streamsPath = Join-Path -Path $RestorePath -ChildPath 'Streams'
+$glossariesPath = Join-Path -Path $RestorePath -ChildPath 'Glossary'
 
 $allUsers = (Get-CluedInUsers).data.administration.users # Caching for use down below
 
@@ -521,6 +522,19 @@ foreach ($stream in $streams) {
 
     $setStreamExportResult = Set-CluedInStreamExportTarget -Id $streamId -Object $streamObject
     checkResults($setStreamExportResult)
+}
+
+# Glossaries
+Write-Host "INFO: Importing Glossaries" -ForegroundColor 'Green'
+$glossaries = Get-ChildItem -Path $glossariesPath #-Filter "*.json" -Recurse
+
+foreach ($glossary in $glossaries) {
+    $glossaryPath = $glossary.FullName
+    $glossaryFile = Get-ChildItem -Path $glossaryPath -Filter "*Glossary.json" -Recurse
+    if ($glossaryFile.count -ne 1) { Write-Error "Too many Glossary files found. Skipping"; continue }
+
+    $termsFile = Get-ChildItem -Path $glossaryPath -Filter "*Term.json" -Recurse
+    #$glossaryJson = Get-Content -Path
 }
 
 Write-Host "INFO: Import Complete" -ForegroundColor 'Green'

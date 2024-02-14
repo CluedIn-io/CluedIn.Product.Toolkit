@@ -56,7 +56,7 @@ $generalPath = Join-Path -Path $RestorePath -ChildPath 'General'
 $rulesPath = Join-Path -Path $RestorePath -ChildPath 'Rules'
 $exportTargetsPath = Join-Path -Path $RestorePath -ChildPath 'ExportTargets'
 $streamsPath = Join-Path -Path $RestorePath -ChildPath 'Streams'
-$glossariesPath = Join-Path -Path $RestorePath -ChildPath 'Glossary'
+$glossariesPath = Join-Path -Path $RestorePath -ChildPath 'Glossaries'
 
 $allUsers = (Get-CluedInUsers).data.administration.users # Caching for use down below
 
@@ -526,15 +526,61 @@ foreach ($stream in $streams) {
 
 # Glossaries
 Write-Host "INFO: Importing Glossaries" -ForegroundColor 'Green'
-$glossaries = Get-ChildItem -Path $glossariesPath #-Filter "*.json" -Recurse
+$glossaries = Get-ChildItem -Path $glossariesPath
+
+$currentGlossaries = Get-CluedInGlossary
+$currentGlossariesObject = $currentGlossaries.data.management.glossaryCategories
+
+$currentTerms = Get-CluedInGlossaryTerms
+$currentTermsObject = $currentTerms.data.management.glossaryTerms.data
 
 foreach ($glossary in $glossaries) {
+    $glossaryId = $null
     $glossaryPath = $glossary.FullName
     $glossaryFile = Get-ChildItem -Path $glossaryPath -Filter "*Glossary.json" -Recurse
     if ($glossaryFile.count -ne 1) { Write-Error "Too many Glossary files found. Skipping"; continue }
 
     $termsFile = Get-ChildItem -Path $glossaryPath -Filter "*Term.json" -Recurse
-    #$glossaryJson = Get-Content -Path
+
+    $glossaryJson = Get-Content -Path $glossaryFile.FullName | ConvertFrom-Json -Depth 20
+    $glossaryObject = $glossaryJson.data.management.glossaryCategory
+
+    Write-Host "Processing Glossary: $($glossaryObject.name)" -ForegroundColor 'Green'
+    if ($glossaryObject.name -notin $currentGlossariesObject.name) {
+        Write-Host "Creating Glossary '$($glossaryObject.name)'" -ForegroundColor 'Cyan'
+        $glossaryResult = New-CluedInGlossary -Name $glossaryObject.name
+        checkResults($glossaryResult)
+
+        $glossaryId = $glossaryResult.data.management.createGlossaryCategory.id
+    }
+
+    $glossaryId = $glossaryId ??
+        ($currentGlossariesObject |
+            Where-Object { $_.name -eq $glossaryObject.name }).id
+
+    Write-Verbose "Processing Terms"
+    foreach ($term in $termsFile) {
+        $termId = $null
+        $termJson = Get-Content -Path $term.FullName | ConvertFrom-Json -Depth 20
+        $termObject = $termJson.data.management.glossaryTerm
+
+        Write-Host "Processing Term: $($termObject.name)" -ForegroundColor 'Cyan'
+        if ($termObject.name -notin $currentTermsObject.name) {
+            Write-Host "Creating Term '$($termObject.name)'" -ForegroundColor 'DarkCyan'
+            $termResult = New-CluedInGlossaryTerm -Name $termObject.name -GlossaryId $glossaryId
+            checkResults($termResult)
+
+            $termId = $termResult.data.management.createGlossaryTerm.id
+        }
+
+        $termId = $termId ??
+            ($currentTermsObject |
+                Where-Object { $_.name -eq $termObject.name }).id
+
+        Write-Verbose "Setting term configuration"
+        $setTermResult = Set-CluedInGlossaryTerm -Id $termId -Object $termObject
+        checkResults($setTermResult)
+    }
 }
 
 Write-Host "INFO: Import Complete" -ForegroundColor 'Green'

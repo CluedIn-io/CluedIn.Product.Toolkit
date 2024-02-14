@@ -6,9 +6,11 @@ function Set-CluedInGlossaryTerm {
         .DESCRIPTION
         GraphQL Query: Sets the Glossary Term configuration
 
-        .PARAMETER
+        .PARAMETER Object
+        This is the object of an exported Glossary Term
 
-        .PARAMETER
+        .PARAMETER Id
+        This is the id of the new Glossary Term to be configured
 
         .EXAMPLE
         PS> Set-CluedInGlossaryTerm
@@ -16,29 +18,24 @@ function Set-CluedInGlossaryTerm {
 
     [CmdletBinding()]
     param(
-
+        [Parameter(Mandatory)][guid]$Id,
+        [Parameter(Mandatory)][PSCustomObject]$Object
     )
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'saveGlossaryTerm'
 
-    # Do we endorse?
-
     $query = @{
         variables = @{
             term = @{
-                id = ''
-                name = ''
-                active = ''
-                ownedBy = ''
-                shortDescription = ''
-                certificationLevel = ''
-                description = ''
-                isObsolete = ''
-                categoryId = ''
-                ruleSet = @{
-                    rules = @()
-                }
-                relatedTags = @()
+                id = $Id
+                name = $Object.name
+                active = $Object.active
+                shortDescription = $Object.shortDescription
+                certificationLevel = $Object.certificationLevel
+                description = $Object.description
+                isObsolete = $Object.isObsolete
+                ruleSet = $Object.ruleSet
+                relatedTags = $Object.relatedTags
             }
         }
         query = $queryContent

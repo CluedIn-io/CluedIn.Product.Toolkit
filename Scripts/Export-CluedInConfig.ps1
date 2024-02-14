@@ -288,13 +288,13 @@ if (!(Test-Path -Path $cleanProjectsPath -PathType Container)) { New-Item $clean
 switch ($SelectCleanProjects) {
     'All' {
         $cleanProjects = Get-CluedInCleanProjects
-        $clearProjectsIds = $cleanProjects.data.preparation.allCleanProjects.projects.id
+        $cleanProjectsIds = $cleanProjects.data.preparation.allCleanProjects.projects.id
     }
     'None' { $null }
-    default { $clearProjectsIds = ($SelectCleanProjects -Split ',').Trim() }
+    default { $cleanProjectsIds = ($SelectCleanProjects -Split ',').Trim() }
 }
 
-foreach ($cleanProjectId in $clearProjectsIds) {
+foreach ($cleanProjectId in $cleanProjectsIds) {
     $cleanProjectConfig = Get-CluedInCleanProject -Id $cleanProjectId
     $cleanProjectConfig | Out-JsonFile -Path $cleanProjectsPath -Name $cleanProjectId
 }

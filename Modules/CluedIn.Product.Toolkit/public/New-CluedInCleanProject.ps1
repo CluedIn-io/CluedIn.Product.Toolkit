@@ -24,11 +24,11 @@ function New-CluedInCleanProject {
         variables = @{
             cleanProject = @{
                 name = $Name
-                query = ''
-                includeDataParts = ''
-                fields = @()
-                description = ''
-                condition = @{}
+                query = $Object.query
+                includeDataParts = $Object.includeDataParts
+                fields = $Object.fields
+                description = $Object.description
+                condition = $Object.condition
             }
         }
         query = $queryContent

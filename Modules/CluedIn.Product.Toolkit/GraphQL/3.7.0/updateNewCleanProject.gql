@@ -1,0 +1,10 @@
+mutation updateNewCleanProject($id: ID!, $cleanProject: InputNewCleanProject!) {
+  preparation {
+    id
+    updateNewCleanProject(id: $id, cleanProject: $cleanProject) {
+      id
+      __typename
+    }
+    __typename
+  }
+}

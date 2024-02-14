@@ -19,9 +19,7 @@ query cleanProjectDetail($id: ID!) {
       description
       fields {
         type
-        displayName
         property
-        icon
         __typename
       }
       condition {
@@ -31,16 +29,9 @@ query cleanProjectDetail($id: ID!) {
         value
         operator
         objectTypeId
-        field
         rules {
           condition
-          field
-          objectTypeId
-          operator
-          type
-          value
           rules
-          __typename
         }
         __typename
       }

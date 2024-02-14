@@ -57,6 +57,7 @@ $rulesPath = Join-Path -Path $RestorePath -ChildPath 'Rules'
 $exportTargetsPath = Join-Path -Path $RestorePath -ChildPath 'ExportTargets'
 $streamsPath = Join-Path -Path $RestorePath -ChildPath 'Streams'
 $glossariesPath = Join-Path -Path $RestorePath -ChildPath 'Glossaries'
+$cleanProjectsPath = Join-Path -Path $RestorePath -ChildPath 'CleanProjects'
 
 $allUsers = (Get-CluedInUsers).data.administration.users # Caching for use down below
 
@@ -581,6 +582,33 @@ foreach ($glossary in $glossaries) {
         $setTermResult = Set-CluedInGlossaryTerm -Id $termId -Object $termObject
         checkResults($setTermResult)
     }
+}
+
+# Clean Projects
+Write-Host "INFO: Importing Glossaries" -ForegroundColor 'Green'
+$cleanProjects = Get-ChildItem -Path $cleanProjectsPath -Filter "*.json" -Recurse
+$currentCleanProjects = Get-CluedInCleanProjects
+$currentCleanProjectsObject = $currentCleanProjects.data.preparation.allCleanProjects.projects
+
+foreach ($cleanProject in $cleanProjects) {
+    $cleanProjectJson = Get-Content -Path $cleanProject.FullName | ConvertFrom-Json -Depth 20
+    $cleanProjectObject = $cleanProjectJson.data.preparation.cleanProjectDetail
+
+    Write-Host "Processing Clean Project: $($cleanProjectObject.name)" -ForegroundColor 'Green'
+    if ($cleanProjectObject.name -notin $currentCleanProjectsObject.name) {
+        Write-Host "Creating Clean Project '$($cleanProjectObject.name)'" -ForegroundColor 'Cyan'
+        $cleanProjectResult = New-CluedInCleanProject -Name $cleanProjectObject.name -Object $cleanProjectObject
+        checkResults($cleanProjectResult)
+        continue # No need to drift check on new one
+        #$cleanProjectId = $cleanProjectResult.data.preparation.createNewCleanProject.id
+    }
+
+    $cleanProjectId = ($currentCleanProjectsObject | Where-Object { $_.name -eq $cleanProjectObject.name }).id
+    if ($cleanProjectId.count -ne 1) { Write-Error "Multiple Ids returned"; continue }
+
+    Write-Host "Setting Configuration" -ForegroundColor 'Cyan'
+    $setConfigurationResult = Set-CluedInCleanProject -Id $cleanProjectId -Object $cleanProjectObject
+    checkResults($setConfigurationResult)
 }
 
 Write-Host "INFO: Import Complete" -ForegroundColor 'Green'

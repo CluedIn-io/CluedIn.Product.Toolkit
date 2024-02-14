@@ -34,6 +34,16 @@
 
     Example: '66505aa1-bacb-463e-832c-799c484577a8, e257a226-d91c-4946-a8af-85ef803cf55e'
 
+    .PARAMETER SelectExportTargets
+    This is a list of Export Targets to backup. It supports All, None, and csv format of the Id's
+
+    .PARAMETER SelectStreams
+    This is a list of Streams to backup. It supports All, None, and csv format of the Id's
+
+    .PARAMETER SelectGlossaries
+    This is what Glossaries to export. It supports All, 'None', and csv format of the Id's.
+    It will export all Glossary terms along with it as well.
+
     .EXAMPLE
     PS> ./Export-CluedInConfig.ps1 -BaseURL 'cluedin.com' -Organisation 'dev'
 #>
@@ -47,7 +57,8 @@ param(
     [string]$SelectDataSets = 'None',
     [string]$SelectRules = 'None',
     [string]$SelectExportTargets = 'None',
-    [string]$SelectStreams = 'None'
+    [string]$SelectStreams = 'None',
+    [string]$SelectGlossaries = 'None'
 )
 
 Write-Verbose "Importing modules"
@@ -230,6 +241,39 @@ switch ($SelectStreams) {
 foreach ($id in $streamsId) {
     $streamConfig = Get-CluedInStream -Id $id
     $streamConfig | Out-JsonFile -Path $exportStreamsPath -Name $id
+}
+
+# Glossaries
+Write-Host "INFO: Exporting Glossaries" -ForegroundColor 'Green'
+$glossaryPath = Join-Path -Path $BackupPath -ChildPath 'Glossaries'
+if (!(Test-Path -Path $glossaryPath -PathType Container)) { New-Item $glossaryPath -ItemType Directory | Out-Null }
+
+switch ($SelectGlossaries) {
+    'All' {
+        $glossaries = Get-CluedInGlossary
+        $glossaryIds = $glossaries.data.management.glossaryCategories.id
+    }
+    'None' { $null }
+    default { $glossaryIds = ($SelectGlossaries -Split ',').Trim() }
+}
+
+foreach ($glossaryId in $glossaryIds) {
+    $glossaryExportPath = Join-Path -Path $glossaryPath -ChildPath $glossaryId
+    if (!(Test-Path -Path $glossaryExportPath -PathType Container)) { New-Item $glossaryExportPath -ItemType Directory | Out-Null }
+
+    # Glossary
+    $glossaryConfig = Get-CluedInGlossary -Id $glossaryId
+    $glossaryConfig | Out-JsonFile -Path $glossaryExportPath -Name ('{0}-Glossary' -f $glossaryId)
+
+    # Glossary Terms
+    $glossaryTerms = Get-CluedInGlossaryTerms -GlossaryId $glossaryId
+    $glossaryTermsIds = $glossaryTerms.data.management.glossaryTerms.data.id
+
+    # Glossary Term Configuration
+    foreach ($termId in $glossaryTermsIds) {
+        $glossaryTermConfig = Get-CluedInGlossaryTerm -Id $termId
+        $glossaryTermConfig | Out-JsonFile -Path $glossaryExportPath -Name ('{0}-Term' -f $termId)
+    }
 }
 
 Write-Host "INFO: Backup now complete"

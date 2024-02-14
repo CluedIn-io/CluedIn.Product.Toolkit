@@ -41,8 +41,11 @@
     This is a list of Streams to backup. It supports All, None, and csv format of the Id's
 
     .PARAMETER SelectGlossaries
-    This is what Glossaries to export. It supports All, 'None', and csv format of the Id's.
+    This is what Glossaries to export. It supports All, None, and csv format of the Id's.
     It will export all Glossary terms along with it as well.
+
+    .PARAMETER SelectCleanProjects
+    Specifies what Clean Projects to export. It supports All, None, and csv format of the Id's
 
     .EXAMPLE
     PS> ./Export-CluedInConfig.ps1 -BaseURL 'cluedin.com' -Organisation 'dev'
@@ -58,7 +61,8 @@ param(
     [string]$SelectRules = 'None',
     [string]$SelectExportTargets = 'None',
     [string]$SelectStreams = 'None',
-    [string]$SelectGlossaries = 'None'
+    [string]$SelectGlossaries = 'None',
+    [string]$SelectCleanProjects = 'None'
 )
 
 Write-Verbose "Importing modules"
@@ -274,6 +278,25 @@ foreach ($glossaryId in $glossaryIds) {
         $glossaryTermConfig = Get-CluedInGlossaryTerm -Id $termId
         $glossaryTermConfig | Out-JsonFile -Path $glossaryExportPath -Name ('{0}-Term' -f $termId)
     }
+}
+
+# Clean Projects
+Write-Host "INFO: Exporting Clean Projects" -ForegroundColor 'Green'
+$cleanProjectsPath = Join-Path -Path $BackupPath -ChildPath 'CleanProjects'
+if (!(Test-Path -Path $cleanProjectsPath -PathType Container)) { New-Item $cleanProjectsPath -ItemType Directory | Out-Null }
+
+switch ($SelectCleanProjects) {
+    'All' {
+        $cleanProjects = Get-CluedInCleanProjects
+        $clearProjectsIds = $cleanProjects.data.preparation.allCleanProjects.projects.id
+    }
+    'None' { $null }
+    default { $clearProjectsIds = ($SelectCleanProjects -Split ',').Trim() }
+}
+
+foreach ($cleanProjectId in $clearProjectsIds) {
+    $cleanProjectConfig = Get-CluedInCleanProject -Id $cleanProjectId
+    $cleanProjectConfig | Out-JsonFile -Path $cleanProjectsPath -Name $cleanProjectId
 }
 
 Write-Host "INFO: Backup now complete"

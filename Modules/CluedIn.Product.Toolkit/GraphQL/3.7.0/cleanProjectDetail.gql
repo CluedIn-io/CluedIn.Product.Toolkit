@@ -1,0 +1,51 @@
+query cleanProjectDetail($id: ID!) {
+  preparation {
+    cleanProjectDetail(id: $id) {
+      name
+      rowCount
+      createdDate
+      lastCommittedDate
+      lastCommittedBy
+      createdBy
+      id
+      status
+      query
+      autoGenerateRules
+      hasCleanChanges
+      hasBeenCommitted
+      providerProjectId
+      includeDataParts
+      hasRules
+      description
+      fields {
+        type
+        displayName
+        property
+        icon
+        __typename
+      }
+      condition {
+        condition
+        id
+        type
+        value
+        operator
+        objectTypeId
+        field
+        rules {
+          condition
+          field
+          objectTypeId
+          operator
+          type
+          value
+          rules
+          __typename
+        }
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

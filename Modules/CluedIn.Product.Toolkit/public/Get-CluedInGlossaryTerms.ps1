@@ -24,7 +24,7 @@ function Get-CluedInGlossaryTerms {
     $queryContent = Get-CluedInGQLQuery -OperationName 'getGlossaryTerms'
 
     $query = @{
-        variable = @{
+        variables = @{
             searchName = $Search
             pageNumber = 1
             pageSize = 20

@@ -1,0 +1,25 @@
+mutation endorseGlossaryTerm($termId: ID, $status: Boolean) {
+  management {
+    id
+    endorseGlossaryTerm(termId: $termId, status: $status) {
+      id
+      active
+      createdBy
+      userRating
+      rating
+      modifiedBy
+      isEndorsedByCurrentUser
+      ownedBy
+      createdAt
+      modifiedAt
+      shortDescription
+      certificationLevel
+      version
+      description
+      isObsolete
+      endorsedBy
+      __typename
+    }
+    __typename
+  }
+}

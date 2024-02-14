@@ -25,7 +25,7 @@ function New-CluedInGlossaryTerm {
     $queryContent = Get-CluedInGQLQuery -OperationName 'createGlossaryTerm'
 
     $query = @{
-        variable = @{
+        variables = @{
             term = @{
                 name = $Name
                 categoryId = $GlossaryId

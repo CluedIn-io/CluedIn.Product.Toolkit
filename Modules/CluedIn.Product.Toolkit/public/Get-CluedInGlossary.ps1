@@ -16,17 +16,20 @@ function Get-CluedInGlossary {
 
     [CmdletBinding()]
     param (
-        [string]$Search = ""
+        [guid]$Id
     )
 
-    $queryContent = Get-CluedInGQLQuery -OperationName 'getGlossaryCategory'
+    if ($Id) { $opName = 'getGlossaryCategoryById' }
+    else { $opName = 'getGlossaryCategory' }
+
+    $queryContent = Get-CluedInGQLQuery -OperationName $opName
 
     $query = @{
-        variable = @{
-            name = $Search
-        }
+        variables = @{}
         query = $queryContent
     }
+
+    if ($Id) { $query.variables.id = $Id }
 
     return Invoke-CluedInGraphQL -Query $query
 }

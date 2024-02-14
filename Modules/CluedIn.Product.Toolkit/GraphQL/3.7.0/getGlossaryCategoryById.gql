@@ -1,0 +1,15 @@
+query getGlossaryCategory($id: ID!) {
+  management {
+    id
+    glossaryCategory(id: $id) {
+      id
+      name
+      terms {
+        total
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

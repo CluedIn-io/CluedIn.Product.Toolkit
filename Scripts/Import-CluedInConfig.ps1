@@ -599,8 +599,7 @@ foreach ($cleanProject in $cleanProjects) {
         Write-Host "Creating Clean Project '$($cleanProjectObject.name)'" -ForegroundColor 'Cyan'
         $cleanProjectResult = New-CluedInCleanProject -Name $cleanProjectObject.name -Object $cleanProjectObject
         checkResults($cleanProjectResult)
-        continue # No need to drift check on new one
-        #$cleanProjectId = $cleanProjectResult.data.preparation.createNewCleanProject.id
+        continue # No need to drift check on new creations
     }
 
     $cleanProjectId = ($currentCleanProjectsObject | Where-Object { $_.name -eq $cleanProjectObject.name }).id

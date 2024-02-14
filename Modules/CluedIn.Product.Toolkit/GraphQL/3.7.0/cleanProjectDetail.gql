@@ -20,20 +20,18 @@ query cleanProjectDetail($id: ID!) {
       fields {
         type
         property
-        __typename
       }
       condition {
         condition
-        id
-        type
-        value
-        operator
-        objectTypeId
         rules {
           condition
+          field
+          objectTypeId
+          operator
+          type
+          value
           rules
         }
-        __typename
       }
       __typename
     }

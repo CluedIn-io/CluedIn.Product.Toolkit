@@ -24,7 +24,6 @@
 param(
     [Parameter(Mandatory)][string]$BaseURL,
     [Parameter(Mandatory)][string]$Organisation,
-    [Parameter(Mandatory)][version]$Version,
     [Parameter(Mandatory)][string]$RestorePath
 )
 

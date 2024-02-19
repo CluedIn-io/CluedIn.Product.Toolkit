@@ -13,9 +13,6 @@
     .PARAMETER Organisation
     This is the section before your base URL. If you access CluedIn by https://cluedin.domain.com, the Organisation is 'cluedin'
 
-    .PARAMETER Version
-    This is the version of your current CluedIn environment in the format of '2023.01'
-
     .PARAMETER BackupPath
     This is the location of where to export files
 
@@ -37,28 +34,42 @@
 
     Example: '66505aa1-bacb-463e-832c-799c484577a8, e257a226-d91c-4946-a8af-85ef803cf55e'
 
+    .PARAMETER SelectExportTargets
+    This is a list of Export Targets to backup. It supports All, None, and csv format of the Id's
+
+    .PARAMETER SelectStreams
+    This is a list of Streams to backup. It supports All, None, and csv format of the Id's
+
+    .PARAMETER SelectGlossaries
+    This is what Glossaries to export. It supports All, None, and csv format of the Id's.
+    It will export all Glossary terms along with it as well.
+
+    .PARAMETER SelectCleanProjects
+    Specifies what Clean Projects to export. It supports All, None, and csv format of the Id's
+
     .EXAMPLE
-    PS> ./Export-CluedInConfig.ps1 -BaseURL 'cluedin.com' -Organisation 'dev' -Version '2023.07'
+    PS> ./Export-CluedInConfig.ps1 -BaseURL 'cluedin.com' -Organisation 'dev'
 #>
 
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$BaseURL,
     [Parameter(Mandatory)][string]$Organisation,
-    [Parameter(Mandatory)][version]$Version,
     [Parameter(Mandatory)][string]$BackupPath,
     [string]$SelectVocabularies = 'None',
     [string]$SelectDataSets = 'None',
     [string]$SelectRules = 'None',
     [string]$SelectExportTargets = 'None',
-    [string]$SelectStreams = 'None'
+    [string]$SelectStreams = 'None',
+    [string]$SelectGlossaries = 'None',
+    [string]$SelectCleanProjects = 'None'
 )
 
 Write-Verbose "Importing modules"
 Import-Module "$PSScriptRoot/../Modules/CluedIn.Product.Toolkit"
 
 Write-Host "INFO: Connecting to 'https://$Organisation.$BaseURL'"
-Connect-CluedInOrganisation -BaseURL $BaseURL -Organisation $Organisation -Version $Version
+Connect-CluedInOrganisation -BaseURL $BaseURL -Organisation $Organisation
 
 Write-Host "INFO: Starting backup"
 
@@ -234,6 +245,58 @@ switch ($SelectStreams) {
 foreach ($id in $streamsId) {
     $streamConfig = Get-CluedInStream -Id $id
     $streamConfig | Out-JsonFile -Path $exportStreamsPath -Name $id
+}
+
+# Glossaries
+Write-Host "INFO: Exporting Glossaries" -ForegroundColor 'Green'
+$glossaryPath = Join-Path -Path $BackupPath -ChildPath 'Glossaries'
+if (!(Test-Path -Path $glossaryPath -PathType Container)) { New-Item $glossaryPath -ItemType Directory | Out-Null }
+
+switch ($SelectGlossaries) {
+    'All' {
+        $glossaries = Get-CluedInGlossary
+        $glossaryIds = $glossaries.data.management.glossaryCategories.id
+    }
+    'None' { $null }
+    default { $glossaryIds = ($SelectGlossaries -Split ',').Trim() }
+}
+
+foreach ($glossaryId in $glossaryIds) {
+    $glossaryExportPath = Join-Path -Path $glossaryPath -ChildPath $glossaryId
+    if (!(Test-Path -Path $glossaryExportPath -PathType Container)) { New-Item $glossaryExportPath -ItemType Directory | Out-Null }
+
+    # Glossary
+    $glossaryConfig = Get-CluedInGlossary -Id $glossaryId
+    $glossaryConfig | Out-JsonFile -Path $glossaryExportPath -Name ('{0}-Glossary' -f $glossaryId)
+
+    # Glossary Terms
+    $glossaryTerms = Get-CluedInGlossaryTerms -GlossaryId $glossaryId
+    $glossaryTermsIds = $glossaryTerms.data.management.glossaryTerms.data.id
+
+    # Glossary Term Configuration
+    foreach ($termId in $glossaryTermsIds) {
+        $glossaryTermConfig = Get-CluedInGlossaryTerm -Id $termId
+        $glossaryTermConfig | Out-JsonFile -Path $glossaryExportPath -Name ('{0}-Term' -f $termId)
+    }
+}
+
+# Clean Projects
+Write-Host "INFO: Exporting Clean Projects" -ForegroundColor 'Green'
+$cleanProjectsPath = Join-Path -Path $BackupPath -ChildPath 'CleanProjects'
+if (!(Test-Path -Path $cleanProjectsPath -PathType Container)) { New-Item $cleanProjectsPath -ItemType Directory | Out-Null }
+
+switch ($SelectCleanProjects) {
+    'All' {
+        $cleanProjects = Get-CluedInCleanProjects
+        $cleanProjectsIds = $cleanProjects.data.preparation.allCleanProjects.projects.id
+    }
+    'None' { $null }
+    default { $cleanProjectsIds = ($SelectCleanProjects -Split ',').Trim() }
+}
+
+foreach ($cleanProjectId in $cleanProjectsIds) {
+    $cleanProjectConfig = Get-CluedInCleanProject -Id $cleanProjectId
+    $cleanProjectConfig | Out-JsonFile -Path $cleanProjectsPath -Name $cleanProjectId
 }
 
 Write-Host "INFO: Backup now complete"

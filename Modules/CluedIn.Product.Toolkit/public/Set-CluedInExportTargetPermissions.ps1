@@ -27,7 +27,7 @@ function Set-CluedInExportTargetPermissions {
     $queryContent = Get-CluedInGQLQuery -OperationName 'grantUsersPermission'
 
     $query = @{
-        variables =@{
+        variables = @{
             connectorId = $ConnectorId
             userIds = $UserId
         }

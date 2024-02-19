@@ -18,7 +18,7 @@ function Set-CluedInDataSourceConfiguration {
     $queryContent = Get-CluedInGQLQuery -OperationName 'saveConnectorConfiguration'
 
     $query = @{
-        variables =@{
+        variables = @{
             connectorConfiguration = @{
                 id = $Object.id
                 helperConfiguration = @{

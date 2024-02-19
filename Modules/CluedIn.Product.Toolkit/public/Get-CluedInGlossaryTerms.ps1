@@ -18,14 +18,14 @@ function Get-CluedInGlossaryTerms {
 
     [CmdletBinding()]
     param (
-        [string]$Search = ""
+        [guid]$GlossaryId
     )
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'getGlossaryTerms'
 
     $query = @{
-        variable = @{
-            searchName = $Search
+        variables = @{
+            categoryId = $GlossaryId
             pageNumber = 1
             pageSize = 20
         }

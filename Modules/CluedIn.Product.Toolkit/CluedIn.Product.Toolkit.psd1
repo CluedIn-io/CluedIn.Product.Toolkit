@@ -95,7 +95,10 @@ FunctionsToExport = 'Connect-CluedInOrganisation', 'Get-CluedInAdminSetting',
                'Set-CluedInStream', 'Get-CluedInStream',
                'New-CluedInExportTarget', 'Get-CluedInExportTarget',
                'Set-CluedInExportTargetConfiguration', 'Get-CluedInInstalledExportTargets',
-               'Set-CluedInStreamExportTarget', 'Set-CluedInExportTargetPermissions'
+               'Set-CluedInStreamExportTarget', 'Set-CluedInExportTargetPermissions',
+               'Get-CluedInGlossaryTerm', 'Set-CluedInGlossaryTerm',
+               'Get-CluedInCleanProjects', 'New-CluedInCleanProject',
+               'Get-CluedInCleanProject', 'Set-CluedInCleanProject'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()

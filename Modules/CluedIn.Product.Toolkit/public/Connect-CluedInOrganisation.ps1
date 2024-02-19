@@ -17,9 +17,6 @@ function Connect-CluedInOrganisation {
         This is the organisation to connect to. This can be determined on the url as it precedes the base url.
         ie. If you normally access on 'org.customer.com', please only use 'org'
 
-        .PARAMETER Version
-        This is the environments version to ensure we're using correct GraphQL queries downstream.
-
         .PARAMETER APIToken
         Can pass in a CluedIn API token that grants access to PublicAPI and Server UI Components only
 
@@ -28,7 +25,7 @@ function Connect-CluedInOrganisation {
         against environments you're destroying and recreating.
 
         .EXAMPLE
-        PS> Connect-CluedInOrganisation -BaseURL 'customer.com' -Orgnisation 'org' -Version '2023.07'
+        PS> Connect-CluedInOrganisation -BaseURL 'customer.com' -Orgnisation 'org'
 
         This will attempt to connect to https://org.customer.com and authenticate
     #>
@@ -37,7 +34,6 @@ function Connect-CluedInOrganisation {
     param(
         [Parameter(Mandatory)][string]$BaseURL,
         [Parameter(Mandatory)][string]$Organisation,
-        [Parameter(Mandatory)][version]$Version,
         [string]$APIToken,
         [switch]$Force
     )
@@ -58,9 +54,16 @@ function Connect-CluedInOrganisation {
         return $refreshRequired
     }
 
-    if ($Version -lt [version]'2023.07') { throw "This toolkit only supports versions greater than 2023.07" }
+    function getCluedInVersion() {
+        $uri = 'https://{0}.{1}/api/status' -f $Organisation, $BaseUrl
+        return [version](Invoke-WebRequest -uri $uri).headers.'x-cluedin-version'[0]
+    }
 
-    [string]$envVersion = '{0}.{1}' -f $Version.Major, ([string]$Version.Minor).PadLeft(2, '0')
+    $version = getCluedInVersion
+    if (!$version) { throw "Issue obtaining version. Version returned: '$version'" }
+    if ($version -lt [version]'3.7.0') { throw "This toolkit only supports versions greater than 2023.07/3.7.0" }
+
+    [string]$envVersion = '{0}.{1}.{2}' -f $Version.Major, $Version.Minor, $Version.Build
 
     if (!$Force) {
         if (${env:CLUEDIN_JWTOKEN}) {

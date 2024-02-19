@@ -27,7 +27,7 @@ function Set-CluedInExportTargetConfiguration {
     $queryContent = Get-CluedInGQLQuery -OperationName 'saveConnectorConfiguration'
 
     $query = @{
-        variables =@{
+        variables = @{
             connectorConfiguration = @{
                 id = $Id
                 helperConfiguration = $Configuration

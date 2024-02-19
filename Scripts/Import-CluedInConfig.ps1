@@ -13,21 +13,17 @@
     .PARAMETER Organisation
     This is the section before your base URL. If you access CluedIn by https://cluedin.domain.com, the Organisation is 'cluedin'
 
-    .PARAMETER Version
-    This is the version of your current CluedIn environment in the format of '2023.01'
-
     .PARAMETER RestorePath
     This is the location of the export files ran by Export-CluedInConfig
 
     .EXAMPLE
-    PS> ./Import-CluedInConfig.ps1 -BaseURL 'cluedin.com' -Organisation 'dev' -Version '2023.07' -RestorePath /path/to/backups
+    PS> ./Import-CluedInConfig.ps1 -BaseURL 'cluedin.com' -Organisation 'dev' -RestorePath /path/to/backups
 #>
 
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$BaseURL,
     [Parameter(Mandatory)][string]$Organisation,
-    [Parameter(Mandatory)][version]$Version,
     [Parameter(Mandatory)][string]$RestorePath
 )
 
@@ -44,7 +40,7 @@ Write-Verbose "Importing modules"
 Import-Module "$PSScriptRoot/../Modules/CluedIn.Product.Toolkit"
 
 Write-Host "INFO: Connecting to 'https://$Organisation.$BaseURL'"
-Connect-CluedInOrganisation -BaseURL $BaseURL -Organisation $Organisation -Version $Version
+Connect-CluedInOrganisation -BaseURL $BaseURL -Organisation $Organisation
 
 # Variables
 Write-Verbose "Setting Script Variables"
@@ -59,6 +55,8 @@ $generalPath = Join-Path -Path $RestorePath -ChildPath 'General'
 $rulesPath = Join-Path -Path $RestorePath -ChildPath 'Rules'
 $exportTargetsPath = Join-Path -Path $RestorePath -ChildPath 'ExportTargets'
 $streamsPath = Join-Path -Path $RestorePath -ChildPath 'Streams'
+$glossariesPath = Join-Path -Path $RestorePath -ChildPath 'Glossaries'
+$cleanProjectsPath = Join-Path -Path $RestorePath -ChildPath 'CleanProjects'
 
 $allUsers = (Get-CluedInUsers).data.administration.users # Caching for use down below
 
@@ -524,6 +522,91 @@ foreach ($stream in $streams) {
 
     $setStreamExportResult = Set-CluedInStreamExportTarget -Id $streamId -Object $streamObject
     checkResults($setStreamExportResult)
+}
+
+# Glossaries
+Write-Host "INFO: Importing Glossaries" -ForegroundColor 'Green'
+$glossaries = Get-ChildItem -Path $glossariesPath
+
+$currentGlossaries = Get-CluedInGlossary
+$currentGlossariesObject = $currentGlossaries.data.management.glossaryCategories
+
+$currentTerms = Get-CluedInGlossaryTerms
+$currentTermsObject = $currentTerms.data.management.glossaryTerms.data
+
+foreach ($glossary in $glossaries) {
+    $glossaryId = $null
+    $glossaryPath = $glossary.FullName
+    $glossaryFile = Get-ChildItem -Path $glossaryPath -Filter "*Glossary.json" -Recurse
+    if ($glossaryFile.count -ne 1) { Write-Error "Too many Glossary files found. Skipping"; continue }
+
+    $termsFile = Get-ChildItem -Path $glossaryPath -Filter "*Term.json" -Recurse
+
+    $glossaryJson = Get-Content -Path $glossaryFile.FullName | ConvertFrom-Json -Depth 20
+    $glossaryObject = $glossaryJson.data.management.glossaryCategory
+
+    Write-Host "Processing Glossary: $($glossaryObject.name)" -ForegroundColor 'Green'
+    if ($glossaryObject.name -notin $currentGlossariesObject.name) {
+        Write-Host "Creating Glossary '$($glossaryObject.name)'" -ForegroundColor 'Cyan'
+        $glossaryResult = New-CluedInGlossary -Name $glossaryObject.name
+        checkResults($glossaryResult)
+
+        $glossaryId = $glossaryResult.data.management.createGlossaryCategory.id
+    }
+
+    $glossaryId = $glossaryId ??
+        ($currentGlossariesObject |
+            Where-Object { $_.name -eq $glossaryObject.name }).id
+
+    Write-Verbose "Processing Terms"
+    foreach ($term in $termsFile) {
+        $termId = $null
+        $termJson = Get-Content -Path $term.FullName | ConvertFrom-Json -Depth 20
+        $termObject = $termJson.data.management.glossaryTerm
+
+        Write-Host "Processing Term: $($termObject.name)" -ForegroundColor 'Cyan'
+        if ($termObject.name -notin $currentTermsObject.name) {
+            Write-Host "Creating Term '$($termObject.name)'" -ForegroundColor 'DarkCyan'
+            $termResult = New-CluedInGlossaryTerm -Name $termObject.name -GlossaryId $glossaryId
+            checkResults($termResult)
+
+            $termId = $termResult.data.management.createGlossaryTerm.id
+        }
+
+        $termId = $termId ??
+            ($currentTermsObject |
+                Where-Object { $_.name -eq $termObject.name }).id
+
+        Write-Verbose "Setting term configuration"
+        $setTermResult = Set-CluedInGlossaryTerm -Id $termId -Object $termObject
+        checkResults($setTermResult)
+    }
+}
+
+# Clean Projects
+Write-Host "INFO: Importing Glossaries" -ForegroundColor 'Green'
+$cleanProjects = Get-ChildItem -Path $cleanProjectsPath -Filter "*.json" -Recurse
+$currentCleanProjects = Get-CluedInCleanProjects
+$currentCleanProjectsObject = $currentCleanProjects.data.preparation.allCleanProjects.projects
+
+foreach ($cleanProject in $cleanProjects) {
+    $cleanProjectJson = Get-Content -Path $cleanProject.FullName | ConvertFrom-Json -Depth 20
+    $cleanProjectObject = $cleanProjectJson.data.preparation.cleanProjectDetail
+
+    Write-Host "Processing Clean Project: $($cleanProjectObject.name)" -ForegroundColor 'Green'
+    if ($cleanProjectObject.name -notin $currentCleanProjectsObject.name) {
+        Write-Host "Creating Clean Project '$($cleanProjectObject.name)'" -ForegroundColor 'Cyan'
+        $cleanProjectResult = New-CluedInCleanProject -Name $cleanProjectObject.name -Object $cleanProjectObject
+        checkResults($cleanProjectResult)
+        continue # No need to drift check on new creations
+    }
+
+    $cleanProjectId = ($currentCleanProjectsObject | Where-Object { $_.name -eq $cleanProjectObject.name }).id
+    if ($cleanProjectId.count -ne 1) { Write-Error "Multiple Ids returned"; continue }
+
+    Write-Host "Setting Configuration" -ForegroundColor 'Cyan'
+    $setConfigurationResult = Set-CluedInCleanProject -Id $cleanProjectId -Object $cleanProjectObject
+    checkResults($setConfigurationResult)
 }
 
 Write-Host "INFO: Import Complete" -ForegroundColor 'Green'

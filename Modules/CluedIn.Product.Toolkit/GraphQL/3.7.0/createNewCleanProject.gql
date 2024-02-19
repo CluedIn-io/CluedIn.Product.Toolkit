@@ -1,0 +1,10 @@
+mutation createNewCleanProject($cleanProject: InputNewCleanProject!) {
+  preparation {
+    id
+    createNewCleanProject(cleanProject: $cleanProject) {
+      id
+      __typename
+    }
+    __typename
+  }
+}

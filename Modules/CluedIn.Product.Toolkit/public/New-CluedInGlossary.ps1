@@ -20,7 +20,7 @@ function New-CluedInGlossary {
     $queryContent = Get-CluedInGQLQuery -OperationName 'createGlossaryCategory'
 
     $query = @{
-        variable = @{
+        variables = @{
             category = @{
                 name = $Name
             }

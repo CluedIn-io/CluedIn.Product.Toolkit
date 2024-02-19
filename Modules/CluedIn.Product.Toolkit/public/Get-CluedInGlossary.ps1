@@ -1,32 +1,35 @@
 function Get-CluedInGlossary {
     <#
         .SYNOPSIS
-        GraphQL Query: Returns all Glossaries
+        GraphQL Query: Returns all Glossaries or if Id is specified, just the one glossary.
 
         .DESCRIPTION
-        GraphQL Query: Returns all Glossaries
+        GraphQL Query: Returns all Glossaries or if Id is specified, just the one glossary.
 
-        .PARAMETER Search
-        Returns narrowed results when specify a Search parameter value. If not used, it will return everything
-        Is not a hard match
+        .PARAMETER Id
+        Returns just the glossary information if found.
 
         .EXAMPLE
         PS> Get-CluedInGlossary
+        PS> Get-CluedInGlossary -Id b5ca9f3c-885b-4c50-88c4-45cd676c2b50
     #>
 
     [CmdletBinding()]
     param (
-        [string]$Search = ""
+        [guid]$Id
     )
 
-    $queryContent = Get-CluedInGQLQuery -OperationName 'getGlossaryCategory'
+    if ($Id) { $opName = 'getGlossaryCategoryById' }
+    else { $opName = 'getGlossaryCategory' }
+
+    $queryContent = Get-CluedInGQLQuery -OperationName $opName
 
     $query = @{
-        variable = @{
-            name = $Search
-        }
+        variables = @{}
         query = $queryContent
     }
+
+    if ($Id) { $query.variables.id = $Id }
 
     return Invoke-CluedInGraphQL -Query $query
 }

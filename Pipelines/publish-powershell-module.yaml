@@ -113,13 +113,11 @@ steps:
     Get-ChildItem . | Copy-Item -Destination $wd -Recurse
 
     @(
-      "$wd/README.md"
       "$wd/Pipelines/publish-powershell-module.yaml"
+      "$wd/ReleaseNotes"
       "$wd/Modules/CluedIn.Product.Toolkit/CluedIn.Product.Toolkit.nuspec"
       "$wd/Modules/CluedIn.Product.Toolkit/tests"
     ) | ForEach-Object { Remove-Item -Path $_ -Force -Recurse }
-
-    Move-Item -Path "$wd/Pipelines/README.md" -Destination $wd
 
     $destinationZip = '$(Build.ArtifactStagingDirectory)/CluedIn.Product.Toolkit_$(MODULE_VERSION).zip'
     Compress-Archive -Path $wd -DestinationPath $destinationZip

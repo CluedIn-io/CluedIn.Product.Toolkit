@@ -29,14 +29,16 @@ function Get-CluedInAPIToken {
         [string]$BaseURL,
         [string]$Organisation,
         [string]$Username,
-        [securestring]$Password
+        [securestring]$Password,
+        [switch]$UseHTTP
     )
 
     $enc_username = [System.Web.HttpUtility]::UrlEncode($Username)
     $enc_password = [System.Web.HttpUtility]::UrlEncode((ConvertFrom-SecureString -AsPlainText $Password))
 
+    $protocol = $UseHTTP ? 'http' : 'https'
 
-    $requestUrl =  'https://{0}.{1}/auth/connect/token' -f $Organisation, $BaseURL
+    $requestUrl =  '{0}://{1}.{2}/auth/connect/token' -f $protocol, $Organisation, $BaseURL
     $body = "username=$enc_username&password=$enc_password&client_id=$Organisation&grant_type=password"
     $headers = @{
         'Content-Type' = 'application/x-www-form-urlencoded'

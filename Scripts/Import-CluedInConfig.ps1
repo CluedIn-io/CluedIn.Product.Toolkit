@@ -141,7 +141,7 @@ foreach ($vocabKey in $vocabKeys) {
     $vocabKeyObject = $vocabKeyJson.data.management.vocabularyKeysFromVocabularyId.data
 
     $vocabName = $vocabKeyObject.vocabulary.vocabularyName | Select-Object -First 1
-    $vocabulary = Get-CluedInVocabulary -Search $vocabName -IncludeCore
+    $vocabulary = Get-CluedInVocabulary -Search $vocabName -IncludeCore -HardMatch
     $vocabularyId = $vocabulary.data.management.vocabularies.data.vocabularyId
     foreach ($key in $vocabKeyObject) {
         if ($key.isObsolete) { Write-Verbose "Not importing: '$($key.key)' as it's obsolete"; continue }

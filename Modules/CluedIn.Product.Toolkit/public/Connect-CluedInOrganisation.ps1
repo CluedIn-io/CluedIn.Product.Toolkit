@@ -111,6 +111,7 @@ function Connect-CluedInOrganisation {
                 Organisation = $Organisation
                 Username = $cluedInCredentials.UserName
                 Password = $cluedInCredentials.Password
+                UseHTTP = $UseHTTP
             }
             Write-Debug "Params: $($tokenParams | Out-String)"
             $token = Get-CluedInAPIToken @tokenParams

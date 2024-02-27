@@ -38,7 +38,7 @@ function Get-CluedInAPIToken {
 
     $protocol = $UseHTTP ? 'http' : 'https'
 
-    $requestUrl =  '{0}://{1}.{2}/auth/connect/token' -f $protocol, $Organisation, $BaseURL
+    $requestUrl = '{0}://{1}.{2}/auth/connect/token' -f $protocol, $Organisation, $BaseURL
     $body = "username=$enc_username&password=$enc_password&client_id=$Organisation&grant_type=password"
     $headers = @{
         'Content-Type' = 'application/x-www-form-urlencoded'

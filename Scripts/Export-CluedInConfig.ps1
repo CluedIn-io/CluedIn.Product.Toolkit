@@ -56,6 +56,7 @@ param(
     [Parameter(Mandatory)][string]$BaseURL,
     [Parameter(Mandatory)][string]$Organisation,
     [Parameter(Mandatory)][string]$BackupPath,
+    [switch]$UseHTTP,
     [string]$SelectVocabularies = 'None',
     [string]$SelectDataSets = 'None',
     [string]$SelectRules = 'None',
@@ -69,7 +70,7 @@ Write-Verbose "Importing modules"
 Import-Module "$PSScriptRoot/../Modules/CluedIn.Product.Toolkit"
 
 Write-Host "INFO: Connecting to 'https://$Organisation.$BaseURL'"
-Connect-CluedInOrganisation -BaseURL $BaseURL -Organisation $Organisation
+Connect-CluedInOrganisation -BaseURL $BaseURL -Organisation $Organisation -UseHTTP:$UseHTTP
 
 Write-Host "INFO: Starting backup"
 

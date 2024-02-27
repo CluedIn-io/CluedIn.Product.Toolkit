@@ -9,6 +9,8 @@ function Connect-CluedInOrganisation {
 
         The function should be ran before doing any work with a CluedIn Organisation
 
+        !!   If ${env:CLUEDIN_HOME} is set to $true, http will be used instead   !!
+
         .PARAMETER BaseURL
         This is the Base url for the CluedIn environment. This should not include the organisation.
         ie. If you normally access on 'org.customer.com', please only use 'customer.com'
@@ -35,6 +37,7 @@ function Connect-CluedInOrganisation {
         [Parameter(Mandatory)][string]$BaseURL,
         [Parameter(Mandatory)][string]$Organisation,
         [string]$APIToken,
+        [switch]$UseHTTP,
         [switch]$Force
     )
 
@@ -55,9 +58,11 @@ function Connect-CluedInOrganisation {
     }
 
     function getCluedInVersion() {
-        $uri = 'https://{0}.{1}/api/status' -f $Organisation, $BaseUrl
+        $uri = '{0}://{1}.{2}/api/status' -f $protocol, $Organisation, $BaseUrl
         return [version](Invoke-WebRequest -uri $uri).headers.'x-cluedin-version'[0]
     }
+
+    $protocol = $UseHTTP ? 'http' : 'https'
 
     $version = getCluedInVersion
     if (!$version) { throw "Issue obtaining version. Version returned: '$version'" }
@@ -106,6 +111,7 @@ function Connect-CluedInOrganisation {
                 Organisation = $Organisation
                 Username = $cluedInCredentials.UserName
                 Password = $cluedInCredentials.Password
+                UseHTTP = $UseHTTP
             }
             Write-Debug "Params: $($tokenParams | Out-String)"
             $token = Get-CluedInAPIToken @tokenParams
@@ -116,7 +122,7 @@ function Connect-CluedInOrganisation {
 
     ${env:CLUEDIN_ORGANISATION} = $Organisation
     ${env:CLUEDIN_CURRENTVERSION} = $envVersion
-    ${env:CLUEDIN_ENDPOINT} = 'https://{0}.{1}' -f $Organisation, $BaseURL
+    ${env:CLUEDIN_ENDPOINT} = '{0}://{1}.{2}' -f $protocol, $Organisation, $BaseURL
     ${env:CLUEDIN_JWTOKEN} = $tokenContent
 
     if (Test-CluedInWebConnectivity) {

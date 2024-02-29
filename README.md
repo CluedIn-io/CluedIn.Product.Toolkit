@@ -32,6 +32,7 @@ Both of these will work so long as you have the toolkit imported. It will attemp
 
 The way it works is `Export-CluedInConfig.ps1` will export the configuration as json files.
 You must specify `BaseURL`, `Organisation`, and `BackupPath`. There are then a few additional parameters to define what to export. These begin with `Select` followed by the type of resource to export. (ie. `SelectDataSets`).
+**Note**: If you are using this on a 'Home' environment, you'll need to append port 8888 (`:8888`) to the end of the base URL and also use `-UseHTTP` as HTTPS isn't supported in home environments by default.
 
 By default, all these will be set to `None`, meaning if you were to run the script without specifying what to export, you will export nothing. There is no hard and fast rule as to export order. You can export a few bits at once, you can export everything, and mix and match. Another supported value is `All` which will work for all Select parameters except for `SelectVocabularies`. This is because CluedIn by default comes shipped with Core Vocabularies which may contain thousands of vocabulary keys. This is not ideal in an export scenario.
 

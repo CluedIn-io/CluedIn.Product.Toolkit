@@ -1,0 +1,87 @@
+{
+  "data": {
+    "management": {
+      "id": "management",
+      "rule": {
+        "id": "4733c35d-b288-48a7-aed0-c4172d1956a2",
+        "name": "CluedIn Automation Data Part Rule",
+        "description": "[{\"type\":\"paragraph\",\"children\":[{\"text\":\"CluedIn Automation Data Part rule description \"}]}]",
+        "isActive": false,
+        "createdBy": "5beff99f-2aa8-433f-b780-388b2c36ac50",
+        "modifiedBy": "5beff99f-2aa8-433f-b780-388b2c36ac50",
+        "ownedBy": "5beff99f-2aa8-433f-b780-388b2c36ac50",
+        "createdAt": "2024-03-04T13:43:23.5177854+00:00",
+        "modifiedAt": "2024-03-04T13:44:04.371211+00:00",
+        "condition": {
+          "objectTypeId": "00000000-0000-0000-0000-000000000000",
+          "condition": "AND",
+          "field": null,
+          "id": "7e034397-5035-4ca1-a05e-efa5474106be",
+          "operator": "00000000-0000-0000-0000-000000000000",
+          "rules": [],
+          "type": null,
+          "value": null
+        },
+        "actions": null,
+        "rules": [
+          {
+            "id": "d9515b3e-7537-4405-b22a-82cf338e55f7",
+            "name": "CluedIn Automation Data Part Action",
+            "description": null,
+            "organizationId": "95e15698-7bfd-4478-b57b-c0d9bcebb479",
+            "type": "ProcessingRule",
+            "order": 1,
+            "createdBy": "5beff99f-2aa8-433f-b780-388b2c36ac50",
+            "createdAt": "2024-03-04T13:44:04.3788154+00:00",
+            "modifiedBy": null,
+            "modifiedAt": null,
+            "isActive": false,
+            "ownedBy": "5beff99f-2aa8-433f-b780-388b2c36ac50",
+            "conditions": {
+              "objectTypeId": "00000000-0000-0000-0000-000000000000",
+              "condition": "AND",
+              "field": null,
+              "id": "27e5a60e-dc8f-4c38-a3e3-50848bd9c494",
+              "operator": "00000000-0000-0000-0000-000000000000",
+              "rules": [],
+              "type": null,
+              "value": null
+            },
+            "actions": [
+              {
+                "name": "Add Tag",
+                "supportsPreview": false,
+                "supportsProcessingRuleScopes": null,
+                "supportsRuleUsages": null,
+                "properties": [
+                  {
+                    "name": "Value",
+                    "type": "System.String",
+                    "kind": "None",
+                    "friendlyType": null,
+                    "friendlyName": "Value",
+                    "defaultValue": null,
+                    "value": "automate",
+                    "isStringOnly": false,
+                    "excludedProperties": null,
+                    "isRequired": true
+                  }
+                ],
+                "type": "CluedIn.Rules.Actions.AddTag, CluedIn.Rules"
+              }
+            ]
+          }
+        ],
+        "sourceDetail": null,
+        "author": {
+          "id": "5beff99f-2aa8-433f-b780-388b2c36ac50",
+          "username": "jjr@cluedin.com",
+          "__typename": "User"
+        },
+        "scope": "DataPart",
+        "__typename": "Rule"
+      },
+      "__typename": "Management"
+    }
+  }
+}

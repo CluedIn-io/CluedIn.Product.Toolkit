@@ -13,12 +13,12 @@
         "logoType": null,
         "crashedDuringUpload": false,
         "author": {
-          "id": "fc3b9624-005a-43f6-8661-d7e2ae9a717b",
+          "id": "5beff99f-2aa8-433f-b780-388b2c36ac50",
           "username": "jjr@cluedin.com",
           "__typename": "User"
         },
         "fileMetadata": null,
-        "createdAt": "2024-03-04T10:36:54.602Z",
+        "createdAt": "2024-03-04T12:59:46.635Z",
         "type": "endpoint",
         "dataSourceSet": {
           "id": "1",
@@ -33,7 +33,7 @@
         },
         "dataSets": [
           {
-            "id": "55036A5C-7406-4F21-AEA5-4861EC5A58DC",
+            "id": "E0CDBF5E-23F4-474C-900D-1BA7F1888663",
             "name": "CluedIn Automation Data Set",
             "isBridge": false,
             "isArchive": null,
@@ -67,12 +67,12 @@
             "annotation": null,
             "stats": null,
             "author": {
-              "id": "fc3b9624-005a-43f6-8661-d7e2ae9a717b",
+              "id": "5beff99f-2aa8-433f-b780-388b2c36ac50",
               "username": "jjr@cluedin.com",
               "__typename": "User"
             },
-            "createdAt": "2024-03-04T10:36:54.875Z",
-            "updatedAt": "2024-03-04T10:36:54.875Z",
+            "createdAt": "2024-03-04T13:04:47.794Z",
+            "updatedAt": "2024-03-04T13:04:47.794Z",
             "dataSource": {
               "id": "1",
               "type": "endpoint",
@@ -83,9 +83,9 @@
             "__typename": "DataSet"
           }
         ],
-        "connectorConfigurationId": "1DC86265-3ED7-4A10-8674-3A0F8B631BD0",
+        "connectorConfigurationId": "B311B330-698C-4A85-848E-0DFF034AA7EF",
         "connectorConfiguration": {
-          "id": "1dc86265-3ed7-4a10-8674-3a0f8b631bd0",
+          "id": "b311b330-698c-4a85-848e-0dff034aa7ef",
           "name": "Endpoint Data Source",
           "accountDisplay": "CluedIn Automation Data Source",
           "accountId": "0",
@@ -110,8 +110,8 @@
             "streamModes": null,
             "__typename": "Connector"
           },
-          "createdDate": "2024-03-04T10:36:54.648025+00:00",
-          "entityId": "b0cc630d-7d66-5ef7-a8e8-d2fb9decea84",
+          "createdDate": "2024-03-04T12:59:46.693855+00:00",
+          "entityId": "3f4c6024-243a-548b-81d8-015cf8566e4c",
           "failingAuthentication": false,
           "guide": null,
           "helperConfiguration": {
@@ -127,11 +127,11 @@
           "supportsAutomaticWebhookCreation": false,
           "supportsConfiguration": true,
           "supportsWebhooks": false,
-          "userId": "fc3b9624-005a-43f6-8661-d7e2ae9a717b",
+          "userId": "5beff99f-2aa8-433f-b780-388b2c36ac50",
           "userName": "jjr@cluedin.com",
           "users": [
             {
-              "id": "fc3b9624-005a-43f6-8661-d7e2ae9a717b",
+              "id": "5beff99f-2aa8-433f-b780-388b2c36ac50",
               "username": "jjr@cluedin.com",
               "roles": [
                 "OrganizationAdmin"

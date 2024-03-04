@@ -1,29 +1,27 @@
-# Create Data Source Set
-# Create Data Source
-# Create Data Set
+[CmdletBinding()]
+param(
+    [string]$BaseURL = '51.140.229.75.sslip.io',
+    [string]$Organization = 'cluedin'
+)
 
+Connect-CluedInOrganisation -BaseURL $BaseURL -Organisation $Organization
 
+if ([version]${env:CLUEDIN_CURRENTVERSION} -lt [version]'4.0.0') { throw "Unable to support sample set data" }
 
+$dataSourceSetObject = Get-Content -Path './SampleData/jsons/Data/SourceSets/DataSourceSet.json' | ConvertFrom-Json -Depth 99
+$dataSourceSet = New-CluedInDataSourceSet -Object $dataSourceSetObject.data.inbound.dataSourceSets.data
 
+$dataSourceObject = Get-Content -Path './SampleData/jsons/Data/Sources/1-DataSource.json' | ConvertFrom-Json -Depth 99
+$dataSourceObject.data.inbound.dataSource.dataSourceSet.id = $dataSourceSet.data.inbound.createDataSourceSet
+$dataSource = New-CluedInDataSource -Object $dataSourceObject.data.inbound.dataSource
 
-Connect-CluedInOrganisation -BaseURL 'devcluedin.com' -Organisation 'cluedin'
+$dataSetObject = Get-Content -Path './SampleData/jsons/Data/Sets/55036A5C-7406-4F21-AEA5-4861EC5A58DC-DataSet.json' | ConvertFrom-Json -Depth 99
+$dataSetObject.data.inbound.dataSet.dataSourceId = $dataSource.data.inbound.createDataSource.id
+$dataSetObject.data.inbound.dataSet.dataSource.id = $dataSource.data.inbound.createDataSource.id
+$dataSet = New-CluedInDataSet -Object $dataSetObject.data.inbound.dataSet
 
-# admin@devcluedin.com
-# Password-01
+$endpointId = $dataSet.data.inbound.createDataSets.id
 
-$dataSourceSet = New-CluedInDataSourceSet -DisplayName 'People Data Set'
-
-$dataSourceParams = @{
-    DataSourceSetId = $dataSourceSet.data.inbound
-    Name = 'People Data Source'
-    SourceType = 'endpoint'
-    AuthorID = '389db794-805d-4a28-82c6-da358f0cb63c'
-}
-$datasource = New-CluedInDataSource @dataSourceParams
-
-New-CluedInDataSet -Object $dataSetObject
-
-$endpointId = '663C2AFA-8A9B-4936-863B-80CE833229C1'
-
-$jsonBlob = Get-Content -Path '/mnt/c/.sandbox/Hoth-Testing/sample-people.json' -Raw
-Send-CluedInIngestionData -Json $jsonBlob -IngestionEndpoint $endpointId
+$jsonBlob = Get-Content -Path './SampleData/sample-people.json' -Raw
+$sendResult = Send-CluedInIngestionData -Json $jsonBlob -IngestionEndpoint $endpointId
+if ($sendResult.error -eq 'True' ) { throw "Uh oh, we have a throw" }

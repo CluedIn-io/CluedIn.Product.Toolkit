@@ -53,8 +53,6 @@ function Get-CluedInAPIToken {
         'Content-Type' = 'application/x-www-form-urlencoded'
     }
 
-    Write-Host "requestUrl $requestUrl | body $body"
-
     $response = Invoke-RestMethod -Uri $requestUrl -Method 'POST' -Headers $headers -Body $body
 
     return $response

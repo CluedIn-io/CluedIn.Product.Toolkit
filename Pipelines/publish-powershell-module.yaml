@@ -8,6 +8,8 @@ trigger:
     exclude:
     - Modules/CluedIn.Product.Toolkit/tests
 
+pr: none
+
 parameters:
 - name: moduleVersion
   displayName: 'Module Version'
@@ -15,7 +17,7 @@ parameters:
   default: '*'
 - name: publish
   type: boolean
-  default: false
+  default: true
 
 variables:
 - name: moduleName
@@ -83,7 +85,6 @@ steps:
 
     Update-ModuleManifest -Path $ModulePath/${{ variables.moduleName }}.psd1 -ModuleVersion $newVersion
     Write-Host "##vso[task.setvariable variable=MODULE_VERSION]$newVersion"
-
   displayName: Update Module Version
 
 - pwsh: |
@@ -115,13 +116,13 @@ steps:
     @(
       "$wd/Pipelines/publish-powershell-module.yaml"
       "$wd/ReleaseNotes"
+      "$wd/SampleData"
       "$wd/Modules/CluedIn.Product.Toolkit/CluedIn.Product.Toolkit.nuspec"
       "$wd/Modules/CluedIn.Product.Toolkit/tests"
     ) | ForEach-Object { Remove-Item -Path $_ -Force -Recurse }
 
     $destinationZip = '$(Build.ArtifactStagingDirectory)/CluedIn.Product.Toolkit_$(MODULE_VERSION).zip'
     Compress-Archive -Path $wd -DestinationPath $destinationZip
-
   displayName: Package Customer Version
 
 - publish: $(Build.ArtifactStagingDirectory)

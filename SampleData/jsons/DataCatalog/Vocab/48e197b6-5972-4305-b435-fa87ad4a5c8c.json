@@ -1,0 +1,51 @@
+{
+  "data": {
+    "management": {
+      "id": "management",
+      "vocabulary": {
+        "vocabularyId": "48e197b6-5972-4305-b435-fa87ad4a5c8c",
+        "vocabularyName": "CluedIn Automation Vocabulary",
+        "keyPrefix": "ca.vocabulary",
+        "isCluedInCore": false,
+        "entityTypeConfiguration": {
+          "icon": "User",
+          "entityType": "/Infrastructure/User",
+          "displayName": "User",
+          "__typename": "EntityTypeConfiguration"
+        },
+        "isDynamic": true,
+        "isProvider": false,
+        "isActive": false,
+        "grouping": "/Infrastructure/User",
+        "createdAt": "2024-03-04T13:29:50.5861777+00:00",
+        "providerId": null,
+        "description": "[{\"type\":\"paragraph\",\"children\":[{\"text\":\"CluedIn Automation Vocabulary\"}]}]",
+        "connector": {
+          "id": null,
+          "name": null,
+          "about": null,
+          "icon": null,
+          "__typename": "Connector"
+        },
+        "__typename": "Vocabulary",
+        "isVocabularyOwner": true,
+        "author": {
+          "id": "5beff99f-2aa8-433f-b780-388b2c36ac50",
+          "username": "jjr@cluedin.com",
+          "__typename": "User"
+        },
+        "owners": [
+          {
+            "id": "5beff99f-2aa8-433f-b780-388b2c36ac50",
+            "username": "jjr@cluedin.com",
+            "roles": [
+              "OrganizationAdmin"
+            ],
+            "__typename": "User"
+          }
+        ]
+      },
+      "__typename": "Management"
+    }
+  }
+}

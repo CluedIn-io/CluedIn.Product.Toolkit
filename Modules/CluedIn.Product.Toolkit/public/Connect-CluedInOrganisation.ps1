@@ -115,15 +115,41 @@ function Connect-CluedInOrganisation {
             }
             Write-Debug "Params: $($tokenParams | Out-String)"
             $token = Get-CluedInAPIToken @tokenParams
-            $tokenContent = $token.Access_token
+            $tokenContent = $token.access_token
+            $tokenRefresh = $token.refresh_token
             Write-Verbose "Token successfully obtained"
         }
     }
 
     ${env:CLUEDIN_ORGANISATION} = $Organisation
+    ${env:CLUEDIN_BASEURL} = $BaseURL
     ${env:CLUEDIN_CURRENTVERSION} = $envVersion
     ${env:CLUEDIN_ENDPOINT} = '{0}://{1}.{2}' -f $protocol, $Organisation, $BaseURL
     ${env:CLUEDIN_JWTOKEN} = $tokenContent
+    ${env:CLUEDIN_REFRESH_TOKEN} = $tokenRefresh
+
+    Write-Verbose "Creating refresh token job"
+    Start-Job -InitializationScript { Import-Module '../' } -ScriptBlock {
+        while ($true) {
+            Start-Sleep 300
+            $token = ${env:CLUEDIN_JWTOKEN}
+            $tokenDetails = ($token.split('.')[1] | base64 -d 2>nul) | ConvertFrom-Json
+            $refreshTime = Get-Date -UnixTimeSeconds $tokenDetails.exp
+            Write-Host "Refresh Time: $refreshTime"
+            $shouldRefresh = (Get-Date) -gt ($refreshTime).AddMinutes(-10)
+            if ($shouldRefresh) {
+                Write-Host "Refreshing!"
+                Try {
+                    $tokenResponse = Get-CluedInAPIToken -RefreshToken ${env:CLUEDIN_REFRESH_TOKEN} -UseHTTP:${using:UseHTTP}
+                    ${env:CLUEDIN_JWTOKEN} = $tokenResponse.access_token
+                    ${env:CLUEDIN_REFRESH_TOKEN} = $tokenResponse.refresh_token
+                }
+                Catch {
+                    Write-Warning "Issue refreshing token"
+                }
+            }
+        }
+    }
 
     if (Test-CluedInWebConnectivity) {
         Write-Host "Connected to '${env:CLUEDIN_ENDPOINT}' successfully" -ForegroundColor 'Green'

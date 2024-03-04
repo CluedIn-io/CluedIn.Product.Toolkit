@@ -218,7 +218,7 @@ if (!(Test-Path -Path $exportTargetsPath -PathType Container)) { New-Item $expor
 switch ($SelectExportTargets) {
     'All' {
         $exportTargets = Get-CluedInExportTargets
-        $exportTargetsId = $exportTargets.data.inbound.connectorConfigurations.configurations.id
+        [array]$exportTargetsId = $exportTargets.data.inbound.connectorConfigurations.configurations.id
     }
     'None' { $null }
     default { $exportTargetsId = ($SelectExportTargets -Split ',').Trim() }
@@ -237,7 +237,7 @@ if (!(Test-Path -Path $exportStreamsPath -PathType Container)) { New-Item $expor
 switch ($SelectStreams) {
     'All' {
         $streams = Get-CluedInStreams
-        $streamsId = $streams.data.consume.streams.data.id
+        [array]$streamsId = $streams.data.consume.streams.data.id
     }
     'None' { $null }
     default { $streamsId = ($SelectStreams -Split ',').Trim() }
@@ -256,7 +256,7 @@ if (!(Test-Path -Path $glossaryPath -PathType Container)) { New-Item $glossaryPa
 switch ($SelectGlossaries) {
     'All' {
         $glossaries = Get-CluedInGlossary
-        $glossaryIds = $glossaries.data.management.glossaryCategories.id
+        [array]$glossaryIds = $glossaries.data.management.glossaryCategories.id
     }
     'None' { $null }
     default { $glossaryIds = ($SelectGlossaries -Split ',').Trim() }
@@ -289,7 +289,7 @@ if (!(Test-Path -Path $cleanProjectsPath -PathType Container)) { New-Item $clean
 switch ($SelectCleanProjects) {
     'All' {
         $cleanProjects = Get-CluedInCleanProjects
-        $cleanProjectsIds = $cleanProjects.data.preparation.allCleanProjects.projects.id
+        [array]$cleanProjectsIds = $cleanProjects.data.preparation.allCleanProjects.projects.id
     }
     'None' { $null }
     default { $cleanProjectsIds = ($SelectCleanProjects -Split ',').Trim() }

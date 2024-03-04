@@ -23,6 +23,8 @@ function Set-CluedInStreamExportTarget {
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'setupConnectorStream'
 
+    if (!$Object.connector) { Write-Warning "No export target configured."; return }
+
     $query = @{
         variables =@{
             streamId = $Id

@@ -1,0 +1,36 @@
+{
+  "data": {
+    "management": {
+      "id": "management",
+      "glossaryTerm": {
+        "id": "231ec707-bec3-4ea7-8437-3de3921734de",
+        "name": "CluedIn Automation Glossary Sample",
+        "categoryId": "a00a3cdc-de00-4701-723b-08dc3c513129",
+        "category": {
+          "id": "a00a3cdc-de00-4701-723b-08dc3c513129",
+          "name": "CluedIn Automation Glossary",
+          "__typename": "GlossaryCategory"
+        },
+        "active": false,
+        "createdBy": "5beff99f-2aa8-433f-b780-388b2c36ac50",
+        "modifiedBy": null,
+        "isEndorsedByCurrentUser": false,
+        "ownedBy": "5beff99f-2aa8-433f-b780-388b2c36ac50",
+        "createdAt": "2024-03-04T13:44:35.5862804+00:00",
+        "modifiedAt": null,
+        "shortDescription": null,
+        "certificationLevel": null,
+        "userRating": 0,
+        "rating": "0",
+        "version": "1",
+        "ruleSet": null,
+        "description": null,
+        "isObsolete": false,
+        "endorsedBy": [],
+        "relatedTags": [],
+        "__typename": "GlossaryTerm"
+      },
+      "__typename": "Management"
+    }
+  }
+}

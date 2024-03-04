@@ -1,0 +1,77 @@
+{
+  "data": {
+    "management": {
+      "id": "management",
+      "vocabularyKeysFromVocabularyId": {
+        "total": 1,
+        "data": [
+          {
+            "displayName": "CluedIn Automation Vocabulary Key",
+            "vocabularyKeyId": "0d6fbd40-19bd-4fd2-829f-92c8fb82e8af",
+            "vocabularyId": "48e197b6-5972-4305-b435-fa87ad4a5c8c",
+            "name": "key",
+            "isVisible": true,
+            "isCluedInCore": false,
+            "isDynamic": true,
+            "isProvider": false,
+            "isObsolete": false,
+            "groupName": "CluedIn Automation Vocabulary Key Group",
+            "key": "ca.vocabulary.key",
+            "storage": "Keyword",
+            "dataClassificationCode": "/",
+            "dataType": "Text",
+            "description": "[{\"type\":\"paragraph\",\"children\":[{\"text\":\"CluedIn Automation Vocabulary Key description field\"}]}]",
+            "dataAnnotationsIsPrimaryKey": null,
+            "dataAnnotationsIsEditable": null,
+            "dataAnnotationsIsNullable": null,
+            "dataAnnotationsIsRequired": null,
+            "dataAnnotationsMinimumLength": null,
+            "dataAnnotationsMaximumLength": null,
+            "providerId": null,
+            "compositeVocabularyId": null,
+            "compositeVocabulary": {
+              "name": null,
+              "displayName": null,
+              "dataType": null,
+              "__typename": "CompositeVocabulary"
+            },
+            "mapsToOtherKeyId": null,
+            "glossaryTermId": null,
+            "createdAt": "2024-03-04T13:30:26.6550841+00:00",
+            "createdBy": "5beff99f-2aa8-433f-b780-388b2c36ac50",
+            "mappedKey": null,
+            "isValueChangeInsignificant": false,
+            "connector": {
+              "id": null,
+              "name": null,
+              "about": null,
+              "icon": null,
+              "type": null,
+              "__typename": "Connector"
+            },
+            "vocabulary": {
+              "vocabularyId": "48e197b6-5972-4305-b435-fa87ad4a5c8c",
+              "vocabularyName": "CluedIn Automation Vocabulary",
+              "connector": {
+                "id": null,
+                "name": null,
+                "about": null,
+                "icon": null,
+                "__typename": "Connector"
+              },
+              "__typename": "Vocabulary"
+            },
+            "author": {
+              "id": "5beff99f-2aa8-433f-b780-388b2c36ac50",
+              "username": "jjr@cluedin.com",
+              "__typename": "User"
+            },
+            "__typename": "VocabularyKey"
+          }
+        ],
+        "__typename": "PagedVocabularyKey"
+      },
+      "__typename": "Management"
+    }
+  }
+}

@@ -71,27 +71,30 @@ if (!(Test-Path -Path $dataSourceSetsPath, $dataSourcesPath, $dataSetsPath -Path
 }
 
 # Settings
-Write-Host "INFO: Importing Admin Settings" -ForegroundColor 'Green'
-$restoreAdminSetting = Get-Content -Path (Join-Path -Path $generalPath -ChildPath 'AdminSetting.json') | ConvertFrom-Json -Depth 20
+$adminSettingsPath = Join-Path -Path $generalPath -ChildPath 'AdminSetting.json'
+if (Test-Path -Path $adminSettingsPath -PathType Leaf) {
+    Write-Host "INFO: Importing Admin Settings" -ForegroundColor 'Green'
+    $restoreAdminSetting = Get-Content -Path $adminSettingsPath | ConvertFrom-Json -Depth 20
 
-$settings = ($restoreAdminSetting.data.administration.configurationSettings).psobject.properties.name
-$currentSettings = (Get-CluedInAdminSetting).data.administration.configurationSettings
+    $settings = ($restoreAdminSetting.data.administration.configurationSettings).psobject.properties.name
+    $currentSettings = (Get-CluedInAdminSetting).data.administration.configurationSettings
 
-foreach ($setting in $settings) {
-    $key = $setting
+    foreach ($setting in $settings) {
+        $key = $setting
 
-    if ($key -notin $currentSettings.psobject.properties.name) {
-        Write-Verbose "Skipping '$key' as it's not a current setting"
-        continue
-    }
+        if ($key -notin $currentSettings.psobject.properties.name) {
+            Write-Verbose "Skipping '$key' as it's not a current setting"
+            continue
+        }
 
-    $newValue = $restoreAdminSetting.data.administration.configurationSettings.$key
-    $currentValue = $currentSettings.$key
+        $newValue = $restoreAdminSetting.data.administration.configurationSettings.$key
+        $currentValue = $currentSettings.$key
 
-    if ($newValue -ne $currentValue) {
-        Write-Host "Processing Admin Setting '$key'. Was: $currentValue, Now: $newValue" -ForegroundColor 'Cyan'
-        $adminSettingResult = Set-CluedInAdminSettings -Name $key -Value $newValue
-        checkResults($adminSettingResult)
+        if ($newValue -ne $currentValue) {
+            Write-Host "Processing Admin Setting '$key'. Was: $currentValue, Now: $newValue" -ForegroundColor 'Cyan'
+            $adminSettingResult = Set-CluedInAdminSettings -Name $key -Value $newValue
+            checkResults($adminSettingResult)
+        }
     }
 }
 

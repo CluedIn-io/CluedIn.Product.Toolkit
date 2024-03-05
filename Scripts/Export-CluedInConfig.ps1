@@ -57,6 +57,7 @@ param(
     [Parameter(Mandatory)][string]$Organisation,
     [Parameter(Mandatory)][string]$BackupPath,
     [switch]$UseHTTP,
+    [switch]$BackupAdminSettings,
     [string]$SelectVocabularies = 'None',
     [string]$SelectDataSets = 'None',
     [string]$SelectRules = 'None',
@@ -79,7 +80,9 @@ $generalPath = Join-Path -Path $BackupPath -ChildPath 'General'
 if (!(Test-Path -Path $generalPath -PathType Container)) { New-Item $generalPath -ItemType Directory | Out-Null }
 
 Write-Host "INFO: Exporting Admin Settings" -ForegroundColor 'Green'
-Get-CluedInAdminSetting | Out-JsonFile -Path $generalPath -Name 'AdminSetting'
+if ($BackupAdminSettings) {
+    Get-CluedInAdminSetting | Out-JsonFile -Path $generalPath -Name 'AdminSetting'
+}
 
 # Data Source Sets
 $path = Join-Path -Path $BackupPath -ChildPath 'Data/SourceSets'

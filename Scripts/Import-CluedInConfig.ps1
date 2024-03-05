@@ -538,7 +538,7 @@ foreach ($stream in $streams) {
 
 # Glossaries
 Write-Host "INFO: Importing Glossaries" -ForegroundColor 'Green'
-$glossaries = Get-ChildItem -Path $glossariesPath
+$glossaries = Get-ChildItem -Path $glossariesPath -Directory -ErrorAction 'SilentlyContinue'
 
 $currentGlossaries = Get-CluedInGlossary
 $currentGlossariesObject = $currentGlossaries.data.management.glossaryCategories

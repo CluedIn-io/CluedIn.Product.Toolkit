@@ -129,7 +129,7 @@ function Connect-CluedInOrganisation {
     ${env:CLUEDIN_REFRESH_TOKEN} = $tokenRefresh
 
     Write-Verbose "Creating refresh token background job"
-    Start-Job -InitializationScript { Import-Module '../' } -ScriptBlock {
+    Start-ThreadJob -InitializationScript { Import-Module '../' } -ScriptBlock {
         while ($true) {
             Start-Sleep 300
             $token = ${env:CLUEDIN_JWTOKEN}

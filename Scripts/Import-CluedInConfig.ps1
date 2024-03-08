@@ -550,7 +550,8 @@ foreach ($glossary in $glossaries) {
     $glossaryId = $null
     $glossaryPath = $glossary.FullName
     $glossaryFile = Get-ChildItem -Path $glossaryPath -Filter "*Glossary.json" -Recurse
-    if ($glossaryFile.count -ne 1) { Write-Error "Too many Glossary files found. Skipping"; continue }
+    if ($glossaryFile.count -eq 0) { Write-Verbose "No glossaries, continuing"; continue }
+    if ($glossaryFile.count -gt 1) { Write-Warning "Too many Glossary files found. Skipping"; continue }
 
     $termsFile = Get-ChildItem -Path $glossaryPath -Filter "*Term.json" -Recurse
 

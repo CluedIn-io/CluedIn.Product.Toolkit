@@ -18,7 +18,7 @@ $dataSourceObject.data.inbound.dataSource.dataSourceSet.id = $dataSourceSet.data
 $dataSource = New-CluedInDataSource -Object $dataSourceObject.data.inbound.dataSource
 
 Write-Host "Creating data set"
-$dataSetObject = Get-Content -Path './SampleData/jsons/Data/Sets/55036A5C-7406-4F21-AEA5-4861EC5A58DC-DataSet.json' | ConvertFrom-Json -Depth 99
+$dataSetObject = Get-Content -Path './SampleData/jsons/Data/Sets/925268EC-8908-44E2-8D0C-D83FE50937D0-DataSet.json' | ConvertFrom-Json -Depth 99
 $dataSetObject.data.inbound.dataSet.dataSourceId = $dataSource.data.inbound.createDataSource.id
 $dataSetObject.data.inbound.dataSet.dataSource.id = $dataSource.data.inbound.createDataSource.id
 $dataSet = New-CluedInDataSet -Object $dataSetObject.data.inbound.dataSet

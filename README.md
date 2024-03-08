@@ -15,9 +15,9 @@ Using this toolkit is very simple from a local usage perspective. We simply impo
 1. Open up a `pwsh` and import the module. If doing this locally, you can simply do:
     `Import-Module /path/to/CluedIn.Product.Toolkit`
 1. Once imported, we are ready to use the Functions or the Scripts.
-1. If using the functions, please ensure you run `Connect-CluedInOrganisation` before running any function, as it will fail to produce any results.
+1. If using the functions, please ensure you run `Connect-CluedInOrganization` before running any function, as it will fail to produce any results.
 
-    **Note**: The functions rely on a JWToken being obtained. This token by default will last 60 minutes only. If it loses connection, you'll need to run `Connect-CluedInOrganisation -Force` to refresh.
+    **Note**: The functions rely on a JWToken being obtained. This token by default will last 60 minutes only. If it loses connection, you'll need to run `Connect-CluedInOrganization -Force` to refresh.
     
 1. Once you have connected successfully, you can then run any function within the toolkit. 
 
@@ -28,10 +28,10 @@ Included in the toolkit are 2 main scripts.
 - `Export-CluedInConfig.ps1`
 - `Import-CluedInConfig.ps1`
 
-Both of these will work so long as you have the toolkit imported. It will attempt to connect when you run them, so it's not necessary to run `Connect-CluedInOrganisation` beforehand.
+Both of these will work so long as you have the toolkit imported. It will attempt to connect when you run them, so it's not necessary to run `Connect-CluedInOrganization` beforehand.
 
 The way it works is `Export-CluedInConfig.ps1` will export the configuration as json files.
-You must specify `BaseURL`, `Organisation`, and `BackupPath`. There are then a few additional parameters to define what to export. These begin with `Select` followed by the type of resource to export. (ie. `SelectDataSets`).
+You must specify `BaseURL`, `Organization`, and `BackupPath`. There are then a few additional parameters to define what to export. These begin with `Select` followed by the type of resource to export. (ie. `SelectDataSets`).
 
 **Note**: If you are using this on a 'Home' environment, you'll need to append port 8888 (`:8888`) to the end of the base URL and also use `-UseHTTP` as HTTPS isn't supported in home environments by default.
 

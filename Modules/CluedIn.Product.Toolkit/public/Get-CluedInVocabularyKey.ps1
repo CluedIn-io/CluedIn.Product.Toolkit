@@ -15,12 +15,12 @@ function Get-CluedInVocabularyKey {
         .EXAMPLE
         PS> Get-CluedInVocabularyKey -Id 10
 
-        This will query will return Vocabulary Key with id '10' for the connected CluedIn Organisation
+        This will query will return Vocabulary Key with id '10' for the connected CluedIn Organization
 
         .EXAMPLE
         PS> Get-CluedInVocabularyKey
 
-        This will query will return all Vocabulary Keys for the connected CluedIn Organisation
+        This will query will return all Vocabulary Keys for the connected CluedIn Organization
     #>
 
     [CmdletBinding()]

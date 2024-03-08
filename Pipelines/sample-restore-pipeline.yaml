@@ -3,14 +3,14 @@
 trigger: none
 pr: none
 
-name: ${{ parameters.organisation }}.${{ parameters.baseURL }} Restore ($(Date:yyyyMMdd)$(Rev:r))
+name: ${{ parameters.organization }}.${{ parameters.baseURL }} Restore ($(Date:yyyyMMdd)$(Rev:r))
 
 parameters:
 - name: baseURL
   displayName: 'CluedIn Base URL'
   type: string
-- name: organisation
-  displayName: 'CluedIn Organisation'
+- name: organization
+  displayName: 'CluedIn Organization'
   type: string
 - name: version
   displayName: 'CluedIn Environment Version'
@@ -43,7 +43,7 @@ jobs:
       filePath: Scripts/Confirm-CluedInConfig.ps1
       arguments: >-
         -BaseURL ${{ parameters.baseURL }}
-        -Organisation ${{ parameters.organisation }}
+        -Organization ${{ parameters.organization }}
         -Version ${{ parameters.version }}
         -RestorePath '$(pipeline.workspace)/configPipeline/CluedIn-Configuration'
       pwsh: true
@@ -76,7 +76,7 @@ jobs:
       filePath: Scripts/Import-CluedInConfig.ps1
       arguments: >-
         -BaseURL ${{ parameters.baseURL }}
-        -Organisation ${{ parameters.organisation }}
+        -Organization ${{ parameters.organization }}
         -Version ${{ parameters.version }}
         -RestorePath '$(pipeline.workspace)/configPipeline/CluedIn-Configuration'
       pwsh: true

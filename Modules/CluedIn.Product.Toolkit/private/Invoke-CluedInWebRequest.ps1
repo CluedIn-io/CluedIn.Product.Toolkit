@@ -19,7 +19,7 @@ function Invoke-CluedInWebRequest {
         [string]$Body
     )
 
-    if (!${env:CLUEDIN_JWTOKEN}) { throw "Please run 'Connect-CluedInOrganisation' before attempting" }
+    if (!${env:CLUEDIN_JWTOKEN}) { throw "Please run 'Connect-CluedInOrganization' before attempting" }
 
     $headers = @{
         'Content-Type' = 'application/json'

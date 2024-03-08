@@ -3,9 +3,9 @@
     "management": {
       "id": "management",
       "vocabulary": {
-        "vocabularyId": "48e197b6-5972-4305-b435-fa87ad4a5c8c",
-        "vocabularyName": "CluedIn Automation Vocabulary",
-        "keyPrefix": "ca.vocabulary",
+        "vocabularyId": "9dc86236-ec0e-4962-a78d-30042551381f",
+        "vocabularyName": "Sample Vocabulary 2",
+        "keyPrefix": "sampleVocab2",
         "isCluedInCore": false,
         "entityTypeConfiguration": {
           "icon": "User",
@@ -17,27 +17,27 @@
         "isProvider": false,
         "isActive": false,
         "grouping": "/Infrastructure/User",
-        "createdAt": "2024-03-04T13:29:50.5861777+00:00",
-        "providerId": null,
-        "description": "[{\"type\":\"paragraph\",\"children\":[{\"text\":\"CluedIn Automation Vocabulary\"}]}]",
+        "createdAt": "2024-03-08T16:02:15.9151375+00:00",
+        "providerId": "742f9d66-8ef2-4544-8a90-41531a26cc59",
+        "description": "[{\"type\":\"paragraph\",\"children\":[{\"text\":\"Sample Vocabulary 2\"}]}]",
         "connector": {
-          "id": null,
-          "name": null,
-          "about": null,
-          "icon": null,
+          "id": "742f9d66-8ef2-4544-8a90-41531a26cc59",
+          "name": "Endpoint Data Source",
+          "about": "Some text about Endpoint Data Sources",
+          "icon": "api/integration/connector/icon/742f9d66-8ef2-4544-8a90-41531a26cc59",
           "__typename": "Connector"
         },
         "__typename": "Vocabulary",
         "isVocabularyOwner": true,
         "author": {
-          "id": "5beff99f-2aa8-433f-b780-388b2c36ac50",
-          "username": "jjr@cluedin.com",
+          "id": "af71fc3b-38bf-49d8-9520-826bed19cda5",
+          "username": "admin@devcluedin.com",
           "__typename": "User"
         },
         "owners": [
           {
-            "id": "5beff99f-2aa8-433f-b780-388b2c36ac50",
-            "username": "jjr@cluedin.com",
+            "id": "af71fc3b-38bf-49d8-9520-826bed19cda5",
+            "username": "admin@devcluedin.com",
             "roles": [
               "OrganizationAdmin"
             ],

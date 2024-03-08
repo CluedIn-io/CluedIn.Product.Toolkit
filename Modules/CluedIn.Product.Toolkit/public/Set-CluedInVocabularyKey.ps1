@@ -38,7 +38,7 @@ function Set-CluedInVocabularyKey {
                 storage = $Object.storage
                 dataClassificationCode = $Object.dataClassificationCode
                 description = $Object.description
-                mapsToOtherKeyId = $Object.mapsToOtherKeyId
+                mapsToOtherKeyId = $Object.mapsToOtherKeyId # This here!!!
                 isValueChangeInsignificant = $Object.isValueChangeInsignificant
                 glossaryTermId = $Object.glossaryTermId
             }

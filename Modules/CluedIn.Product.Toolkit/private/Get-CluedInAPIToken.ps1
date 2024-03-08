@@ -7,10 +7,10 @@ function Get-CluedInAPIToken {
         Returns the JWT in standard powershell format which can then be used to interact with the connected environment.
 
         .PARAMETER BaseURL
-        This should be in the format for fqdn without any protocol, paths, or organisation added to the URL.
+        This should be in the format for fqdn without any protocol, paths, or organization added to the URL.
 
-        .PARAMETER Organisation
-        This is the cluedin organisation name. It normally precedes the baseurl. ie. ORGANISATION.customer.com
+        .PARAMETER Organization
+        This is the cluedin organization name. It normally precedes the baseurl. ie. ORGANIZATION.customer.com
 
         .PARAMETER Username
         This is a username that can access the environment's admin page. It's used for invokes etc.
@@ -19,7 +19,7 @@ function Get-CluedInAPIToken {
         This is the password to the username. It must be in powershell `securestring` format.
 
         .EXAMPLE
-        PS> Get-CluedInAPIToken -BaseURL 'cluedin.com' -Organisation 'customer' -Username 'cluedin' -Password $securePassword
+        PS> Get-CluedInAPIToken -BaseURL 'cluedin.com' -Organization 'customer' -Username 'cluedin' -Password $securePassword
 
         This send a REST request to the authentication endpoint and return a JWT which is returned to the caller.
     #>
@@ -27,7 +27,7 @@ function Get-CluedInAPIToken {
     [CmdletBinding()]
     param(
         [string]$BaseURL = ${env:CLUEDIN_BASEURL},
-        [string]$Organisation = ${env:CLUEDIN_ORGANISATION},
+        [string][Alias('Organisation')]$Organization = ${env:CLUEDIN_ORGANIZATION},
         [Parameter(ParameterSetName = 'Refresh')][string]$RefreshToken = ${env:CLUEDIN_REFRESH_TOKEN},
         [Parameter(ParameterSetName = 'Credentials')][string]$Username,
         [Parameter(ParameterSetName = 'Credentials')][securestring]$Password,
@@ -36,18 +36,18 @@ function Get-CluedInAPIToken {
 
     switch ($PsCmdlet.ParameterSetName) {
         'Refresh' {
-            $body = "grant_type=refresh_token&refresh_token=$RefreshToken&client_id=$Organisation"
+            $body = "grant_type=refresh_token&refresh_token=$RefreshToken&client_id=$Organization"
         }
         'Credentials' {
             $enc_username = [System.Web.HttpUtility]::UrlEncode($Username)
             $enc_password = [System.Web.HttpUtility]::UrlEncode((ConvertFrom-SecureString -AsPlainText $Password))
 
-            $body = "username=$enc_username&password=$enc_password&client_id=$Organisation&grant_type=password"
+            $body = "username=$enc_username&password=$enc_password&client_id=$Organization&grant_type=password"
         }
     }
 
     $protocol = $UseHTTP ? 'http' : 'https'
-    $requestUrl = '{0}://{1}.{2}/auth/connect/token' -f $protocol, $Organisation, $BaseURL
+    $requestUrl = '{0}://{1}.{2}/auth/connect/token' -f $protocol, $Organization, $BaseURL
 
     $headers = @{
         'Content-Type' = 'application/x-www-form-urlencoded'

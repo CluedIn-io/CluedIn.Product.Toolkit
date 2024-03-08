@@ -69,14 +69,14 @@ Copyright = '(c) CluedIn. All rights reserved.'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = 'Connect-CluedInOrganisation', 'Get-CluedInAdminSetting',
+FunctionsToExport = 'Connect-CluedInOrganization', 'Get-CluedInAdminSetting',
                'Get-CluedInAnnotations', 'Get-CluedInAPIToken',
-               'Get-CluedInExportTargets', 'Get-CluedInCurrentOrganisation',
+               'Get-CluedInExportTargets', 'Get-CluedInCurrentOrganization',
                'Get-CluedInDataSet', 'Get-CluedInDataSetContent',
                'Get-CluedInDataSource', 'Get-CluedInDataSourceSet',
                'Get-CluedInEntityType', 'Get-CluedInGlossary',
                'Get-CluedInGlossaryTerms', 'Get-CluedInMapping', 'Get-CluedInMe',
-               'Get-CluedInOrganisationFeatures', 'Get-CluedInRules',
+               'Get-CluedInOrganizationFeatures', 'Get-CluedInRules',
                'Get-CluedInStreams', 'Get-CluedInUsers', 'Get-CluedInVocabulary',
                'Get-CluedInVocabularyById', 'Get-CluedInVocabularyKey',
                'New-CluedInAnnotation', 'New-CluedInAPIToken', 'New-CluedInDataSet',

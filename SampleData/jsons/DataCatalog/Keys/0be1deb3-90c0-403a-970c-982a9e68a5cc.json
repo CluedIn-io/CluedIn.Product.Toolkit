@@ -1,0 +1,148 @@
+{
+  "data": {
+    "management": {
+      "id": "management",
+      "vocabularyKeysFromVocabularyId": {
+        "total": 2,
+        "data": [
+          {
+            "displayName": "Users City",
+            "vocabularyKeyId": "ba4e2357-9cc9-4f01-bedb-b840b8643d03",
+            "vocabularyId": "0be1deb3-90c0-403a-970c-982a9e68a5cc",
+            "name": "city",
+            "isVisible": true,
+            "isCluedInCore": false,
+            "isDynamic": true,
+            "isProvider": false,
+            "isObsolete": false,
+            "groupName": "Identifiers",
+            "key": "sampleVocab.city",
+            "storage": "Keyword",
+            "dataClassificationCode": "/",
+            "dataType": "Text",
+            "description": "[{\"type\":\"paragraph\",\"children\":[{\"text\":\"City of user\"}]}]",
+            "dataAnnotationsIsPrimaryKey": null,
+            "dataAnnotationsIsEditable": null,
+            "dataAnnotationsIsNullable": null,
+            "dataAnnotationsIsRequired": null,
+            "dataAnnotationsMinimumLength": null,
+            "dataAnnotationsMaximumLength": null,
+            "providerId": "742f9d66-8ef2-4544-8a90-41531a26cc59",
+            "compositeVocabularyId": null,
+            "compositeVocabulary": {
+              "name": null,
+              "displayName": null,
+              "dataType": null,
+              "__typename": "CompositeVocabulary"
+            },
+            "mapsToOtherKeyId": "a745d1c9-bb4c-4562-b270-a03e75dbb68b",
+            "glossaryTermId": null,
+            "createdAt": "2024-03-08T16:01:13.7579278+00:00",
+            "createdBy": "af71fc3b-38bf-49d8-9520-826bed19cda5",
+            "mappedKey": {
+              "VocabularyKeyId": "a745d1c9-bb4c-4562-b270-a03e75dbb68b",
+              "VocabularyId": "9dc86236-ec0e-4962-a78d-30042551381f",
+              "Name": "mappedKey",
+              "DataType": "Text",
+              "DisplayName": "Mapped Key Test",
+              "Key": "sampleVocab2.mappedKey",
+              "Storage": "Keyword"
+            },
+            "isValueChangeInsignificant": false,
+            "connector": {
+              "id": "742f9d66-8ef2-4544-8a90-41531a26cc59",
+              "name": "Endpoint Data Source",
+              "about": "Some text about Endpoint Data Sources",
+              "icon": "api/integration/connector/icon/742f9d66-8ef2-4544-8a90-41531a26cc59",
+              "type": "Crawler",
+              "__typename": "Connector"
+            },
+            "vocabulary": {
+              "vocabularyId": "0be1deb3-90c0-403a-970c-982a9e68a5cc",
+              "vocabularyName": "Sample Vocabulary",
+              "connector": {
+                "id": "742f9d66-8ef2-4544-8a90-41531a26cc59",
+                "name": "Endpoint Data Source",
+                "about": "Some text about Endpoint Data Sources",
+                "icon": "api/integration/connector/icon/742f9d66-8ef2-4544-8a90-41531a26cc59",
+                "__typename": "Connector"
+              },
+              "__typename": "Vocabulary"
+            },
+            "author": {
+              "id": "af71fc3b-38bf-49d8-9520-826bed19cda5",
+              "username": "admin@devcluedin.com",
+              "__typename": "User"
+            },
+            "__typename": "VocabularyKey"
+          },
+          {
+            "displayName": "Users Name",
+            "vocabularyKeyId": "3434b498-7a6f-4fce-bd09-69a0dea8e829",
+            "vocabularyId": "0be1deb3-90c0-403a-970c-982a9e68a5cc",
+            "name": "name",
+            "isVisible": true,
+            "isCluedInCore": false,
+            "isDynamic": true,
+            "isProvider": false,
+            "isObsolete": false,
+            "groupName": "Identifiers",
+            "key": "sampleVocab.name",
+            "storage": "Keyword",
+            "dataClassificationCode": "/Person/Name",
+            "dataType": "Text",
+            "description": "[{\"type\":\"paragraph\",\"children\":[{\"text\":\"Users name\"}]}]",
+            "dataAnnotationsIsPrimaryKey": null,
+            "dataAnnotationsIsEditable": null,
+            "dataAnnotationsIsNullable": null,
+            "dataAnnotationsIsRequired": null,
+            "dataAnnotationsMinimumLength": null,
+            "dataAnnotationsMaximumLength": null,
+            "providerId": "742f9d66-8ef2-4544-8a90-41531a26cc59",
+            "compositeVocabularyId": null,
+            "compositeVocabulary": {
+              "name": null,
+              "displayName": null,
+              "dataType": null,
+              "__typename": "CompositeVocabulary"
+            },
+            "mapsToOtherKeyId": null,
+            "glossaryTermId": null,
+            "createdAt": "2024-03-08T16:01:46.4424761+00:00",
+            "createdBy": "af71fc3b-38bf-49d8-9520-826bed19cda5",
+            "mappedKey": null,
+            "isValueChangeInsignificant": false,
+            "connector": {
+              "id": "742f9d66-8ef2-4544-8a90-41531a26cc59",
+              "name": "Endpoint Data Source",
+              "about": "Some text about Endpoint Data Sources",
+              "icon": "api/integration/connector/icon/742f9d66-8ef2-4544-8a90-41531a26cc59",
+              "type": "Crawler",
+              "__typename": "Connector"
+            },
+            "vocabulary": {
+              "vocabularyId": "0be1deb3-90c0-403a-970c-982a9e68a5cc",
+              "vocabularyName": "Sample Vocabulary",
+              "connector": {
+                "id": "742f9d66-8ef2-4544-8a90-41531a26cc59",
+                "name": "Endpoint Data Source",
+                "about": "Some text about Endpoint Data Sources",
+                "icon": "api/integration/connector/icon/742f9d66-8ef2-4544-8a90-41531a26cc59",
+                "__typename": "Connector"
+              },
+              "__typename": "Vocabulary"
+            },
+            "author": {
+              "id": "af71fc3b-38bf-49d8-9520-826bed19cda5",
+              "username": "admin@devcluedin.com",
+              "__typename": "User"
+            },
+            "__typename": "VocabularyKey"
+          }
+        ],
+        "__typename": "PagedVocabularyKey"
+      },
+      "__typename": "Management"
+    }
+  }
+}

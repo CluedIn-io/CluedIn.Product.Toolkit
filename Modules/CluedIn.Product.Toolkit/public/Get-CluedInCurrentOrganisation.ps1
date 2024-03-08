@@ -1,13 +1,13 @@
-function Get-CluedInCurrentOrganisation {
+function Get-CluedInCurrentOrganization {
     <#
         .SYNOPSIS
-        GraphQL Query: Gets the Current Organisation metadata based on endpoint provided.
+        GraphQL Query: Gets the Current Organization metadata based on endpoint provided.
 
         .DESCRIPTION
-        GraphQL Query: Gets the Current Organisation metadata based on endpoint provided.
+        GraphQL Query: Gets the Current Organization metadata based on endpoint provided.
 
         .EXAMPLE
-        PS> Get-CluedInCurrentOrganisation
+        PS> Get-CluedInCurrentOrganization
     #>
 
     [CmdletBinding()]

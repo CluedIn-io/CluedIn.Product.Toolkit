@@ -12,12 +12,12 @@ function Get-CluedInDataSet {
         .EXAMPLE
         PS> Get-CluedInDataSet -Id 10
 
-        This will query will return dataset id '10' for the connected CluedIn Organisation
+        This will query will return dataset id '10' for the connected CluedIn Organization
 
         .EXAMPLE
         PS> Get-CluedInDataSet
 
-        This will query will return all datasets for the connected CluedIn Organisation
+        This will query will return all datasets for the connected CluedIn Organization
     #>
 
     [CmdletBinding()]

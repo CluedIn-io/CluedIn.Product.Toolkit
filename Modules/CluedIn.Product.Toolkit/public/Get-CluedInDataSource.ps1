@@ -17,7 +17,7 @@ function Get-CluedInDataSource {
         .EXAMPLE
         PS> Get-CluedInDataSource -Id 10
 
-        This query will return data source id '10' for the connected CluedIn Organisation
+        This query will return data source id '10' for the connected CluedIn Organization
 
         .EXAMPLE
         PS> Get-CluedInDataSource -Search "Sample DataSet"

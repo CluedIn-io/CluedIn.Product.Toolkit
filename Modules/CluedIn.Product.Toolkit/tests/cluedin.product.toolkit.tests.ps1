@@ -42,7 +42,7 @@ Describe "Unit Testing" {
 
         Context "General" {
             It "Core Function: <_> exists" -ForEach @(
-                'Connect-CluedInOrganisation'
+                'Connect-CluedInOrganization'
                 'Out-JsonFile'
             ) {
                 Get-Command -Name $_ -Module $moduleName -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty

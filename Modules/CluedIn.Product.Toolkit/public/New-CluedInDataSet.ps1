@@ -16,7 +16,7 @@ function New-CluedInDataSet {
         PS> $dataSetObject = $dataSet.data.inbound.dataSet
         PS> New-CluedInDataSet -Object $dataSetObject
 
-        This will query will return mapping id '10' for the connected CluedIn Organisation
+        This will query will return mapping id '10' for the connected CluedIn Organization
     #>
 
     [CmdletBinding()]

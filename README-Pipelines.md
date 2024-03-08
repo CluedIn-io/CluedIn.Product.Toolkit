@@ -48,9 +48,9 @@ With this now setup, we need to make a few adjustments to the pipeline before it
 1. Click on [Run Pipeline]
 2. Fill in parameters:
    * **CluedIn Base URL (Source)**: This is in the format of customer.com without http(s)://
-   * **CluedIn Organisation (Source)**: This is the first part of your cluedin environment. If you access your environment using https://cluedin.customer.com, it will just simply be 'cluedin'.
+   * **CluedIn Organization (Source)**: This is the first part of your cluedin environment. If you access your environment using https://cluedin.customer.com, it will just simply be 'cluedin'.
    * **CluedIn Base URL (Destination)**: This is in the format of customer.com without http(s)://
-   * **CluedIn Organisation (Destination)**: This is the first part of your cluedin environment. If you access your environment using https://cluedin.customer.com, it will just simply be 'cluedin'.
+   * **CluedIn Organization (Destination)**: This is the first part of your cluedin environment. If you access your environment using https://cluedin.customer.com, it will just simply be 'cluedin'.
    * **CluedIn Environment Version**: Unfortunately due to current limitations, this needs to be specified in the format on 2023.07 for the current environment we're backing up.
    * **Vocabularies (guid, csv)**: Accepted values are 'None', or the guids seperated by a comma (,). All will not work for this one.
    * **Data Sources (int, csv)**: Accepted values are 'All', 'None', or Interger value seperated by a comma (,).

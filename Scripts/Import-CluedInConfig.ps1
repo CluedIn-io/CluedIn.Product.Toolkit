@@ -10,20 +10,20 @@
     .PARAMETER BaseURL
     This is the base url of your clued in instance. If you access CluedIn by https://cluedin.domain.com, the BaseURL is 'domain.com'
 
-    .PARAMETER Organisation
-    This is the section before your base URL. If you access CluedIn by https://cluedin.domain.com, the Organisation is 'cluedin'
+    .PARAMETER Organization
+    This is the section before your base URL. If you access CluedIn by https://cluedin.domain.com, the Organization is 'cluedin'
 
     .PARAMETER RestorePath
     This is the location of the export files ran by Export-CluedInConfig
 
     .EXAMPLE
-    PS> ./Import-CluedInConfig.ps1 -BaseURL 'cluedin.com' -Organisation 'dev' -RestorePath /path/to/backups
+    PS> ./Import-CluedInConfig.ps1 -BaseURL 'cluedin.com' -Organization 'dev' -RestorePath /path/to/backups
 #>
 
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$BaseURL,
-    [Parameter(Mandatory)][string]$Organisation,
+    [Parameter(Mandatory)][Alias('Organisation')][string]$Organization,
     [Parameter(Mandatory)][string]$RestorePath,
     [switch]$UseHTTP
 )
@@ -40,8 +40,8 @@ function checkResults($result) {
 Write-Verbose "Importing modules"
 Import-Module "$PSScriptRoot/../Modules/CluedIn.Product.Toolkit"
 
-Write-Host "INFO: Connecting to 'https://$Organisation.$BaseURL'"
-Connect-CluedInOrganisation -BaseURL $BaseURL -Organisation $Organisation -UseHTTP:$UseHTTP
+Write-Host "INFO: Connecting to 'https://$Organization.$BaseURL'"
+Connect-CluedInOrganization -BaseURL $BaseURL -Organization $Organization -UseHTTP:$UseHTTP
 
 # Variables
 Write-Verbose "Setting Script Variables"
@@ -155,6 +155,13 @@ foreach ($vocabKey in $vocabKeys) {
         $currentKeys = Get-CluedInVocabularyKey -Id $vocabularyId
         $currentKeysObject = $currentKeys.data.management.vocabularyKeysFromVocabularyId.data
         $currentVocabularyKeyObject = $currentKeysObject | Where-Object { $_.key -eq $key.key }
+
+        if ($key.mapsToOtherKeyId) {
+            $mappedKeyId = Get-CluedInVocabularyKey -Search $key.mappedKey.key
+            $key.mapsToOtherKeyId = $mappedKeyID ?
+                $mappedKeyId.data.management.vocabularyPerKey.vocabularyKeyId :
+                $null
+        }
 
         if (!$currentVocabularyKeyObject.key) {
             Write-Host "Creating '$($key.key)' as it doesn't exist" -ForegroundColor 'DarkCyan'

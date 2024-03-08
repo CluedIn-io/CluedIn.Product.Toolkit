@@ -13,7 +13,7 @@ function Get-CluedInAdminSetting {
     [CmdletBinding()]
     param()
 
-    $id = (Get-CluedInCurrentOrganisation).data.administration.organization.id
+    $id = (Get-CluedInCurrentOrganization).data.administration.organization.id
     $queryContent = Get-CluedInGQLQuery -OperationName 'getConfigurationSettings'
 
     $query = @{

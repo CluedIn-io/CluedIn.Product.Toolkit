@@ -1,10 +1,10 @@
 function New-CluedInAPIToken {
     <#
         .SYNOPSIS
-        GraphQL Query: Creates a new API Token that can be used to connect to the Organisation
+        GraphQL Query: Creates a new API Token that can be used to connect to the Organization
 
         .DESCRIPTION
-        GraphQL Query: Creates a new API Token that can be used to connect to the Organisation
+        GraphQL Query: Creates a new API Token that can be used to connect to the Organization
 
         .EXAMPLE
         PS> New-CluedInAPIToken -Name $guid -ExpiredInHours 24

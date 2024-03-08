@@ -1,13 +1,13 @@
-function Get-CluedInOrganisationFeatures {
+function Get-CluedInOrganizationFeatures {
     <#
         .SYNOPSIS
-        GraphQL Query: Returns information about the connected Organisation Features
+        GraphQL Query: Returns information about the connected Organization Features
 
         .DESCRIPTION
-        GraphQL Query: Returns information about the connected Organisation Features
+        GraphQL Query: Returns information about the connected Organization Features
 
         .EXAMPLE
-        PS> Get-CluedInOrganisationFeatures
+        PS> Get-CluedInOrganizationFeatures
     #>
 
     [CmdletBinding()]

@@ -17,7 +17,7 @@ function Get-CluedInGQLQuery {
     param([string]$OperationName)
 
     if (!${env:CLUEDIN_CURRENTVERSION}) {
-        throw "The env 'CLUEDIN_CURRENTVERSION' is not set. Please run Connect-CluedInOrganisation"
+        throw "The env 'CLUEDIN_CURRENTVERSION' is not set. Please run Connect-CluedInOrganization"
     }
 
     $path = "$PSScriptRoot/../GraphQL/${env:CLUEDIN_CURRENTVERSION}/$operationName.gql"

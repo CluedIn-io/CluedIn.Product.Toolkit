@@ -3,20 +3,20 @@
 trigger: none
 pr: none
 
-name: ${{ parameters.organisation }}.${{ parameters.baseURL }} Backup ($(Date:yyyyMMdd)$(Rev:r))
+name: ${{ parameters.organization }}.${{ parameters.baseURL }} Backup ($(Date:yyyyMMdd)$(Rev:r))
 
 parameters:
 - name: sourceBaseURL
   displayName: 'CluedIn Base URL (Source)'
   type: string
-- name: sourceOrganisation
-  displayName: 'CluedIn Organisation (Source)'
+- name: sourceOrganization
+  displayName: 'CluedIn Organization (Source)'
   type: string
 - name: destinationBaseURL
   displayName: 'CluedIn Base URL (Destination)'
   type: string
-- name: destinationOrganisation
-  displayName: 'CluedIn Organisation (Destination)'
+- name: destinationOrganization
+  displayName: 'CluedIn Organization (Destination)'
   type: string
 - name: version
   displayName: 'CluedIn Environment Version'
@@ -68,7 +68,7 @@ jobs:
       filePath: CluedIn.Product.Toolkit/Scripts/Export-CluedInConfig.ps1
       arguments: >-
         -BaseURL ${{ parameters.sourceBaseURL }}
-        -Organisation ${{ parameters.sourceOrganisation }}
+        -Organization ${{ parameters.sourceOrganization }}
         -Version ${{ parameters.version }}
         -BackupPath '$(BackupPath)'
         -SelectVocabularies ${{ parameters.vocabularies }}
@@ -86,7 +86,7 @@ jobs:
       filePath: Scripts/Confirm-CluedInConfig.ps1
       arguments: >-
         -BaseURL ${{ parameters.destinationBaseURL }}
-        -Organisation ${{ parameters.destinationOrganisation }}
+        -Organization ${{ parameters.destinationOrganization }}
         -Version ${{ parameters.version }}
         -RestorePath '$(BackupPath)'
       pwsh: true
@@ -100,7 +100,7 @@ jobs:
       filePath: Scripts/Import-CluedInConfig.ps1
       arguments: >-
         -BaseURL ${{ parameters.destinationBaseURL }}
-        -Organisation ${{ parameters.destinationOrganisation }}
+        -Organization ${{ parameters.destinationOrganization }}
         -Version ${{ parameters.version }}
         -RestorePath '$(BackupPath)'
       pwsh: true

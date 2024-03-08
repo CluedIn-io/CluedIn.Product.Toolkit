@@ -39,11 +39,11 @@ steps:
     testRunTitle: "Validate Task Files"
 
 - pwsh: |
-    $organisation = 'CluedIn-io'
+    $organization = 'CluedIn-io'
     $feed = 'release'
     $packageId = '67c35d48-cad7-49a2-8ebd-19de32d9fa32'
 
-    $uri = "https://feeds.dev.azure.com/${organisation}/_apis/Packaging/Feeds/${feed}/Packages/${packageId}/Versions?api-version=7.1-preview.1"
+    $uri = "https://feeds.dev.azure.com/${organization}/_apis/Packaging/Feeds/${feed}/Packages/${packageId}/Versions?api-version=7.1-preview.1"
     $headers = @{Authorization = "Bearer ${env:SYSTEM_ACCESSTOKEN}"}
     $result = Invoke-RestMethod -Uri $uri -Headers $headers
     $result = $result.value | Where-Object {$_.isLatest -eq $true}

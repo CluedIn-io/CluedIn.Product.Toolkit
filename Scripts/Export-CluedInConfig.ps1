@@ -10,8 +10,8 @@
     .PARAMETER BaseURL
     This is the base url of your clued in instance. If you access CluedIn by https://cluedin.domain.com, the BaseURL is 'domain.com'
 
-    .PARAMETER Organisation
-    This is the section before your base URL. If you access CluedIn by https://cluedin.domain.com, the Organisation is 'cluedin'
+    .PARAMETER Organization
+    This is the section before your base URL. If you access CluedIn by https://cluedin.domain.com, the Organization is 'cluedin'
 
     .PARAMETER BackupPath
     This is the location of where to export files
@@ -48,13 +48,13 @@
     Specifies what Clean Projects to export. It supports All, None, and csv format of the Id's
 
     .EXAMPLE
-    PS> ./Export-CluedInConfig.ps1 -BaseURL 'cluedin.com' -Organisation 'dev'
+    PS> ./Export-CluedInConfig.ps1 -BaseURL 'cluedin.com' -Organization 'dev'
 #>
 
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$BaseURL,
-    [Parameter(Mandatory)][string]$Organisation,
+    [Parameter(Mandatory)][Alias('Organisation')][string]$Organization,
     [Parameter(Mandatory)][string]$BackupPath,
     [switch]$UseHTTP,
     [switch]$BackupAdminSettings,
@@ -70,8 +70,8 @@ param(
 Write-Verbose "Importing modules"
 Import-Module "$PSScriptRoot/../Modules/CluedIn.Product.Toolkit"
 
-Write-Host "INFO: Connecting to 'https://$Organisation.$BaseURL'"
-Connect-CluedInOrganisation -BaseURL $BaseURL -Organisation $Organisation -UseHTTP:$UseHTTP
+Write-Host "INFO: Connecting to 'https://$Organization.$BaseURL'"
+Connect-CluedInOrganization -BaseURL $BaseURL -Organization $Organization -UseHTTP:$UseHTTP
 
 Write-Host "INFO: Starting backup"
 

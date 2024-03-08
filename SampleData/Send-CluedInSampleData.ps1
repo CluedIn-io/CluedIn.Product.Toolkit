@@ -1,10 +1,10 @@
 [CmdletBinding()]
 param(
     [parameter(Mandatory)][string]$BaseURL,
-    [parameter(Mandatory)][string]$Organization
+    [parameter(Mandatory)][Alias('Organisation')][string]$Organization
 )
 
-Connect-CluedInOrganisation -BaseURL $BaseURL -Organisation $Organization
+Connect-CluedInOrganization -BaseURL $BaseURL -Organization $Organization
 
 if ([version]${env:CLUEDIN_CURRENTVERSION} -lt [version]'4.0.0') { throw "Unable to support sample set data" }
 

@@ -12,7 +12,7 @@ function Get-CluedInDataSetContent {
         .EXAMPLE
         PS> Get-CluedInDataSetContent -Id '97D22210-F18C-4378-BF52-D79D354275E4'
 
-        This will return dataset content for the dataSetId '97D22210-F18C-4378-BF52-D79D354275E4' for the connected CluedIn Organisation
+        This will return dataset content for the dataSetId '97D22210-F18C-4378-BF52-D79D354275E4' for the connected CluedIn Organization
     #>
 
     [CmdletBinding()]

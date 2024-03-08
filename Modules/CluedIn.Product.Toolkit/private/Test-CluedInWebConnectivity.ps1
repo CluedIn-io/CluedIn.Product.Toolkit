@@ -6,7 +6,7 @@ function Test-CluedInWebConnectivity {
         .DESCRIPTION
         Tests that the CluedIn endpoint is healthy and reachable.
 
-        It uses some environmental variable and cannot be ran without running Connect-CluedInOrganisation first.
+        It uses some environmental variable and cannot be ran without running Connect-CluedInOrganization first.
     #>
 
     [CmdletBinding()]

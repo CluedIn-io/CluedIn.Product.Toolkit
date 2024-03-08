@@ -24,7 +24,7 @@ $dataSource = New-CluedInDataSource -Object $dataSourceObject.data.inbound.dataS
 
 Write-Host "Creating data set"
 $dataSetPath = Join-Path -Path $currentDirectory -ChildPath 'jsons/Data/Sets/'
-$dataSets = Get-ChildItem -Path $dataSetPath
+$dataSets = Get-ChildItem -Path $dataSetPath -Filter "*-DataSet.json"
 foreach ($set in $dataSets) {
     $dataSetObject = Get-Content -Path $set.FullName | ConvertFrom-Json -Depth 99
     $dataSetObject.data.inbound.dataSet.dataSourceId = $dataSource.data.inbound.createDataSource.id

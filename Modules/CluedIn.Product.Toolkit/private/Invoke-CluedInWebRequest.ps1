@@ -21,25 +21,28 @@ function Invoke-CluedInWebRequest {
 
     if (!${env:CLUEDIN_JWTOKEN}) { throw "Please run 'Connect-CluedInOrganization' before attempting" }
 
-    $headers = @{
-        'Content-Type' = 'application/json'
-        'Authorization' = 'Bearer {0}' -f ${env:CLUEDIN_JWTOKEN}
-    }
-
-    Try {
+    function invokeRequest() {
         $params = @{
             Method = $Method
             Uri = $Uri
-            Headers = $headers
+            Headers = @{
+                'Content-Type' = 'application/json'
+                'Authorization' = 'Bearer {0}' -f ${env:CLUEDIN_JWTOKEN}
+            }
             Body = $Body
             UseBasicParsing = $true
             SkipHttpErrorCheck = $true
         }
-        $requestResult = Invoke-WebRequest @params
+
+        return Invoke-WebRequest @params
+    }
+
+    Try {
+        $requestResult = invokeRequest
 
         if ($requestResult.StatusDescription -eq 'OK') { return ($requestResult.Content | ConvertFrom-Json) }
 
-        if ($requestResult.StatusCode -eq '^401$|^403$') {
+        if ($requestResult.StatusCode -match '^401$|^403$') {
             Write-Verbose "Checking JWT Token"
             $shouldRefresh = Get-ShouldRefreshToken -JWT ${env:CLUEDIN_JWTOKEN}
             if ($shouldRefresh) {
@@ -53,10 +56,12 @@ function Invoke-CluedInWebRequest {
             }
             else { Write-Error "$($requestResult.StatusDescription)"; return }
 
-            $requestResult = Invoke-WebRequest @params
+            Write-Verbose "Attempting again"
+            $requestResult = invokeRequest
             if ($requestResult.StatusDescription -eq 'OK') { return ($requestResult.Content | ConvertFrom-Json) }
             else { Write-Error "Refreshed token, but received response: $($requestResult.StatusDescription)"; return }
         }
+        else { Write-Error "Received code: $($requestResult.StatusCode). Processing request failed." }
     }
     Catch { Write-Error "Issue with invoke $_"; return }
 }

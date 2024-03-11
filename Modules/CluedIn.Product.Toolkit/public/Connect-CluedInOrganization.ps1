@@ -129,31 +129,7 @@ function Connect-CluedInOrganization {
     ${env:CLUEDIN_JWTOKEN} = $tokenContent
     ${env:CLUEDIN_REFRESH_TOKEN} = $tokenRefresh
     ${env:CLUEDIN_MODULE_PATH} = Split-Path -Path $PSScriptRoot
-
-    if (!(Get-Job -State 'Running' | Where-Object {$_.Name -match 'refreshToken'})) {
-        Write-Verbose "Creating refresh token background job"
-        Start-ThreadJob -Name 'refreshToken' -InitializationScript { Import-Module ${env:CLUEDIN_MODULE_PATH} } -ScriptBlock {
-            while ($true) {
-                Start-Sleep 300
-                $token = ${env:CLUEDIN_JWTOKEN}
-                $tokenDetails = ($token.split('.')[1] | base64 -d 2>nul) | ConvertFrom-Json
-                $refreshTime = Get-Date -UnixTimeSeconds $tokenDetails.exp
-                Write-Host "Refresh Time: $refreshTime"
-                $shouldRefresh = (Get-Date) -gt ($refreshTime).AddMinutes(-10)
-                if ($shouldRefresh) {
-                    Write-Host "Refreshing!"
-                    Try {
-                        $tokenResponse = Get-CluedInAPIToken -RefreshToken ${env:CLUEDIN_REFRESH_TOKEN} -UseHTTP:${using:UseHTTP}
-                        ${env:CLUEDIN_JWTOKEN} = $tokenResponse.access_token
-                        ${env:CLUEDIN_REFRESH_TOKEN} = $tokenResponse.refresh_token
-                    }
-                    Catch {
-                        Write-Warning "Issue refreshing token"
-                    }
-                }
-            }
-        } | Out-Null
-    }
+    ${env:CLUEDIN_ENDPOINT_USEHTTP} = $UseHTTP
 
     if (Test-CluedInWebConnectivity) {
         Write-Host "Connected to '${env:CLUEDIN_ENDPOINT}' successfully" -ForegroundColor 'Green'

@@ -18,9 +18,9 @@ parameters:
 - name: destinationOrganization
   displayName: 'CluedIn Organization (Destination)'
   type: string
-- name: version
-  displayName: 'CluedIn Environment Version'
-  type: string
+- name: adminSettings
+  displayName: 'Admin Settings'
+  type: boolean
 - name: vocabularies
   displayName: Vocabularies (guid, csv)
   type: string
@@ -31,6 +31,22 @@ parameters:
   default: None
 - name: rules
   displayName: Rules (guid, csv)
+  type: string
+  default: None
+- name: exportTargets
+  displayName: Export Targets (guid, csv)
+  type: string
+  default: None
+- name: streams
+  displayName: Streams (guid, csv)
+  type: string
+  default: None
+- name: glossaries
+  displayName: Glossaries (guid, csv)
+  type: string
+  default: None
+- name: cleanProjects
+  displayName: Clean Projects (guid, csv)
   type: string
   default: None
 - name: pushToRepo
@@ -69,12 +85,15 @@ jobs:
       arguments: >-
         -BaseURL ${{ parameters.sourceBaseURL }}
         -Organization ${{ parameters.sourceOrganization }}
-        -Version ${{ parameters.version }}
         -BackupPath '$(BackupPath)'
+        -BackupAdminSettings:$${{ parameters.adminSettings }}
         -SelectVocabularies ${{ parameters.vocabularies }}
-        -SelectDataSources ${{ parameters.dataSources }}
         -SelectDataSets ${{ parameters.dataSets }}
         -SelectRules ${{ parameters.rules }}
+        -SelectExportTargets ${{ parameters.exportTargets }}
+        -SelectStreams ${{ parameters.streams }}
+        -SelectGlossaries ${{ parameters.glossaries }}
+        -SelectCleanProjects ${{ parameters.cleanProjects }}
       pwsh: true
     env:
       CLUEDIN_USERNAME: $(source-cluedin-username) # Comes from the variable group
@@ -87,7 +106,6 @@ jobs:
       arguments: >-
         -BaseURL ${{ parameters.destinationBaseURL }}
         -Organization ${{ parameters.destinationOrganization }}
-        -Version ${{ parameters.version }}
         -RestorePath '$(BackupPath)'
       pwsh: true
     env:
@@ -101,7 +119,6 @@ jobs:
       arguments: >-
         -BaseURL ${{ parameters.destinationBaseURL }}
         -Organization ${{ parameters.destinationOrganization }}
-        -Version ${{ parameters.version }}
         -RestorePath '$(BackupPath)'
       pwsh: true
     env:

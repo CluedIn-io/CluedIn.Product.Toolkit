@@ -245,7 +245,7 @@ foreach ($dataSet in $dataSets) {
     Write-Host "Processing Data Set: $($dataSetObject.name) ($($dataSetObject.id))" -ForegroundColor 'Cyan'
 
     $dataSource = Get-CluedInDataSource -Search $dataSetObject.dataSource.name
-    if (!$dataSource) { Write-Warning "Data Source '$($dataSetObject.dataSource.name)' not found"; continue}
+    if (!$dataSource) { Write-Warning "Data Source '$($dataSetObject.dataSource.name)' not found"; continue }
     $dataSetObject.dataSource.id = $dataSource.data.inbound.dataSource.id
 
     $exists = ($dataSetObject.name -in $dataSource.data.inbound.dataSource.dataSets.name)

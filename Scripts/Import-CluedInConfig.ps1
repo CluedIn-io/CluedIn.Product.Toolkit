@@ -308,9 +308,9 @@ foreach ($dataSet in $dataSets) {
 
         Write-Verbose "Configuring Mappings"
         if (!$dataSetObject.fieldMappings) { Write-Warning "No field mappings detected." }
-        else { $currentFieldMappings = (Get-CluedInDataSet -Id $dataSetId).data.inbound.dataSet.fieldMappings }
 
         foreach ($mapping in $dataSetObject.fieldMappings) {
+            $currentFieldMappings = (Get-CluedInDataSet -Id $dataSetId).data.inbound.dataSet.fieldMappings
             $skipCreation = $false
 
             $fieldVocabKey = Get-CluedInVocabularyKey -Search $mapping.key
@@ -371,13 +371,17 @@ foreach ($dataSet in $dataSets) {
 
                     if ($mapping.key -eq $currentKey) { Write-Host "Drift is due to casing. The correct casing key will be used." }
 
+                    $fieldMappings = $currentFieldMappings | Select-Object -exclude __typename
+
+                    $fieldMappings += [PSCustomObject]@{
+                        originalField = $mapping.originalField
+                        key = $fieldVocabKeyObject.key
+                        id = $currentMappingObject.id
+                    }
+
                     $dataSetMappingsParams = @{
                         DataSetId = $dataSetId
-                        FieldMappings = @{
-                            originalField = $mapping.originalField
-                            key = $fieldVocabKeyObject.key
-                            id = $currentMappingObject.id
-                        }
+                        FieldMappings = $fieldMappings
                     }
                     $dataSetMappingResult = Set-CluedInDataSetMapping @dataSetMappingsParams
                     checkResults($dataSetMappingResult)

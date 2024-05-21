@@ -1,0 +1,14 @@
+mutation updatePropertyMappingInClueMappingConfig(
+  $dataSetId: ID!
+  $propertyMappingConfiguration: InputPropertyMappingConfiguration
+  $extra: Boolean
+) {
+  management {
+    updatePropertyMappingInClueMappingConfig(
+      dataSetId: $dataSetId
+      propertyMappingConfiguration: $propertyMappingConfiguration
+      extra: $extra
+    )
+    __typename
+  }
+}

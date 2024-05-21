@@ -312,13 +312,39 @@ foreach ($dataSet in $dataSets) {
         foreach ($mapping in $dataSetObject.fieldMappings) {
             Write-Host "Processing field mapping: $($mapping.originalField)" -ForegroundColor 'Cyan'
             $currentFieldMappings = (Get-CluedInDataSet -Id $dataSetId).data.inbound.dataSet.fieldMappings
-            if (!$currentFieldMappings) {
-                # Does not exist
+
+            $fieldVocabKey = Get-CluedInVocabularyKey -Search $mapping.key
+            $fieldVocabKeyObject = $fieldVocabKey.data.management.vocabularyPerKey
+            if (!$fieldVocabKeyObject.vocabularyKeyId) {
+                Write-Warning "Key: $($mapping.key) doesn't exist. Mapping will be skipped for '$($mapping.originalField)'"
+                continue
+            }
+
+            if ($mapping.originalField -notin $currentFieldMappings.originalField) {
+                switch ($mapping.key) {
+                    '--ignore--' {
+                        $dataSetMappingParams = @{
+                            Object = $mapping
+                            DataSetId = $dataSetId
+                            IgnoreField = $true
+                        }
+                    }
+                    default {
+                        $mapping.key = $fieldVocabKeyObject.key # To cover case sensitive process
+
+                        $dataSetMappingParams = @{
+                            Object = $mapping
+                            DataSetId = $dataSetId
+                            VocabularyKeyId = $fieldVocabKeyObject.vocabularyKeyId
+                            VocabularyId = $fieldVocabKeyObject.vocabularyId
+                        }
+                    }
+                }
+
+                $dataSetMappingResult = New-CluedInDataSetMapping @dataSetMappingParams
+                checkResults($dataSetMappingResult)
             }
             else {
-                $fieldVocabKey = Get-CluedInVocabularyKey -Search $mapping.key
-                $fieldVocabKeyObject = $fieldVocabKey.data.management.vocabularyPerKey
-
                 $currentMappingObject = $currentFieldMappings | Where-Object { $_.originalField -eq $mapping.originalField }
 
                 $desiredAnnotation = $annotationObject.annotationProperties | Where-Object { $_.vocabKey -eq $mapping.key }

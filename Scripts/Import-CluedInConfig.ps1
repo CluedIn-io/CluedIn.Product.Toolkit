@@ -310,97 +310,35 @@ foreach ($dataSet in $dataSets) {
         if (!$dataSetObject.fieldMappings) { Write-Warning "No field mappings detected." }
 
         foreach ($mapping in $dataSetObject.fieldMappings) {
+            Write-Host "Working on: $($mapping.originalField)" -ForegroundColor 'Cyan'
             $currentFieldMappings = (Get-CluedInDataSet -Id $dataSetId).data.inbound.dataSet.fieldMappings
-            $skipCreation = $false
 
             $fieldVocabKey = Get-CluedInVocabularyKey -Search $mapping.key
             $fieldVocabKeyObject = $fieldVocabKey.data.management.vocabularyPerKey
 
-            if ($mapping.originalField -notin $currentFieldMappings.originalField) {
-                Write-Host "Creating field mapping '$($mapping.originalField)'" -ForegroundColor 'Cyan'
-                switch ($mapping.key) {
-                    '--ignore--' {
-                        $dataSetMappingParams = @{
-                            Object = $mapping
-                            DataSetId = $dataSetId
-                            IgnoreField = $true
-                        }
-                    }
-                    default {
-                        if (!$fieldVocabKeyObject.vocabularyKeyId) {
-                            Write-Warning "Key: $($mapping.key) doesn't exist. Mapping will be skipped for '$($mapping.originalField)'"
-                            $skipCreation = $true; continue
-                        }
+            $currentMappingObject = $currentFieldMappings | Where-Object { $_.originalField -eq $mapping.originalField }
 
-                        $mapping.key = $fieldVocabKeyObject.key # To cover case sensitive process
+            $desiredAnnotation = $annotationObject.annotationProperties | Where-Object { $_.vocabKey -eq $mapping.key }
 
-                        $dataSetMappingParams = @{
-                            Object = $mapping
-                            DataSetId = $dataSetId
-                            VocabularyKeyId = $fieldVocabKeyObject.vocabularyKeyId
-                            VocabularyId = $fieldVocabKeyObject.vocabularyId
-                        }
-                    }
-                }
-
-                if ($skipCreation) { continue }
-                $dataSetMappingResult = New-CluedInDataSetMapping @dataSetMappingParams
-                checkResults($dataSetMappingResult)
-            }
-            else {
-                $currentMappingObject = $currentFieldMappings | Where-Object { $_.originalField -eq $mapping.originalField }
-
-                # In 2023.07, it is not possible to have multiple mappings per column key. However,
-                # this may change in the future and logic here may need to change.
-                if ($currentMappingObject.count -gt 1) {
-                    Write-Host "Cleaning up excess field mappings as these are not supported currently" -ForegroundColor 'Cyan'
-                    $currentMappingObject[1..($currentMappingObject.count-1)].ForEach({
-                        Write-Verbose "Removing mapping '$($_.id)'"
-                        Remove-CluedInDataSetMapping -DataSetId $dataSetId -PropertyId $_.id | Out-Null
-                    })
-                    $currentMappingObject = $currentMappingObject[0]
-                }
-
-                $currentKey = $currentMappingObject.key
-                if (!($mapping.key -ceq $currentKey)) {
-                    Write-Host "Updating field mapping '$($mapping.originalField)' as there is drift" -ForegroundColor 'Yellow'
-
-                    if (!$fieldVocabKeyObject.key) {
-                        Write-Warning "Unable to update field mapping '$($mapping.originalField)' as key '$($mapping.key)' could not be found"; continue
-                    }
-
-                    if ($mapping.key -eq $currentKey) { Write-Host "Drift is due to casing. The correct casing key will be used." }
-
-                    # $fieldMappings = $currentFieldMappings | Select-Object -exclude __typename
-
-                    # $fieldMappings += [PSCustomObject]@{
-                    #     originalField = $mapping.originalField
-                    #     key = $fieldVocabKeyObject.key
-                    #     id = $currentMappingObject.id
-                    # }
-
-                    $propertyMappingConfiguration = @{
-                        originalField = $currentMappingObject.originalField
-                        id = $currentMappingObject.id
-                        useAsAlias = $false # need to find where this is
-                        useAsEntityCode = $false # need to find where this is
-                        vocabularyKeyConfiguration = @{
-                            vocabularyId = $fieldVocabKeyObject.vocabularyId
-                            new = $false
-                            vocabularyKeyId = $fieldVocabKeyObject.vocabularyKeyId
-                        }
-                    }
-
-                    $dataSetMappingsParams = @{
-                        DataSetId = $dataSetId
-                        # FieldMappings = $fieldMappings
-                        PropertyMappingConfiguration = $propertyMappingConfiguration
-                    }
-                    $dataSetMappingResult = Set-CluedInDataSetMapping @dataSetMappingsParams
-                    start-sleep 2
-                    checkResults($dataSetMappingResult)
+            $propertyMappingConfiguration = @{
+                originalField = $currentMappingObject.originalField
+                id = $currentMappingObject.id
+                useAsAlias = $desiredAnnotation.useAsAlias
+                useAsEntityCode = $desiredAnnotation.useAsEntityCode
+                vocabularyKeyConfiguration = @{
+                    vocabularyId = $fieldVocabKeyObject.vocabularyId
+                    new = $false
+                    vocabularyKeyId = $fieldVocabKeyObject.vocabularyKeyId
                 }
             }
+
+            $dataSetMappingsParams = @{
+                DataSetId = $dataSetId
+                PropertyMappingConfiguration = $propertyMappingConfiguration
+            }
+            $dataSetMappingResult = Set-CluedInDataSetMapping @dataSetMappingsParams
+            Start-Sleep 1
+            checkResults($dataSetMappingResult)
         }
 
         Write-Verbose "Setting Annotation Entity Codes"

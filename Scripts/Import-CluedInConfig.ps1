@@ -312,33 +312,37 @@ foreach ($dataSet in $dataSets) {
         foreach ($mapping in $dataSetObject.fieldMappings) {
             Write-Host "Processing field mapping: $($mapping.originalField)" -ForegroundColor 'Cyan'
             $currentFieldMappings = (Get-CluedInDataSet -Id $dataSetId).data.inbound.dataSet.fieldMappings
+            if (!$currentFieldMappings) {
+                # Does not exist
+            }
+            else {
+                $fieldVocabKey = Get-CluedInVocabularyKey -Search $mapping.key
+                $fieldVocabKeyObject = $fieldVocabKey.data.management.vocabularyPerKey
 
-            $fieldVocabKey = Get-CluedInVocabularyKey -Search $mapping.key
-            $fieldVocabKeyObject = $fieldVocabKey.data.management.vocabularyPerKey
+                $currentMappingObject = $currentFieldMappings | Where-Object { $_.originalField -eq $mapping.originalField }
 
-            $currentMappingObject = $currentFieldMappings | Where-Object { $_.originalField -eq $mapping.originalField }
+                $desiredAnnotation = $annotationObject.annotationProperties | Where-Object { $_.vocabKey -eq $mapping.key }
 
-            $desiredAnnotation = $annotationObject.annotationProperties | Where-Object { $_.vocabKey -eq $mapping.key }
-
-            $propertyMappingConfiguration = @{
-                originalField = $currentMappingObject.originalField
-                id = $currentMappingObject.id
-                useAsAlias = $desiredAnnotation.useAsAlias
-                useAsEntityCode = $desiredAnnotation.useAsEntityCode
-                vocabularyKeyConfiguration = @{
-                    vocabularyId = $fieldVocabKeyObject.vocabularyId
-                    new = $false
-                    vocabularyKeyId = $fieldVocabKeyObject.vocabularyKeyId
+                $propertyMappingConfiguration = @{
+                    originalField = $currentMappingObject.originalField
+                    id = $currentMappingObject.id
+                    useAsAlias = $desiredAnnotation.useAsAlias
+                    useAsEntityCode = $desiredAnnotation.useAsEntityCode
+                    vocabularyKeyConfiguration = @{
+                        vocabularyId = $fieldVocabKeyObject.vocabularyId
+                        new = $false
+                        vocabularyKeyId = $fieldVocabKeyObject.vocabularyKeyId
+                    }
                 }
-            }
 
-            $dataSetMappingsParams = @{
-                DataSetId = $dataSetId
-                PropertyMappingConfiguration = $propertyMappingConfiguration
+                $dataSetMappingsParams = @{
+                    DataSetId = $dataSetId
+                    PropertyMappingConfiguration = $propertyMappingConfiguration
+                }
+                $dataSetMappingResult = Set-CluedInDataSetMapping @dataSetMappingsParams
+                Start-Sleep 1
+                checkResults($dataSetMappingResult)
             }
-            $dataSetMappingResult = Set-CluedInDataSetMapping @dataSetMappingsParams
-            Start-Sleep 1
-            checkResults($dataSetMappingResult)
         }
 
         Write-Verbose "Setting Annotation Entity Codes"

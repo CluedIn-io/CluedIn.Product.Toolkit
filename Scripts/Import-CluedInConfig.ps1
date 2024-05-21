@@ -310,7 +310,7 @@ foreach ($dataSet in $dataSets) {
         if (!$dataSetObject.fieldMappings) { Write-Warning "No field mappings detected." }
 
         foreach ($mapping in $dataSetObject.fieldMappings) {
-            Write-Host "Working on: $($mapping.originalField)" -ForegroundColor 'Cyan'
+            Write-Host "Processing field mapping: $($mapping.originalField)" -ForegroundColor 'Cyan'
             $currentFieldMappings = (Get-CluedInDataSet -Id $dataSetId).data.inbound.dataSet.fieldMappings
 
             $fieldVocabKey = Get-CluedInVocabularyKey -Search $mapping.key

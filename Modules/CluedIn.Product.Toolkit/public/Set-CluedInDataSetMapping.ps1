@@ -13,15 +13,26 @@ function Set-CluedInDataSetMapping {
     [CmdletBinding()]
     param(
         [guid]$DataSetId,
-        [array]$FieldMappings
+        # [array]$FieldMappings
+        [hashtable]$PropertyMappingConfiguration
     )
 
-    $queryContent = Get-CluedInGQLQuery -OperationName 'updateAnnotationMappingInDataSet'
+    # $queryContent = Get-CluedInGQLQuery -OperationName 'updateAnnotationMappingInDataSet'
+
+    # $query = @{
+    #     variables = @{
+    #         dataSetId = $DataSetId
+    #         fieldMappings = $FieldMappings
+    #     }
+    #     query = $queryContent
+    # }
+
+    $queryContent = Get-CluedInGQLQuery -OperationName 'updatePropertyMappingInClueMappingConfig'
 
     $query = @{
         variables = @{
             dataSetId = $DataSetId
-            fieldMappings = $FieldMappings
+            propertyMappingConfiguration = $PropertyMappingConfiguration
         }
         query = $queryContent
     }

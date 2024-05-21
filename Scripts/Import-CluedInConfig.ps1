@@ -371,19 +371,33 @@ foreach ($dataSet in $dataSets) {
 
                     if ($mapping.key -eq $currentKey) { Write-Host "Drift is due to casing. The correct casing key will be used." }
 
-                    $fieldMappings = $currentFieldMappings | Select-Object -exclude __typename
+                    # $fieldMappings = $currentFieldMappings | Select-Object -exclude __typename
 
-                    $fieldMappings += [PSCustomObject]@{
-                        originalField = $mapping.originalField
-                        key = $fieldVocabKeyObject.key
+                    # $fieldMappings += [PSCustomObject]@{
+                    #     originalField = $mapping.originalField
+                    #     key = $fieldVocabKeyObject.key
+                    #     id = $currentMappingObject.id
+                    # }
+
+                    $propertyMappingConfiguration = @{
+                        originalField = $currentMappingObject.originalField
                         id = $currentMappingObject.id
+                        useAsAlias = $false # need to find where this is
+                        useAsEntityCode = $false # need to find where this is
+                        vocabularyKeyConfiguration = @{
+                            vocabularyId = $fieldVocabKeyObject.vocabularyId
+                            new = $false
+                            vocabularyKeyId = $fieldVocabKeyObject.vocabularyKeyId
+                        }
                     }
 
                     $dataSetMappingsParams = @{
                         DataSetId = $dataSetId
-                        FieldMappings = $fieldMappings
+                        # FieldMappings = $fieldMappings
+                        PropertyMappingConfiguration = $propertyMappingConfiguration
                     }
                     $dataSetMappingResult = Set-CluedInDataSetMapping @dataSetMappingsParams
+                    start-sleep 2
                     checkResults($dataSetMappingResult)
                 }
             }

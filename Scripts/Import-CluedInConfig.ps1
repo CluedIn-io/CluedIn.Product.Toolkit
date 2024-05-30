@@ -244,6 +244,11 @@ foreach ($dataSet in $dataSets) {
     $dataSetObject = $dataSetJson.data.inbound.dataSet
     Write-Host "Processing Data Set: $($dataSetObject.name) ($($dataSetObject.id))" -ForegroundColor 'Cyan'
 
+    if ($dataSetObject.dataSource.type -eq 'file') {
+        Write-Warning "Importing of 'file' type data sets are not supported. Only endpoints are. Skipping import."
+        continue
+    }
+
     $dataSource = Get-CluedInDataSource -Search $dataSetObject.dataSource.name
     if (!$dataSource) { Write-Warning "Data Source '$($dataSetObject.dataSource.name)' not found"; continue }
     $dataSetObject.dataSource.id = $dataSource.data.inbound.dataSource.id

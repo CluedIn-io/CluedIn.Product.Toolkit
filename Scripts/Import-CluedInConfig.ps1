@@ -244,7 +244,7 @@ foreach ($dataSet in $dataSets) {
     $dataSetObject = $dataSetJson.data.inbound.dataSet
     Write-Host "Processing Data Set: $($dataSetObject.name) ($($dataSetObject.id))" -ForegroundColor 'Cyan'
 
-    if ($dataSetObject.data.inbound.dataSet.dataSource.type -eq 'file') {
+    if ($dataSetObject.dataSource.type -eq 'file') {
         Write-Warning "Importing of 'file' type data sets are not supported. Only endpoints are. Skipping import."
         continue
     }

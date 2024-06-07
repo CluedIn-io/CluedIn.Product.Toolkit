@@ -16,14 +16,26 @@ function Set-CluedInDataSetMapping {
         [hashtable]$PropertyMappingConfiguration
     )
 
-    $queryContent = Get-CluedInGQLQuery -OperationName 'updatePropertyMappingInClueMappingConfig'
-
-    $query = @{
-        variables = @{
-            dataSetId = $DataSetId
-            propertyMappingConfiguration = $PropertyMappingConfiguration
+    if ($PropertyMappingConfiguration.key) {
+        $queryContent = Get-CluedInGQLQuery -OperationName 'updateAnnotationMappingInDataSet'
+        $query = @{
+            variables = @{
+                dataSetId = $DataSetId
+                fieldMappings = $PropertyMappingConfiguration
+            }
+            query = $queryContent
         }
-        query = $queryContent
+    }
+    else {
+        $queryContent = Get-CluedInGQLQuery -OperationName 'updatePropertyMappingInClueMappingConfig'
+
+        $query = @{
+            variables = @{
+                dataSetId = $DataSetId
+                propertyMappingConfiguration = $PropertyMappingConfiguration
+            }
+            query = $queryContent
+        }
     }
 
     return Invoke-CluedInGraphQL -Query $query

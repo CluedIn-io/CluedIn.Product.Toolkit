@@ -318,13 +318,6 @@ foreach ($dataSet in $dataSets) {
             Write-Host "Processing field mapping: $($mapping.originalField)" -ForegroundColor 'Cyan'
             $currentFieldMappings = (Get-CluedInDataSet -Id $dataSetId).data.inbound.dataSet.fieldMappings
 
-            $fieldVocabKey = Get-CluedInVocabularyKey -Search $mapping.key
-            $fieldVocabKeyObject = $fieldVocabKey.data.management.vocabularyPerKey
-            if (!$fieldVocabKeyObject.vocabularyKeyId) {
-                Write-Warning "Key: $($mapping.key) doesn't exist. Mapping will be skipped for '$($mapping.originalField)'"
-                continue
-            }
-
             if ($mapping.originalField -notin $currentFieldMappings.originalField) {
                 switch ($mapping.key) {
                     '--ignore--' {
@@ -335,6 +328,13 @@ foreach ($dataSet in $dataSets) {
                         }
                     }
                     default {
+                        $fieldVocabKey = Get-CluedInVocabularyKey -Search $mapping.key
+                        $fieldVocabKeyObject = $fieldVocabKey.data.management.vocabularyPerKey
+                        if (!$fieldVocabKeyObject.vocabularyKeyId) {
+                            Write-Warning "Key: $($mapping.key) doesn't exist. Mapping will be skipped for '$($mapping.originalField)'"
+                            continue
+                        }
+
                         $mapping.key = $fieldVocabKeyObject.key # To cover case sensitive process
 
                         $dataSetMappingParams = @{

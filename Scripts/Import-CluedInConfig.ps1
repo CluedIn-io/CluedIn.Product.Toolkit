@@ -386,7 +386,6 @@ foreach ($dataSet in $dataSets) {
                         }
 
                         $dataSetMappingResult = Set-CluedInDataSetMapping @dataSetMappingsParams
-                        #Start-Sleep 1
                     }
                     checkResults($dataSetMappingResult)
                 }

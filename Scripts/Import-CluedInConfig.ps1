@@ -352,7 +352,7 @@ foreach ($dataSet in $dataSets) {
             else {
                 $currentMappingObject = $currentFieldMappings | Where-Object { $_.originalField -eq $mapping.originalField }
 
-                $desiredAnnotation = $annotationObject.annotationProperties | Where-Object { $_.vocabKey -eq $mapping.key }
+                $desiredAnnotation = $annotationObject.annotationProperties | Where-Object { $_.vocabKey -ceq $mapping.key }
 
                 $propertyMappingConfiguration = @{
                     originalField = $currentMappingObject.originalField

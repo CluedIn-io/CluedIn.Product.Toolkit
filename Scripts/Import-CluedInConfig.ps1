@@ -366,6 +366,7 @@ foreach ($dataSet in $dataSets) {
                         $currentMappingObject = $currentFieldMappings | Where-Object { $_.originalField -eq $mapping.originalField }
 
                         $desiredAnnotation = $annotationObject.annotationProperties | Where-Object { $_.vocabKey -ceq $mapping.key }
+                        if (!$desiredAnnotation) { Write-Warning "Issue finding the desired annotation. Skipping map"; continue }
 
                         $propertyMappingConfiguration = @{
                             originalField = $currentMappingObject.originalField
@@ -385,7 +386,7 @@ foreach ($dataSet in $dataSets) {
                         }
 
                         $dataSetMappingResult = Set-CluedInDataSetMapping @dataSetMappingsParams
-                        Start-Sleep 1
+                        #Start-Sleep 1
                     }
                     checkResults($dataSetMappingResult)
                 }

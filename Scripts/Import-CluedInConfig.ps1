@@ -499,6 +499,10 @@ $existingStreams = (Get-CluedInStreams).data.consume.streams.data
 
 foreach ($stream in $streams) {
     $streamJson = Get-Content -Path $stream.FullName | ConvertFrom-Json -Depth 20
+    if ($streamJson.errors) {
+        Write-Warning "The exported stream '$($stream.fullName)' is invalid. Skipping"
+        continue
+    }
     $streamObject = $streamJson.data.consume.stream
 
     Write-Host "Processing Stream: $($streamObject.name)" -ForegroundColor 'Cyan'

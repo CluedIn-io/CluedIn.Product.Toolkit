@@ -251,7 +251,6 @@ foreach ($id in $streamsId) {
     if ($streamConfig.errors) {
         Write-Warning "Cannot export StreamId '$id'. This is common if permissions are missing on the export target."
         Write-Error "Error: $($streamConfig.errors.message)"
-
         continue
     }
     $streamConfig | Out-JsonFile -Path $exportStreamsPath -Name $id

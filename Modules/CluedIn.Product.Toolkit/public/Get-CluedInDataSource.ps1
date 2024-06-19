@@ -34,7 +34,8 @@ function Get-CluedInDataSource {
     if ($PsCmdlet.ParameterSetName -eq 'Search') {
         $dataSourceSets = Get-CluedInDataSourceSet
         $dataSourceSetsObject = $dataSourceSets.data.inbound.dataSourceSets.data.dataSources
-        $Id = $dataSourceSetsObject | Where-Object {$_.name -match "^$Search$"} | Select-Object -ExpandProperty id
+        $regex = '^{0}$' -f [Regex]::Escape($Search)
+        $Id = $dataSourceSetsObject | Where-Object { $_.name -match $regex } | Select-Object -ExpandProperty id
         if (!$Id) { return }
     }
 

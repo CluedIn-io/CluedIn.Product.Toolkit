@@ -253,6 +253,10 @@ foreach ($dataSet in $dataSets) {
     if (!$dataSource) { Write-Warning "Data Source '$($dataSetObject.dataSource.name)' not found"; continue }
     $dataSetObject.dataSource.id = $dataSource.data.inbound.dataSource.id
 
+    # If this gets passed in as a null (ie. Not an empty array), it will cause issues when hitting the database.
+    # The below ensures that if it is a null, it'll at least be an empty array.
+    if (!$dataSetObject.originalFields) { $dataSetObject.originalFields = @() }
+
     $exists = ($dataSetObject.name -in $dataSource.data.inbound.dataSource.dataSets.name)
     if (!$exists) {
         # Force autoSubmit to false as we don't want it to process automatically when transferred

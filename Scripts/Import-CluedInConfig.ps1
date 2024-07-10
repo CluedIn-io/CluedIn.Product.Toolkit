@@ -527,7 +527,7 @@ foreach ($stream in $streams) {
 
     Write-Host "Processing Stream: $($streamObject.name)" -ForegroundColor 'Cyan'
 
-    $streamExists = $existingStreams | Where-Object {$_.name -eq $streamObject.name}
+    $streamExists = $existingStreams | Where-Object { $_.name -eq $streamObject.name }
     switch ($StreamExists.count) {
         '0' {
             Write-Verbose "Creating Stream"

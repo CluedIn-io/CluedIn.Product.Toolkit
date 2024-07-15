@@ -494,7 +494,7 @@ foreach ($target in $exportTargets) {
     }
     else {
         Write-Verbose "Export target exists. Setting configuration"
-        $id = ($currentExportTargets | Where-Object {$_.accountId -eq $targetObject.accountId}).id
+        $id = ($currentExportTargets | Where-Object { $_.accountId -eq $targetObject.accountId }).id
         $setTargetResult = Set-CluedInExportTargetConfiguration -Id $id -Configuration $targetObject.helperConfiguration
         checkResults($setTargetResult)
     }
@@ -502,11 +502,11 @@ foreach ($target in $exportTargets) {
     Write-Verbose "Setting Permissions"
     $currentTarget = (Get-CluedInExportTarget -Id $id).data.inbound.connectorConfiguration
     $usersToAdd = Compare-Object -ReferenceObject $currentTarget.users.username -DifferenceObject $targetObject.users.username -PassThru |
-        Where-Object {$_.SideIndicator -eq '=>'}
+        Where-Object { $_.SideIndicator -eq '=>' }
 
     $idsToSet = @()
     foreach ($user in $usersToAdd) {
-        $idsToSet += ($allUsers | Where-Object {$_.account.UserName -eq $user}).id
+        $idsToSet += ($allUsers | Where-Object { $_.account.UserName -eq $user }).id
     }
 
     if ($idsToSet) { Set-CluedInExportTargetPermissions -ConnectorId $id -UserId $idsToSet }

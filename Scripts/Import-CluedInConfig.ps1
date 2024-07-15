@@ -488,16 +488,16 @@ foreach ($target in $exportTargets) {
 
         Write-Verbose "Creating Export Target"
         $targetResult = New-CluedInExportTarget -ConnectorId $targetObject.providerId -Configuration $targetObject.helperConfiguration
-        checkResults($targetResult)
-
         $id = $targetResult.data.inbound.createConnection.id
+        if (!$id) { Write-Warning "Unable to get Id of target. Importing on top of existing export targets can be flakey. Please manually investigate."; continue }
     }
     else {
         Write-Verbose "Export target exists. Setting configuration"
         $id = ($currentExportTargets | Where-Object { $_.accountId -eq $targetObject.accountId }).id
-        $setTargetResult = Set-CluedInExportTargetConfiguration -Id $id -Configuration $targetObject.helperConfiguration
-        checkResults($setTargetResult)
+        $targetResult = Set-CluedInExportTargetConfiguration -Id $id -Configuration $targetObject.helperConfiguration
     }
+
+    checkResults($targetResult)
 
     Write-Verbose "Setting Permissions"
     $currentTarget = (Get-CluedInExportTarget -Id $id).data.inbound.connectorConfiguration

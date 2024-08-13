@@ -276,6 +276,10 @@ foreach ($glossaryId in $glossaryIds) {
 
     # Glossary
     $glossaryConfig = Get-CluedInGlossary -Id $glossaryId
+    if ($glossaryConfig.errors) {
+        Write-Warning "Received error '$($glossaryConfig.errors.message)'. Skipping id '$glossaryId'."
+        continue
+    }
     $glossaryConfig | Out-JsonFile -Path $glossaryExportPath -Name ('{0}-Glossary' -f $glossaryId)
 
     # Glossary Terms

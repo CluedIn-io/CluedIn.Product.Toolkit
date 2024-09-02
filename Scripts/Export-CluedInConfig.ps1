@@ -64,8 +64,17 @@ param(
     [string]$SelectExportTargets = 'None',
     [string]$SelectStreams = 'None',
     [string]$SelectGlossaries = 'None',
-    [string]$SelectCleanProjects = 'None'
+    [string]$SelectCleanProjects = 'None',
+    [switch]$ExportSupport
 )
+
+if ($ExportSupport) {
+    $tempExportDirectory = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath (Get-Date -Format "yyyyMMdd_HHmmss_clue\din")
+    New-Item -Path $tempExportDirectory -ItemType Directory | Out-Null
+
+    Write-Host "INFO: Dumping support files to '$tempExportDirectory'"
+    Start-Transcript -Path $tempExportDirectory
+}
 
 Write-Verbose "Importing modules"
 Import-Module "$PSScriptRoot/../Modules/CluedIn.Product.Toolkit"

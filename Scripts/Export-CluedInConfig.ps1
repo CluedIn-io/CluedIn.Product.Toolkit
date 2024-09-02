@@ -47,6 +47,9 @@
     .PARAMETER SelectCleanProjects
     Specifies what Clean Projects to export. It supports All, None, and csv format of the Id's
 
+    .PARAMETER IncludeSupportFiles
+    Exports a transcript along with the produced JSON files for CluedIn support to use to diagnose any issues relating to migration.
+
     .EXAMPLE
     PS> ./Export-CluedInConfig.ps1 -BaseURL 'cluedin.com' -Organization 'dev'
 #>
@@ -65,10 +68,10 @@ param(
     [string]$SelectStreams = 'None',
     [string]$SelectGlossaries = 'None',
     [string]$SelectCleanProjects = 'None',
-    [switch]$ExportSupport
+    [switch]$IncludeSupportFiles
 )
 
-if ($ExportSupport) {
+if ($IncludeSupportFiles) {
     $tempExportDirectory = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath (Get-Date -Format "yyyyMMdd_HHmmss_clue\din")
     $supportFile = Join-Path -Path $tempExportDirectory -ChildPath ('transcript_{0}.txt' -f (Get-Date -Format 'yyyyMMdd_HHmmss'))
     New-Item -Path $tempExportDirectory -ItemType Directory | Out-Null
@@ -324,7 +327,7 @@ foreach ($cleanProjectId in $cleanProjectsIds) {
 
 Write-Host "INFO: Backup now complete"
 
-if ($ExportSupport) {
+if ($IncludeSupportFiles) {
     Write-Verbose "Copying exported JSON to support directory"
     Copy-Item -Path "$BackupPath/*" -Recurse -Destination $tempExportDirectory
     Stop-Transcript | Out-Null

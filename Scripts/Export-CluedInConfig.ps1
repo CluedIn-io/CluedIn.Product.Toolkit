@@ -70,10 +70,11 @@ param(
 
 if ($ExportSupport) {
     $tempExportDirectory = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath (Get-Date -Format "yyyyMMdd_HHmmss_clue\din")
+    $supportFile = Join-Path -Path $tempExportDirectory -ChildPath ('transcript_{0}.txt' -f (Get-Date -Format 'yyyyMMdd_HHmmss'))
     New-Item -Path $tempExportDirectory -ItemType Directory | Out-Null
 
-    Write-Host "INFO: Dumping support files to '$tempExportDirectory'"
-    Start-Transcript -Path $tempExportDirectory
+    Write-Host "INFO: Dumping support files"
+    Start-Transcript -Path $supportFile | Out-Null
 }
 
 Write-Verbose "Importing modules"
@@ -322,3 +323,15 @@ foreach ($cleanProjectId in $cleanProjectsIds) {
 }
 
 Write-Host "INFO: Backup now complete"
+
+if ($ExportSupport) {
+    Write-Verbose "Copying exported JSON to support directory"
+    Copy-Item -Path "$BackupPath/*" -Recurse -Destination $tempExportDirectory
+    Stop-Transcript | Out-Null
+
+    $zippedArchive = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ('cluedin-support_{0}.zip' -f (Get-Date -Format "yyyyMMdd_HHmmss"))
+    Compress-Archive -Path "$tempExportDirectory" -DestinationPath "$zippedArchive" -Force
+    Remove-Item -Path $tempExportDirectory -Recurse -Force
+
+    Write-Host "Support files ready for sending '$zippedArchive'"
+}

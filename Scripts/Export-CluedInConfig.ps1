@@ -47,6 +47,9 @@
     .PARAMETER SelectCleanProjects
     Specifies what Clean Projects to export. It supports All, None, and csv format of the Id's
 
+    .PARAMETER IncludeSupportFiles
+    Exports a transcript along with the produced JSON files for CluedIn support to use to diagnose any issues relating to migration.
+
     .EXAMPLE
     PS> ./Export-CluedInConfig.ps1 -BaseURL 'cluedin.com' -Organization 'dev'
 #>
@@ -64,8 +67,18 @@ param(
     [string]$SelectExportTargets = 'None',
     [string]$SelectStreams = 'None',
     [string]$SelectGlossaries = 'None',
-    [string]$SelectCleanProjects = 'None'
+    [string]$SelectCleanProjects = 'None',
+    [switch]$IncludeSupportFiles
 )
+
+if ($IncludeSupportFiles) {
+    $tempExportDirectory = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath (Get-Date -Format "yyyyMMdd_HHmmss_clue\din")
+    $supportFile = Join-Path -Path $tempExportDirectory -ChildPath ('transcript_{0}.txt' -f (Get-Date -Format 'yyyyMMdd_HHmmss'))
+    New-Item -Path $tempExportDirectory -ItemType Directory | Out-Null
+
+    Write-Host "INFO: Dumping support files"
+    Start-Transcript -Path $supportFile | Out-Null
+}
 
 Write-Verbose "Importing modules"
 Import-Module "$PSScriptRoot/../Modules/CluedIn.Product.Toolkit"
@@ -313,3 +326,15 @@ foreach ($cleanProjectId in $cleanProjectsIds) {
 }
 
 Write-Host "INFO: Backup now complete"
+
+if ($IncludeSupportFiles) {
+    Write-Verbose "Copying exported JSON to support directory"
+    Copy-Item -Path "$BackupPath/*" -Recurse -Destination $tempExportDirectory
+    Stop-Transcript | Out-Null
+
+    $zippedArchive = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ('cluedin-support_{0}.zip' -f (Get-Date -Format "yyyyMMdd_HHmmss"))
+    Compress-Archive -Path "$tempExportDirectory" -DestinationPath "$zippedArchive" -Force
+    Remove-Item -Path $tempExportDirectory -Recurse -Force
+
+    Write-Host "Support files ready for sending '$zippedArchive'"
+}

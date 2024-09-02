@@ -16,6 +16,9 @@
     .PARAMETER RestorePath
     This is the location of the export files ran by Export-CluedInConfig
 
+    .PARAMETER IncludeSupportFiles
+    Exports a transcript along with the produced JSON files for CluedIn support to use to diagnose any issues relating to migration.
+
     .EXAMPLE
     PS> ./Import-CluedInConfig.ps1 -BaseURL 'cluedin.com' -Organization 'dev' -RestorePath /path/to/backups
 #>
@@ -25,7 +28,8 @@ param(
     [Parameter(Mandatory)][string]$BaseURL,
     [Parameter(Mandatory)][Alias('Organisation')][string]$Organization,
     [Parameter(Mandatory)][string]$RestorePath,
-    [switch]$UseHTTP
+    [switch]$UseHTTP,
+    [switch]$IncludeSupportFiles
 )
 
 function checkResults($result) {
@@ -35,6 +39,15 @@ function checkResults($result) {
             default { Write-Warning "Failed: $($result.errors.message)" }
         }
     }
+}
+
+if ($IncludeSupportFiles) {
+    $tempExportDirectory = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath (Get-Date -Format "yyyyMMdd_HHmmss_clue\din")
+    $supportFile = Join-Path -Path $tempExportDirectory -ChildPath ('transcript_{0}.txt' -f (Get-Date -Format 'yyyyMMdd_HHmmss'))
+    New-Item -Path $tempExportDirectory -ItemType Directory | Out-Null
+
+    Write-Host "INFO: Dumping support files"
+    Start-Transcript -Path $supportFile | Out-Null
 }
 
 Write-Verbose "Importing modules"
@@ -645,3 +658,15 @@ foreach ($cleanProject in $cleanProjects) {
 }
 
 Write-Host "INFO: Import Complete" -ForegroundColor 'Green'
+
+if ($IncludeSupportFiles) {
+    Write-Verbose "Copying JSON to support directory"
+    Copy-Item -Path "$RestorePath/*" -Recurse -Destination $tempExportDirectory
+    Stop-Transcript | Out-Null
+
+    $zippedArchive = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ('cluedin-support_{0}.zip' -f (Get-Date -Format "yyyyMMdd_HHmmss"))
+    Compress-Archive -Path "$tempExportDirectory" -DestinationPath "$zippedArchive" -Force
+    Remove-Item -Path $tempExportDirectory -Recurse -Force
+
+    Write-Host "Support files ready for sending '$zippedArchive'"
+}

@@ -302,7 +302,7 @@ foreach ($dataSet in $dataSets) {
         $vocabObject = $vocabObject | Where-Object { $_.keyPrefix -eq $keyToMatch }
 
         if (!$vocabObject.count -eq 1) {
-            Write-Error "There was an issue getting vocab '${vocabName}'"
+            Write-Warning "There was an issue getting vocab '${vocabName}', please ensure it was exported correctly"
             Write-Debug $($vocabObject | Out-String)
             continue
         }

@@ -601,6 +601,12 @@ foreach ($stream in $streams) {
   
     $lookupConnectorId = $streamObject.connector.Id
     $connectorId = ($lookupConnectors | Where-Object { $_.OriginalConnectorId -eq $lookupConnectorId }).ConnectorId
+
+    if($connectorId -eq $null)
+    {
+        $connectorId = $($streamObject.connector.Id)
+        Write-Host "INFO: Export target '$($connectorId)' was not imported within this run"
+    }
     
     $setStreamExportResult = Set-CluedInStreamExportTarget -Id $streamId -ConnectorProviderDefinitionId $connectorId -Object $streamObject
     checkResults($setStreamExportResult)

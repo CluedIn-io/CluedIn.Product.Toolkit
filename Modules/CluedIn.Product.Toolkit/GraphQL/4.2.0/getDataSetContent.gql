@@ -1,0 +1,23 @@
+query getDataSetContent(
+  $dataSetId: ID!
+  $page: Int
+  $pageSize: Int
+  $terms: String
+  $disableFilters: Boolean
+  $searchAfter: [String]
+  $mainSort: String
+) {
+  inbound {
+    id
+    dataSetContent(
+      id: $dataSetId
+      page: $page
+      pageSize: $pageSize
+      terms: $terms
+      disableFilters: $disableFilters
+      searchAfter: $searchAfter
+      mainSort: $mainSort
+    )
+    __typename
+  }
+}

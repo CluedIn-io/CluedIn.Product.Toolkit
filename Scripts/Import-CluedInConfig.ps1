@@ -673,7 +673,7 @@ foreach ($glossary in $glossaries) {
 }
 
 # Clean Projects
-Write-Host "INFO: Importing Glossaries" -ForegroundColor 'Green'
+Write-Host "INFO: Importing Clean Projects" -ForegroundColor 'Green'
 $cleanProjects = Get-ChildItem -Path $cleanProjectsPath -Filter "*.json" -Recurse
 $currentCleanProjects = Get-CluedInCleanProjects
 $currentCleanProjectsObject = $currentCleanProjects.data.preparation.allCleanProjects.projects

@@ -18,9 +18,9 @@
 
     .PARAMETER SelectVocabularies
     This is a list of vocabularies (along with keys) that automatically get backed up.
-    Default value is 'None', but 'All' and guids are accepted in csv format wrapped in a string.
+    The guid or name of the vocabulary must be specified in a comma separated string.
 
-    Example: '66505aa1-bacb-463e-832c-799c484577a8, e257a226-d91c-4946-a8af-85ef803cf55e'
+    Example: '66505aa1-bacb-463e-832c-799c484577a8,e257a226-d91c-4946-a8af-85ef803cf55e,organization,user'
 
     .PARAMETER SelectDataSets
     This is a list of Data Sets to backup.

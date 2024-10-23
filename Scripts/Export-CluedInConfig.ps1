@@ -180,8 +180,35 @@ $vocabularyIds = switch ($SelectVocabularies) {
 
 foreach ($id in $vocabularyIds) {
     # Vocab
-    $vocab = Get-CluedInVocabularyById -Id $id
-    if ((!$?) -or ($vocab.errors)) { Write-Warning "Id '$id' was not found. This won't be backed up"; continue }
+    if(Test-IsGuid $id)
+    {
+        $vocab = Get-CluedInVocabularyById -Id $id
+
+        if ((!$?) -or ($vocab.errors)) {    
+            Write-Warning "Id '$id' was not found. This won't be backed up"; 
+            continue 
+        }
+    } else {
+        $found = $false
+        foreach($vocabulary in $vocabularies.data.management.vocabularies.data) {
+            if(($vocabulary.vocabularyName -eq $id) -and ($vocabulary.isCluedInCore -eq $False))
+            {
+                $vocab = Get-CluedInVocabularyById -Id $vocabulary.vocabularyId
+                $id = $vocabulary.vocabularyId
+                $found = $true
+
+                Write-Verbose "$($vocabulary.vocabularyId) maps to $($vocabulary.vocabularyName)"
+                break
+            }
+        }
+
+        if($found -eq $false)
+        {   
+            Write-Warning "Vocabulary '$id' was not found. This won't be backed up"; 
+            continue 
+        }
+    }
+    
 
     Write-Host "Exporting Vocabulary: '$($vocab.data.management.vocabulary.vocabularyName) ($id)'" -ForegroundColor 'Cyan'
     $vocab | Out-JsonFile -Path $vocabPath -Name $id

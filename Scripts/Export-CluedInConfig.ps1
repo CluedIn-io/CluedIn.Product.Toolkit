@@ -191,13 +191,13 @@ foreach ($id in $vocabularyIds) {
     } else {
         $found = $false
         foreach($vocabulary in $vocabularies.data.management.vocabularies.data) {
-            if(($vocabulary.vocabularyName -eq $id) -and ($vocabulary.isCluedInCore -eq $False))
+            if(($vocabulary.keyPrefix -eq $id) -and ($vocabulary.isCluedInCore -eq $False))
             {
                 $vocab = Get-CluedInVocabularyById -Id $vocabulary.vocabularyId
                 $id = $vocabulary.vocabularyId
                 $found = $true
 
-                Write-Verbose "$($vocabulary.vocabularyId) maps to $($vocabulary.vocabularyName)"
+                Write-Verbose "$($vocabulary.keyPrefix) maps to $($vocabulary.vocabularyName)"
                 break
             }
         }

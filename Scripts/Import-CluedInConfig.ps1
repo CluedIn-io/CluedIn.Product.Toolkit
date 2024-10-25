@@ -484,8 +484,8 @@ $exportTargets = Get-ChildItem -Path $exportTargetsPath -Filter "*.json" -Recurs
 $installedExportTargets = (Get-CluedInInstalledExportTargets).data.inbound.connectors
 
 $cleanProperties = @(
-    'connectinString', 'password'
-    'AccountKey', 'AccountName', 'authorization'
+    'connectinString', 'connectionString', 'password'
+    'AccountKey', 'authorization'
 )
 # # # $cleanProperties = @(
 # # #     'connectinString', 'password', 'host'
@@ -494,13 +494,16 @@ $cleanProperties = @(
 
 $lookupConnectors = @()
 
+$currentExportTargets = (Get-CluedInExportTargets).data.inbound.connectorConfigurations.configurations
+$targetExists = $targetObject.accountId -in $currentExportTargets.accountId
+
 foreach ($target in $exportTargets) {
     $targetJson = Get-Content -Path $target.FullName | ConvertFrom-Json -Depth 20
     $targetObject = $targetJson.data.inbound.connectorConfiguration
     $targetProperties = ($targetObject.helperConfiguration | Get-Member -MemberType 'NoteProperty').Name
     $originalConnectorId = $targetObject.id
 
-    Write-Host "Processing Export Target: $($targetObject.accountId)" -ForegroundColor 'Cyan'
+    Write-Host "Processing Export Target: $($targetObject.accountDisplay)" -ForegroundColor 'Cyan'
     if (!$targetObject.accountId) {
         $targetObject.accountId = '0'
         # Write-Warning "Account Id is null, cannot compare. Skipping."
@@ -513,25 +516,53 @@ foreach ($target in $exportTargets) {
     })
 
     # We should constantly get latest as we may create a new one in prior iteration.
-    $currentExportTargets = (Get-CluedInExportTargets).data.inbound.connectorConfigurations.configurations
-    $targetExists = $targetObject.accountId -in $currentExportTargets.accountId
+    #$currentExportTargets = (Get-CluedInExportTargets).data.inbound.connectorConfigurations.configurations
+    
+    $hasTarget = $false
+    $id = $null;
 
-    if (!$targetExists) {
+    if($null -ne $currentExportTargets)
+    {
+        foreach($exportTarget in $currentExportTargets) {
+            $exportTargetDisplayName = $exportTarget.accountDisplay.Trim()
+            $targetDisplayName = "$($targetObject.helperConfiguration.accountName) $($targetObject.helperConfiguration.fileSystemName) $($targetObject.helperConfiguration.directoryName)"
+
+            if(($targetObject.accountId -eq $currentExportTargets.accountId) -and ($null -ne $targetObject.accountId) -and ('' -ne $targetObject.accountId) -and ('0' -ne $targetObject.accountId))
+            {
+                Write-Verbose "Found match on account id :: $($exportTarget.accountDisplay) == $($targetObject.accountDisplay)"
+                $hasTarget = $true
+                $id = $exportTarget.id
+                break
+            }elseif(($exportTarget.accountDisplay -eq $targetObject.accountDisplay) -and ($exportTarget.providerId -eq $targetObject.providerId))
+            {
+                Write-Verbose "Found match on display name :: $($exportTarget.accountDisplay) == $($targetObject.accountDisplay)"
+                $hasTarget = $true
+                $id = $exportTarget.id
+                break
+            } elseif(($exportTargetDisplayName -eq $targetDisplayName) -and ($exportTarget.providerId -eq $targetObject.providerId)) {
+                Write-Verbose "Found match on assumed display name :: $($exportTarget.accountDisplay) == $($targetObject.helperConfiguration.accountName) $($targetObject.helperConfiguration.fileSystemName) $($targetObject.helperConfiguration.directoryName)"
+                $hasTarget = $true
+                $id = $exportTarget.id
+                break
+            }
+        }
+    }
+
+    if ($hasTarget -eq $false) {
         if ($targetObject.providerId -notin $installedExportTargets.id) {
             Write-Warning "Export Target '$($targetObject.connector.name)' could not be found. Skipping creation."
             Write-Warning "Please install connector and try again"
             continue
         }
         
-        Write-Verbose "Creating Export Target"
+        Write-Verbose "Creating Export Target $($targetObject.helperConfiguration)"
         $targetResult = New-CluedInExportTarget -ConnectorId $targetObject.providerId -Configuration $targetObject.helperConfiguration
         $id = $targetResult.data.inbound.createConnection.id
         if (!$id) { Write-Warning "Unable to get Id of target. Importing on top of existing export targets can be flakey. Please manually investigate."; continue }
     }
     else {
-        Write-Verbose "Export target exists. Setting configuration"
-        $id = ($currentExportTargets | Where-Object { $_.accountId -eq $targetObject.accountId }).id
-        $targetResult = Set-CluedInExportTargetConfiguration -Id $id -Configuration $targetObject.helperConfiguration
+        Write-Verbose "Skipping Export target '$($targetDisplayName)' already exists"
+        #$targetResult = Set-CluedInExportTargetConfiguration -Id $existingExportTargetId -Configuration $targetObject.helperConfiguration
     }
 
     checkResults($targetResult)

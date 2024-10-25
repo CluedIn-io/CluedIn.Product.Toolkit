@@ -519,24 +519,30 @@ foreach ($target in $exportTargets) {
     #$currentExportTargets = (Get-CluedInExportTargets).data.inbound.connectorConfigurations.configurations
     
     $hasTarget = $false
-    $existingExportTargetId = $null;
+    $id = $null;
 
-    if($currentExportTargets -ne $null)
+    if($null -ne $currentExportTargets)
     {
         foreach($exportTarget in $currentExportTargets) {
             $exportTargetDisplayName = $exportTarget.accountDisplay.Trim()
             $targetDisplayName = "$($targetObject.helperConfiguration.accountName) $($targetObject.helperConfiguration.fileSystemName) $($targetObject.helperConfiguration.directoryName)"
 
-            if(($exportTarget.accountDisplay -eq $targetObject.accountDisplay) -and ($exportTarget.providerId -eq $targetObject.providerId))
+            if(($targetObject.accountId -eq $currentExportTargets.accountId) -and ($null -ne $targetObject.accountId) -and ('' -ne $targetObject.accountId) -and ('0' -ne $targetObject.accountId))
+            {
+                Write-Verbose "Found match on account id :: $($exportTarget.accountDisplay) == $($targetObject.accountDisplay)"
+                $hasTarget = $true
+                $id = $exportTarget.id
+                break
+            }elseif(($exportTarget.accountDisplay -eq $targetObject.accountDisplay) -and ($exportTarget.providerId -eq $targetObject.providerId))
             {
                 Write-Verbose "Found match on display name :: $($exportTarget.accountDisplay) == $($targetObject.accountDisplay)"
                 $hasTarget = $true
-                $existingExportTargetId = $exportTarget.id
+                $id = $exportTarget.id
                 break
             } elseif(($exportTargetDisplayName -eq $targetDisplayName) -and ($exportTarget.providerId -eq $targetObject.providerId)) {
                 Write-Verbose "Found match on assumed display name :: $($exportTarget.accountDisplay) == $($targetObject.helperConfiguration.accountName) $($targetObject.helperConfiguration.fileSystemName) $($targetObject.helperConfiguration.directoryName)"
                 $hasTarget = $true
-                $existingExportTargetId = $exportTarget.id
+                $id = $exportTarget.id
                 break
             }
         }

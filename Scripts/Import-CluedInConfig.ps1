@@ -561,8 +561,8 @@ foreach ($target in $exportTargets) {
         if (!$id) { Write-Warning "Unable to get Id of target. Importing on top of existing export targets can be flakey. Please manually investigate."; continue }
     }
     else {
-        Write-Verbose "Skipping Export target '$($targetDisplayName)' already exists"
-        #$targetResult = Set-CluedInExportTargetConfiguration -Id $existingExportTargetId -Configuration $targetObject.helperConfiguration
+        Write-Verbose "Updating Export target '$($targetDisplayName)' as it already exists"
+        $targetResult = Set-CluedInExportTargetConfiguration -Id $id -AccountDisplay $targetObject.accountDisplay -Configuration $targetObject.helperConfiguration
     }
 
     checkResults($targetResult)

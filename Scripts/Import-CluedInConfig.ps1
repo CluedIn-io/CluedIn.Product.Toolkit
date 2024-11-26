@@ -32,11 +32,20 @@ param(
     [switch]$IncludeSupportFiles
 )
 
-function checkResults($result) {
+function checkResults($result, $type) {
     if ($result.errors) {
         switch ($result.errors.message) {
-            {$_ -match '409'} { Write-Warning "An entry already exists" }
-            default { Write-Warning "Failed: $($result.errors.message)" }
+            {$_ -match '409'} { 
+                if($type -eq 'vocab') {
+                    Write-Host "Skipping vocab already exists or was unchanged" -ForegroundColor 'Cyan'
+                } else {
+                    Write-Warning "An entry already exists" 
+                }
+            }
+            default 
+            { 
+                Write-Warning "Failed: $($result.errors.message)" 
+            }
         }
     }
 }
@@ -121,9 +130,10 @@ foreach ($vocabulary in $restoreVocabularies) {
 
     Write-Host "Processing Vocab: $($vocabObject.vocabularyName) ($($vocabObject.vocabularyId))" -ForegroundColor 'Cyan'
     Write-Debug "$($vocabObject | Out-String)"
-
+    
     $entityTypeResult = Get-CluedInEntityType -Search $($vocabObject.entityTypeConfiguration.displayName)
-    if ($entityTypeResult.data.management.entityTypeConfigurations.total -ne 1) {
+    if ($entityTypeResult.data.management.entityTypeConfigurations.total -lt 1) {
+        Write-Host "Creating entity type: $($entityTypeResult.data.management.entityTypeConfigurations.total)" 
         $entityResult = New-CluedInEntityType -Object $vocabObject.entityTypeConfiguration
         checkResults($entityResult)
     }
@@ -131,13 +141,31 @@ foreach ($vocabulary in $restoreVocabularies) {
     $exists = (Get-CluedInVocabulary -Search $vocabObject.vocabularyName -HardMatch).data.management.vocabularies.data
     if (!$exists) {
         $vocabResult = New-CluedInVocabulary -Object $vocabObject
-        checkResults($vocabResult)
     }
     else {
-        if ($exists.count -ne 1) { Write-Warning "Issue with following:`n$exists. Only 1 should have been returned"; continue }
+        $vocabularyId = $null
+        if ($exists.count -ne 1) { 
+            
+            $found = $false
+            foreach ($v in $exists)
+            {
+                if($v.keyPrefix -eq $vocabObject.keyPrefix) {
+                    $vocabularyId = $v.vocabularyId
+                    $found = $true
+                    break
+                }
+            }
+                
+            if($found -eq $false) {
+                Write-Warning "Can not find exact match for the vocabulary"; 
+                continue 
+            }
+        } else {
+            $vocabularyId = $exists.vocabularyId
+        }
 
         # We have to get again because the `exists` section doesn't pull the configuration. Just metadata.
-        $currentVocab = (Get-CluedInVocabularyById -Id $exists.vocabularyId).data.management.vocabulary
+        $currentVocab = (Get-CluedInVocabularyById -Id $vocabularyId).data.management.vocabulary
         $vocabObject.vocabularyId = $currentVocab.vocabularyId # These cannot be updated once set
         $vocabObject.vocabularyName = $currentVocab.vocabularyName # These cannot be updated once set
         $vocabObject.keyPrefix = $currentVocab.keyPrefix # These cannot be updated once set
@@ -146,7 +174,7 @@ foreach ($vocabulary in $restoreVocabularies) {
         Write-Verbose "Restored Config`n$($vocabObject | Out-String)"
         Write-Verbose "Current Config`n$($currentVocab | Out-String)"
         $vocabUpdateResult = Set-CluedInVocabulary -Object $vocabObject
-        checkResults($vocabUpdateResult)
+        checkResults $vocabUpdateResult 'vocab'
     }
 }
 

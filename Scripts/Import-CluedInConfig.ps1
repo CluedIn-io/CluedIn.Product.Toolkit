@@ -33,8 +33,20 @@ param(
 )
 
 function checkResults($result, $type) {
+function checkResults($result, $type) {
     if ($result.errors) {
         switch ($result.errors.message) {
+            {$_ -match '409'} { 
+                if($type -eq 'vocab') {
+                    Write-Host "Skipping vocab already exists or was unchanged" -ForegroundColor 'Cyan'
+                } else {
+                    Write-Warning "An entry already exists" 
+                }
+            }
+            default 
+            { 
+                Write-Warning "Failed: $($result.errors.message)" 
+            }
             {$_ -match '409'} { 
                 if($type -eq 'vocab') {
                     Write-Host "Skipping vocab already exists or was unchanged" -ForegroundColor 'Cyan'
@@ -133,7 +145,10 @@ foreach ($vocabulary in $restoreVocabularies) {
     Write-Host "Processing Vocab: $($vocabObject.vocabularyName) ($($vocabObject.vocabularyId))" -ForegroundColor 'Cyan'
     Write-Debug "$($vocabObject | Out-String)"
     
+    
     $entityTypeResult = Get-CluedInEntityType -Search $($vocabObject.entityTypeConfiguration.displayName)
+    if ($entityTypeResult.data.management.entityTypeConfigurations.total -lt 1) {
+        Write-Host "Creating entity type: $($entityTypeResult.data.management.entityTypeConfigurations.total)" 
     if ($entityTypeResult.data.management.entityTypeConfigurations.total -lt 1) {
         Write-Host "Creating entity type: $($entityTypeResult.data.management.entityTypeConfigurations.total)" 
         $entityResult = New-CluedInEntityType -Object $vocabObject.entityTypeConfiguration
@@ -172,8 +187,29 @@ foreach ($vocabulary in $restoreVocabularies) {
         } else {
             $vocabularyId = $exists.vocabularyId
         }
+        $vocabularyId = $null
+        if ($exists.count -ne 1) { 
+            
+            $found = $false
+            foreach ($v in $exists)
+            {
+                if($v.keyPrefix -eq $vocabObject.keyPrefix) {
+                    $vocabularyId = $v.vocabularyId
+                    $found = $true
+                    break
+                }
+            }
+                
+            if($found -eq $false) {
+                Write-Warning "Can not find exact match for the vocabulary"; 
+                continue 
+            }
+        } else {
+            $vocabularyId = $exists.vocabularyId
+        }
 
         # We have to get again because the `exists` section doesn't pull the configuration. Just metadata.
+        $currentVocab = (Get-CluedInVocabularyById -Id $vocabularyId).data.management.vocabulary
         $currentVocab = (Get-CluedInVocabularyById -Id $vocabularyId).data.management.vocabulary
         $vocabObject.vocabularyId = $currentVocab.vocabularyId # These cannot be updated once set
         $vocabObject.vocabularyName = $currentVocab.vocabularyName # These cannot be updated once set

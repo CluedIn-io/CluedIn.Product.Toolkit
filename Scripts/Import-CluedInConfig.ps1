@@ -456,7 +456,6 @@ foreach ($dataSet in $dataSets) {
                     }
 
                     if ($mapping.originalField -notin $currentFieldMappings.originalField) {
-                        Write-Host "########### New-CluedInDataSetMapping - $($mapping.key)"
                         $mapping.key = $fieldVocabKeyObject.key # To cover case sensitive process
 
                         $dataSetMappingParams = @{

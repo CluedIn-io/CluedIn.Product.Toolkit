@@ -123,10 +123,12 @@ if (Test-Path -Path $adminSettingsPath -PathType Leaf) {
 # Vocabulary
 Write-Host "INFO: Importing Vocabularies" -ForegroundColor 'Green'
 $restoreVocabularies = Get-ChildItem -Path $vocabPath -Filter "*.json"
+$lookupVocabularies = @()
 
 foreach ($vocabulary in $restoreVocabularies) {
     $vocabJson = Get-Content -Path $vocabulary.FullName | ConvertFrom-Json -Depth 20
     $vocabObject = $vocabJson.data.management.vocabulary
+    $originalVocabularyId = $vocabObject.vocabularyId
 
     Write-Host "Processing Vocab: $($vocabObject.vocabularyName) ($($vocabObject.vocabularyId))" -ForegroundColor 'Cyan'
     Write-Debug "$($vocabObject | Out-String)"
@@ -138,9 +140,16 @@ foreach ($vocabulary in $restoreVocabularies) {
         checkResults($entityResult)
     }
 
-    $exists = (Get-CluedInVocabulary -Search $vocabObject.vocabularyName -HardMatch).data.management.vocabularies.data
+    $exists = (Get-CluedInVocabulary -Search $vocabObject.vocabularyName -IncludeCore -HardMatch).data.management.vocabularies.data
     if (!$exists) {
-        $vocabResult = New-CluedInVocabulary -Object $vocabObject
+        $vocabCreateResult = New-CluedInVocabulary -Object $vocabObject
+        checkResults $vocabCreateResult
+        $createdVocabulary = (Get-CluedInVocabulary -Search $vocabObject.vocabularyName -HardMatch).data.management.vocabularies.data
+        
+        $lookupVocabularies += [PSCustomObject]@{
+            OriginalVocabularyId = $originalVocabularyId
+            VocabularyId = $createdVocabulary.vocabularyId
+        }
     }
     else {
         $vocabularyId = $null
@@ -175,7 +184,16 @@ foreach ($vocabulary in $restoreVocabularies) {
         Write-Verbose "Current Config`n$($currentVocab | Out-String)"
         $vocabUpdateResult = Set-CluedInVocabulary -Object $vocabObject
         checkResults $vocabUpdateResult 'vocab'
+
+        $lookupVocabularies += [PSCustomObject]@{
+            OriginalVocabularyId = $originalVocabularyId
+            VocabularyId = $currentVocab.vocabularyId
+        }
     }
+}
+
+foreach ($lookup in $lookupVocabularies) {
+    Write-Host $lookup | Format-Table
 }
 
 Write-Host "INFO: Importing Vocabulary Keys" -ForegroundColor 'Green'
@@ -184,19 +202,41 @@ foreach ($vocabKey in $vocabKeys) {
     $vocabKeyJson = Get-Content -Path $vocabKey.FullName | ConvertFrom-Json -Depth 20
     $vocabKeyObject = $vocabKeyJson.data.management.vocabularyKeysFromVocabularyId.data
 
-    $vocabName = $vocabKeyObject.vocabulary.vocabularyName | Select-Object -First 1
-    $vocabulary = Get-CluedInVocabulary -Search $vocabName -IncludeCore -HardMatch
-    $vocabularyId = $vocabulary.data.management.vocabularies.data.vocabularyId
+    $vocabName = ''
+    $lookupVocabularyId = $null
+
+    # Find first key that is not a composite key
+    foreach($vk in $vocabKeyObject)
+    {
+        if($null -eq $vk.compositeVocabularyId)
+        {
+            $vocabName = $vk.vocabulary.vocabularyName
+            $lookupVocabularyId = $vk.vocabularyId
+            break
+        }
+    }
+
+    $vocabularyId = ($lookupVocabularies | Where-Object { $_.OriginalVocabularyId -eq $lookupVocabularyId }).VocabularyId
+    if([string]::IsNullOrWhiteSpace($vocabularyId))
+    {
+        Write-Error "Can not find matching vocabulary for '$vocabName'"
+        continue
+    }
+
+    Write-Host "Original Id:: $($lookupVocabularyId), New Id:: $($vocabularyId) - '$vocabName'"
+
     foreach ($key in $vocabKeyObject) {
-        if ($key.isObsolete) { Write-Verbose "Not importing: '$($key.key)' as it's obsolete"; continue }
+        if ($key.isObsolete) { 
+            Write-Verbose "Not importing: '$($key.key)' as it's obsolete"; 
+            continue 
+        }
 
         Write-Host "Processing Vocab Key: $($key.displayName) ($($key.vocabularyKeyId))" -ForegroundColor 'Cyan'
         Write-Debug "$($key | Out-String)"
 
-        $currentKeys = Get-CluedInVocabularyKey -Id $vocabularyId
-        $currentKeysObject = $currentKeys.data.management.vocabularyKeysFromVocabularyId.data
-        $currentVocabularyKeyObject = $currentKeysObject | Where-Object { $_.key -eq $key.key }
-
+        $currentVocabularyKeyObjectResult = Get-CluedInVocabularyKey -Search $key.key
+        $currentVocabularyKeyObject = $currentVocabularyKeyObjectResult.data.management.vocabularyPerKey
+        
         if ($key.mapsToOtherKeyId) {
             $mappedKeyId = Get-CluedInVocabularyKey -Search $key.mappedKey.key
             $key.mapsToOtherKeyId = $mappedKeyID ?
@@ -204,11 +244,24 @@ foreach ($vocabKey in $vocabKeys) {
                 $null
         }
 
+        if($null -ne $key.compositeVocabularyId) {
+            Write-Host "Skipping composite Vocab Key: $($key.key)" -ForegroundColor 'DarkCyan'
+            continue
+        }
+
         if (!$currentVocabularyKeyObject.key) {
             Write-Host "Creating '$($key.key)' as it doesn't exist" -ForegroundColor 'DarkCyan'
+            $keyVocabularyId = ($lookupVocabularies | Where-Object { $_.OriginalVocabularyId -eq $key.vocabularyId }).VocabularyId
+            Write-Host "Creating vocab id:: $($key.vocabularyId) new:::'$($keyVocabularyId)'" -ForegroundColor 'DarkCyan'
+            if([string]::IsNullOrWhiteSpace($keyVocabularyId))
+            {
+                Write-Warning "Can not find matching vocab '$vocabName' for key '$($key.key)'"
+                continue
+            }
+
             $params = @{
                 Object = $key
-                VocabId = $vocabulary.data.management.vocabularies.data.vocabularyId
+                VocabId = $keyVocabularyId
             }
             $vocabKeyResult = New-CluedInVocabularyKey @params
             checkResults($vocabKeyResult)
@@ -222,6 +275,13 @@ foreach ($vocabKey in $vocabKeys) {
             $key.vocabularyKeyId = $currentVocabularyKeyObject.vocabularyKeyId # These cannot be updated once set
             $key.vocabularyId = $currentVocabularyKeyObject.vocabularyId # These cannot be updated once set
             $key.name = $currentVocabularyKeyObject.name # These cannot be updated once set
+
+            $keyVocabularyId = ($lookupVocabularies | Where-Object { $_.VocabularyId -eq $currentVocabularyKeyObject.vocabularyId }).VocabularyId
+            if([string]::IsNullOrWhiteSpace($keyVocabularyId))
+            {
+                Write-Warning "Can not find matching vocab '$vocabName' for key '$($key.key)' - $($currentVocabularyKeyObject.vocabularyId)"
+                #continue
+            }
 
             Write-Verbose "'$($key.key)' exists, overwriting existing configuration"
             $vocabKeyUpdateResult = Set-CluedInVocabularyKey -Object $key
@@ -396,6 +456,7 @@ foreach ($dataSet in $dataSets) {
                     }
 
                     if ($mapping.originalField -notin $currentFieldMappings.originalField) {
+                        Write-Host "########### New-CluedInDataSetMapping - $($mapping.key)"
                         $mapping.key = $fieldVocabKeyObject.key # To cover case sensitive process
 
                         $dataSetMappingParams = @{

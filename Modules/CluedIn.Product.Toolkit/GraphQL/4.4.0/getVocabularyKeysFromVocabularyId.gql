@@ -1,0 +1,85 @@
+query getVocabularyKeysFromVocabularyId($id: ID!, $searchName: String, $dataType: String, $classification: String, $filterIsObsolete: String, $skipFilterVisibility: Boolean) {
+  management {
+    id
+    vocabularyKeysFromVocabularyId(
+      id: $id
+      searchName: $searchName
+      dataType: $dataType
+      classification: $classification
+      filterIsObsolete: $filterIsObsolete
+      skipFilterVisibility: $skipFilterVisibility
+    ) {
+      total
+      data {
+        ...VocabularyKey
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}
+
+fragment VocabularyKey on VocabularyKey {
+  displayName
+  vocabularyKeyId
+  vocabularyId
+  name
+  isVisible
+  isCluedInCore
+  isDynamic
+  isProvider
+  isObsolete
+  groupName
+  key
+  storage
+  dataClassificationCode
+  dataType
+  description
+  dataAnnotationsIsPrimaryKey
+  dataAnnotationsIsEditable
+  dataAnnotationsIsNullable
+  dataAnnotationsIsRequired
+  dataAnnotationsMinimumLength
+  dataAnnotationsMaximumLength
+  providerId
+  compositeVocabularyId
+  compositeVocabulary {
+    name
+    displayName
+    dataType
+    __typename
+  }
+  mapsToOtherKeyId
+  glossaryTermId
+  createdAt
+  createdBy
+  mappedKey
+  isValueChangeInsignificant
+  connector {
+    id
+    name
+    about
+    icon
+    type
+    __typename
+  }
+  vocabulary {
+    vocabularyId
+    vocabularyName
+    connector {
+      id
+      name
+      about
+      icon
+      __typename
+    }
+    __typename
+  }
+  author {
+    id
+    username
+    __typename
+  }
+  __typename
+}

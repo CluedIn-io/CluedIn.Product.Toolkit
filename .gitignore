@@ -7,6 +7,8 @@ mmc5
 mmc6
 mmc7
 ops1
+.idea/
+.vscode/
 icgint
 icga
 icgb

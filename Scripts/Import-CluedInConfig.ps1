@@ -570,6 +570,7 @@ foreach ($rule in $rules) {
 Write-Host "INFO: Importing Export Targets" -ForegroundColor 'Green'
 $exportTargets = Get-ChildItem -Path $exportTargetsPath -Filter "*.json" -Recurse
 $installedExportTargets = (Get-CluedInInstalledExportTargets).data.inbound.connectors
+Write-Host "$(Get-CluedInInstalledExportTargets)"
 
 $cleanProperties = @(
     'connectinString', 'connectionString', 'password'
@@ -644,7 +645,8 @@ foreach ($target in $exportTargets) {
         }
         
         Write-Verbose "Creating Export Target $($targetObject.helperConfiguration)"
-        $targetResult = New-CluedInExportTarget -ConnectorId $targetObject.providerId -Configuration $targetObject.helperConfiguration
+        $accountDisplay = if ($targetObject.accountDisplay) { $targetObject.accountDisplay } else { $targetObject.accountId }
+        $targetResult = New-CluedInExportTarget -ConnectorId $targetObject.providerId -Configuration $targetObject.helperConfiguration -AccountDisplay $accountDisplay
         $id = $targetResult.data.inbound.createConnection.id
         if (!$id) { Write-Warning "Unable to get Id of target. Importing on top of existing export targets can be flakey. Please manually investigate."; continue }
     }
@@ -662,7 +664,12 @@ foreach ($target in $exportTargets) {
 
     $idsToSet = @()
     foreach ($user in $usersToAdd) {
-        $idsToSet += ($allUsers | Where-Object { $_.account.UserName -eq $user }).id
+        $id = ($allUsers | Where-Object { $_.account.UserName -eq $user }).id
+
+        # Only add if the id is not empty or null
+        if ($id -ne $null -and $id -ne "") {
+            $idsToSet += $id
+        }
     }
 
     if ($idsToSet) { Set-CluedInExportTargetPermissions -ConnectorId $id -UserId $idsToSet }

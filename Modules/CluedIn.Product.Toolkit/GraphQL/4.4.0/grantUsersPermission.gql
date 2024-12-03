@@ -1,0 +1,13 @@
+mutation grantUsersPermission($connectorId: ID, $userIds: [ID]) {
+  inbound {
+    grantUsersPermission(connectorId: $connectorId, userIds: $userIds) {
+      id
+      users {
+        id
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

@@ -1,0 +1,35 @@
+query getRule($id: ID!) {
+  management {
+    id
+    rule(id: $id) {
+      id
+      name
+      description
+      isActive
+      createdBy
+      modifiedBy
+      isOwner
+      createdAt
+      modifiedAt
+      condition
+      actions
+      rules
+      sourceDetail {
+        id
+        name
+        type
+        __typename
+      }
+      author {
+        id
+        username
+        __typename
+      }
+      scope
+      isReprocessing
+      requiresAttention
+      __typename
+    }
+    __typename
+  }
+}

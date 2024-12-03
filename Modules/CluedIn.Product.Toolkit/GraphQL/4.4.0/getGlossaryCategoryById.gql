@@ -1,0 +1,15 @@
+query getGlossaryCategory($id: ID!, $isActive: Boolean) {
+  management {
+    id
+    glossaryCategory(id: $id) {
+      id
+      name
+      terms(isActive: $isActive) {
+        total
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

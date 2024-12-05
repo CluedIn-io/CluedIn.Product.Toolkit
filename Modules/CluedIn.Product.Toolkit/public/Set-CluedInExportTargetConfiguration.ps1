@@ -21,6 +21,7 @@ function Set-CluedInExportTargetConfiguration {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)][guid]$Id,
+        [Parameter(Mandatory)][string]$AccountDisplay,
         [PSCustomObject]$Configuration
     )
 
@@ -30,6 +31,7 @@ function Set-CluedInExportTargetConfiguration {
         variables = @{
             connectorConfiguration = @{
                 id = $Id
+                accountDisplay = $AccountDisplay
                 helperConfiguration = $Configuration
             }
         }

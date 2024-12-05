@@ -37,6 +37,7 @@ function New-CluedInDataSet {
         $Name = $Object.name
         $Configuration = $Object.configuration
         $type = $Object.dataSource.type
+        $originalFields = $Object.originalFields
     }
     else {
         $Configuration = @{
@@ -67,6 +68,7 @@ function New-CluedInDataSet {
                     type = $type
                     name = $Name
                     configuration = $Configuration
+                    originalFields = $originalFields
                 }
             )
         }

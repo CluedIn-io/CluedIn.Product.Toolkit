@@ -302,7 +302,7 @@ foreach ($dataSet in $dataSets) {
         $vocabObject = $vocabObject | Where-Object { $_.keyPrefix -eq $keyToMatch }
 
         if (!$vocabObject.count -eq 1) {
-            Write-Error "There was an issue getting vocab '${vocabName}'"
+            Write-Warning "There was an issue getting vocab '${vocabName}', please ensure it was exported correctly"
             Write-Debug $($vocabObject | Out-String)
             continue
         }
@@ -446,15 +446,32 @@ foreach ($rule in $rules) {
     $ruleJson = Get-Content -Path $rule.FullName | ConvertFrom-Json -Depth 20
     $ruleObject = $ruleJson.data.management.rule
     Write-Host "Processing Rule: $($ruleObject.name) ($($ruleObject.scope))" -ForegroundColor 'Cyan'
-
     $exists = Get-CluedInRules -Search $ruleObject.name -Scope $ruleObject.scope
+
     if (!$exists.data.management.rules.data) {
         Write-Verbose "Creating rule as it does not exist"
         $ruleResult = New-CluedInRule -Name $ruleObject.name -Scope $ruleObject.scope
         checkResults($ruleResult)
         $ruleObject.id = $ruleResult.data.management.createRule.id
     }
-    else { $ruleObject.id = $exists.data.management.rules.data.id }
+    else { 
+        $ruleObject.id = $exists.data.management.rules.data.id 
+
+        if($exists.data.management.rules.data.count -gt 1)
+        {
+            Write-Warning "Multiple matches for rule '$($ruleObject.name)'"
+            foreach($item in $exists.data.management.rules.data)
+            {
+                if($item.name -eq $ruleObject.name)
+                {
+                    $ruleObject.id = $item.id 
+                    continue
+                }
+            }
+        } else {           
+            $ruleObject.id = $exists.data.management.rules.data.id 
+        }
+    }
 
     Write-Verbose "Setting rule configuration"
     $setRuleResult = Set-CluedInRule -Object $ruleObject
@@ -467,21 +484,31 @@ $exportTargets = Get-ChildItem -Path $exportTargetsPath -Filter "*.json" -Recurs
 $installedExportTargets = (Get-CluedInInstalledExportTargets).data.inbound.connectors
 
 $cleanProperties = @(
-    'connectinString', 'password', 'host'
-    'AccountKey', 'AccountName', 'authorization'
+    'connectinString', 'connectionString', 'password'
+    'AccountKey', 'authorization'
 )
+# # # $cleanProperties = @(
+# # #     'connectinString', 'password', 'host'
+# # #     'AccountKey', 'AccountName', 'authorization'
+# # # )
+
+$lookupConnectors = @()
+
+$currentExportTargets = (Get-CluedInExportTargets).data.inbound.connectorConfigurations.configurations
+$targetExists = $targetObject.accountId -in $currentExportTargets.accountId
 
 foreach ($target in $exportTargets) {
     $targetJson = Get-Content -Path $target.FullName | ConvertFrom-Json -Depth 20
     $targetObject = $targetJson.data.inbound.connectorConfiguration
     $targetProperties = ($targetObject.helperConfiguration | Get-Member -MemberType 'NoteProperty').Name
+    $originalConnectorId = $targetObject.id
 
-    Write-Host "Processing Export Target: $($targetObject.accountId)" -ForegroundColor 'Cyan'
-
+    Write-Host "Processing Export Target: $($targetObject.accountDisplay)" -ForegroundColor 'Cyan'
     if (!$targetObject.accountId) {
-        Write-Warning "Account Id is null, cannot compare. Skipping."
-        Write-Host "You will need to manually add the '$($targetObject.name)' connector"
-        continue
+        $targetObject.accountId = '0'
+        # Write-Warning "Account Id is null, cannot compare. Skipping."
+        # Write-Host "You will need to manually add the '$($targetObject.name)' connector"
+        # continue
     }
 
     $cleanProperties.ForEach({
@@ -489,25 +516,53 @@ foreach ($target in $exportTargets) {
     })
 
     # We should constantly get latest as we may create a new one in prior iteration.
-    $currentExportTargets = (Get-CluedInExportTargets).data.inbound.connectorConfigurations.configurations
+    #$currentExportTargets = (Get-CluedInExportTargets).data.inbound.connectorConfigurations.configurations
+    
+    $hasTarget = $false
+    $id = $null;
 
-    $targetExists = $targetObject.accountId -in $currentExportTargets.accountId
-    if (!$targetExists) {
+    if($null -ne $currentExportTargets)
+    {
+        foreach($exportTarget in $currentExportTargets) {
+            $exportTargetDisplayName = $exportTarget.accountDisplay.Trim()
+            $targetDisplayName = "$($targetObject.helperConfiguration.accountName) $($targetObject.helperConfiguration.fileSystemName) $($targetObject.helperConfiguration.directoryName)"
+
+            if(($targetObject.accountId -eq $currentExportTargets.accountId) -and ($null -ne $targetObject.accountId) -and ('' -ne $targetObject.accountId) -and ('0' -ne $targetObject.accountId))
+            {
+                Write-Verbose "Found match on account id :: $($exportTarget.accountDisplay) == $($targetObject.accountDisplay)"
+                $hasTarget = $true
+                $id = $exportTarget.id
+                break
+            }elseif(($exportTarget.accountDisplay -eq $targetObject.accountDisplay) -and ($exportTarget.providerId -eq $targetObject.providerId))
+            {
+                Write-Verbose "Found match on display name :: $($exportTarget.accountDisplay) == $($targetObject.accountDisplay)"
+                $hasTarget = $true
+                $id = $exportTarget.id
+                break
+            } elseif(($exportTargetDisplayName -eq $targetDisplayName) -and ($exportTarget.providerId -eq $targetObject.providerId)) {
+                Write-Verbose "Found match on assumed display name :: $($exportTarget.accountDisplay) == $($targetObject.helperConfiguration.accountName) $($targetObject.helperConfiguration.fileSystemName) $($targetObject.helperConfiguration.directoryName)"
+                $hasTarget = $true
+                $id = $exportTarget.id
+                break
+            }
+        }
+    }
+
+    if ($hasTarget -eq $false) {
         if ($targetObject.providerId -notin $installedExportTargets.id) {
             Write-Warning "Export Target '$($targetObject.connector.name)' could not be found. Skipping creation."
             Write-Warning "Please install connector and try again"
             continue
         }
-
-        Write-Verbose "Creating Export Target"
+        
+        Write-Verbose "Creating Export Target $($targetObject.helperConfiguration)"
         $targetResult = New-CluedInExportTarget -ConnectorId $targetObject.providerId -Configuration $targetObject.helperConfiguration
         $id = $targetResult.data.inbound.createConnection.id
         if (!$id) { Write-Warning "Unable to get Id of target. Importing on top of existing export targets can be flakey. Please manually investigate."; continue }
     }
     else {
-        Write-Verbose "Export target exists. Setting configuration"
-        $id = ($currentExportTargets | Where-Object { $_.accountId -eq $targetObject.accountId }).id
-        $targetResult = Set-CluedInExportTargetConfiguration -Id $id -Configuration $targetObject.helperConfiguration
+        Write-Verbose "Updating Export target '$($targetDisplayName)' as it already exists"
+        $targetResult = Set-CluedInExportTargetConfiguration -Id $id -AccountDisplay $targetObject.accountDisplay -Configuration $targetObject.helperConfiguration
     }
 
     checkResults($targetResult)
@@ -523,6 +578,11 @@ foreach ($target in $exportTargets) {
     }
 
     if ($idsToSet) { Set-CluedInExportTargetPermissions -ConnectorId $id -UserId $idsToSet }
+
+    $lookupConnectors += [PSCustomObject]@{
+        OriginalConnectorId = $originalConnectorId
+        ConnectorId = $id
+    }
 }
 
 # Streams
@@ -546,10 +606,12 @@ foreach ($stream in $streams) {
             Write-Verbose "Creating Stream"
             $newStream = New-CluedInStream -Name $streamObject.name
             $streamId = $newStream.data.consume.createStream.id
+            Write-Warning "Created new stream $($streamId)"
         }
         '1' {
             Write-Verbose "Stream Exists. Updating"
             $streamId = $streamExists.id
+            Write-Warning "Using existing stream $($streamId)"
         }
         default { Write-Warning "Too many streams exist with name '$($streamObject.name)'"; continue }
     }
@@ -564,10 +626,20 @@ foreach ($stream in $streams) {
 
         $streamObject.isActive = $false
     }
+
     $setResult = Set-CluedInStream -Id $streamId -Object $streamObject
     checkResults($setResult)
+  
+    $lookupConnectorId = $streamObject.connector.Id
+    $connectorId = ($lookupConnectors | Where-Object { $_.OriginalConnectorId -eq $lookupConnectorId }).ConnectorId
 
-    $setStreamExportResult = Set-CluedInStreamExportTarget -Id $streamId -Object $streamObject
+    if($connectorId -eq $null)
+    {
+        $connectorId = $($streamObject.connector.Id)
+        Write-Host "INFO: Export target '$($connectorId)' was not imported within this run"
+    }
+    
+    $setStreamExportResult = Set-CluedInStreamExportTarget -Id $streamId -ConnectorProviderDefinitionId $connectorId -Object $streamObject
     checkResults($setStreamExportResult)
 }
 
@@ -632,7 +704,7 @@ foreach ($glossary in $glossaries) {
 }
 
 # Clean Projects
-Write-Host "INFO: Importing Glossaries" -ForegroundColor 'Green'
+Write-Host "INFO: Importing Clean Projects" -ForegroundColor 'Green'
 $cleanProjects = Get-ChildItem -Path $cleanProjectsPath -Filter "*.json" -Recurse
 $currentCleanProjects = Get-CluedInCleanProjects
 $currentCleanProjectsObject = $currentCleanProjects.data.preparation.allCleanProjects.projects

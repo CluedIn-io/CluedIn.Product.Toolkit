@@ -99,7 +99,7 @@ FunctionsToExport = 'Connect-CluedInOrganization', 'Get-CluedInAdminSetting',
                'Get-CluedInGlossaryTerm', 'Set-CluedInGlossaryTerm',
                'Get-CluedInCleanProjects', 'New-CluedInCleanProject',
                'Get-CluedInCleanProject', 'Set-CluedInCleanProject',
-               'Import-CluedInUsers'
+               'Import-CluedInUsers', 'Test-IsGuid'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()

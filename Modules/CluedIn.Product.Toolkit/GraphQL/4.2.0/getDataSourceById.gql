@@ -1,0 +1,151 @@
+query getDataSourceById($id: ID!) {
+  inbound {
+    id
+    dataSource(id: $id) {
+      id
+      canBeDeleted
+      name
+      hasError
+      latestErrorMessage
+      errorType
+      stopped
+      logoType
+      crashedDuringUpload
+      author {
+        id
+        username
+        __typename
+      }
+      fileMetadata {
+        fileName
+        processing
+        uploading
+        uploadedPercentage
+        mimeType
+        __typename
+      }
+      createdAt
+      type
+      dataSourceSet {
+        id
+        name
+        __typename
+      }
+      sql
+      connectionStatus {
+        connected
+        errorMessage
+        __typename
+      }
+      dataSets {
+        id
+        name
+        isBridge
+        isArchive
+        archivedBy
+        archivedByUser {
+          id
+          username
+          __typename
+        }
+        configuration
+        annotationId
+        elasticTotal
+        expectedTotal
+        currentLoadedSize
+        failedLoadingTotal
+        hasFailureInLoading
+        hasValidationParsingError
+        hasValidationStoringError
+        hasValidationMappingError
+        hasValidationProcessingError
+        fileSize
+        hasError
+        fieldMappings {
+          originalField
+          key
+          columnType
+          columnSubType
+          __typename
+        }
+        annotation {
+          id
+          originEntityCodeKey
+          annotationProperties {
+            key
+            __typename
+          }
+          __typename
+        }
+        stats {
+          total
+          successful
+          failed
+          __typename
+        }
+        author {
+          id
+          username
+          __typename
+        }
+        createdAt
+        updatedAt
+        dataSource {
+          id
+          type
+          stopped
+          crashedDuringUpload
+          __typename
+        }
+        __typename
+      }
+      connectorConfigurationId
+      connectorConfiguration {
+        id
+        name
+        accountDisplay
+        accountId
+        active
+        autoSync
+        codeName
+        configuration
+        connector {
+          id
+          icon
+          name
+          authMethods
+          properties
+          streamModes
+          __typename
+        }
+        createdDate
+        entityId
+        failingAuthentication
+        guide
+        helperConfiguration
+        providerId
+        reAuthEndpoint
+        source
+        sourceQuality
+        stats
+        status
+        supportsAutomaticWebhookCreation
+        supportsConfiguration
+        supportsWebhooks
+        userId
+        userName
+        users {
+          id
+          username
+          roles
+          __typename
+        }
+        webhookManagementEndpoints
+        webhooks
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

@@ -1,0 +1,19 @@
+mutation createDataSets(
+  $dataSourceId: ID
+  $dataSets: [InputDataSet]
+  $existingAnnotationId: ID
+  $existingDataSetId: ID
+) {
+  inbound {
+    createDataSets(
+      dataSourceId: $dataSourceId
+      dataSets: $dataSets
+      existingAnnotationId: $existingAnnotationId
+      existingDataSetId: $existingDataSetId
+    ) {
+      id
+      __typename
+    }
+    __typename
+  }
+}

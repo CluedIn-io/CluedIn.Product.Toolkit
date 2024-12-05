@@ -18,18 +18,18 @@ function Set-CluedInStreamExportTarget {
 
     param(
         [guid]$Id,
+        [guid]$ConnectorProviderDefinitionId,
         [PSCustomObject]$Object
     )
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'setupConnectorStream'
-
     if (!$Object.connector) { Write-Warning "No export target configured."; return }
 
     $query = @{
         variables =@{
             streamId = $Id
             exportConfiguration = @{
-                connectorProviderDefinitionId = $Object.connector.Id
+                connectorProviderDefinitionId = $ConnectorProviderDefinitionId
                 containerName = $Object.containerName
                 mode = $Object.mode
                 exportOutgoingEdges = $Object.exportOutgoingEdges

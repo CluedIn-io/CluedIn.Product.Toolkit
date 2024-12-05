@@ -56,3 +56,5 @@ We have provided sample pipelines for backup, restore, and a combined version of
 These are boilerplate samples, and will require your team to adjust to your needs. They're just a guide on how to set them up and will not work without additional work on your end. 
 
 Please refer to `README-Pipelines.md`.
+
+**Note** Please ensure rule names are unique to avoid lookup conflicts.

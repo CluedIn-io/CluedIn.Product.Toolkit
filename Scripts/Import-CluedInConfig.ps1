@@ -33,20 +33,8 @@ param(
 )
 
 function checkResults($result, $type) {
-function checkResults($result, $type) {
     if ($result.errors) {
         switch ($result.errors.message) {
-            {$_ -match '409'} { 
-                if($type -eq 'vocab') {
-                    Write-Host "Skipping vocab already exists or was unchanged" -ForegroundColor 'Cyan'
-                } else {
-                    Write-Warning "An entry already exists" 
-                }
-            }
-            default 
-            { 
-                Write-Warning "Failed: $($result.errors.message)" 
-            }
             {$_ -match '409'} { 
                 if($type -eq 'vocab') {
                     Write-Host "Skipping vocab already exists or was unchanged" -ForegroundColor 'Cyan'
@@ -214,8 +202,6 @@ foreach ($vocabulary in $restoreVocabularies) {
     
     
     $entityTypeResult = Get-CluedInEntityType -Search $($vocabObject.entityTypeConfiguration.displayName)
-    if ($entityTypeResult.data.management.entityTypeConfigurations.total -lt 1) {
-        Write-Host "Creating entity type: $($entityTypeResult.data.management.entityTypeConfigurations.total)" 
     if ($entityTypeResult.data.management.entityTypeConfigurations.total -lt 1) {
         Write-Host "Creating entity type: $($entityTypeResult.data.management.entityTypeConfigurations.total)" 
         $entityResult = New-CluedInEntityType -Object $vocabObject.entityTypeConfiguration

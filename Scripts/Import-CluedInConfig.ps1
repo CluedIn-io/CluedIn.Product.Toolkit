@@ -667,7 +667,7 @@ foreach ($target in $exportTargets) {
         $id = ($allUsers | Where-Object { $_.account.UserName -eq $user }).id
 
         # Only add if the id is not empty or null
-        if ($id -ne $null -and $id -ne "") {
+        if ($null -ne $id  -and $id -ne "") {
             $idsToSet += $id
         }
     }

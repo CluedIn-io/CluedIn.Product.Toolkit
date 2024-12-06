@@ -2,6 +2,8 @@
 
 A toolkit to work with the CluedIn product utilising GraphQL query language.
 
+This toolkit is provided by CluedIn to assist with environment switching. Please note that it is not included within the CluedIn license.
+
 ## Installation
 
 It is possible to use this toolkit locally, as well as having it automated via a pipeline. 

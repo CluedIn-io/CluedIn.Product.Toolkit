@@ -30,7 +30,7 @@ function Set-CluedInVocabulary {
                     displayName = $Object.entityTypeConfiguration.DisplayName
                 }
                 keyPrefix = $Object.keyPrefix
-                providerId = $null
+                providerId = $Object.providerId
                 description = $Object.description
             }
         }

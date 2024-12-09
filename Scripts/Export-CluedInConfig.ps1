@@ -18,9 +18,9 @@
 
     .PARAMETER SelectVocabularies
     This is a list of vocabularies (along with keys) that automatically get backed up.
-    Default value is 'None', but 'All' and guids are accepted in csv format wrapped in a string.
+    The guid or name of the vocabulary must be specified in a comma separated string.
 
-    Example: '66505aa1-bacb-463e-832c-799c484577a8, e257a226-d91c-4946-a8af-85ef803cf55e'
+    Example: '66505aa1-bacb-463e-832c-799c484577a8,e257a226-d91c-4946-a8af-85ef803cf55e,organization,user'
 
     .PARAMETER SelectDataSets
     This is a list of Data Sets to backup.
@@ -180,8 +180,35 @@ $vocabularyIds = switch ($SelectVocabularies) {
 
 foreach ($id in $vocabularyIds) {
     # Vocab
-    $vocab = Get-CluedInVocabularyById -Id $id
-    if ((!$?) -or ($vocab.errors)) { Write-Warning "Id '$id' was not found. This won't be backed up"; continue }
+    if(Test-IsGuid $id)
+    {
+        $vocab = Get-CluedInVocabularyById -Id $id
+
+        if ((!$?) -or ($vocab.errors)) {    
+            Write-Warning "Id '$id' was not found. This won't be backed up"; 
+            continue 
+        }
+    } else {
+        $found = $false
+        foreach($vocabulary in $vocabularies.data.management.vocabularies.data) {
+            if(($vocabulary.keyPrefix -eq $id) -and ($vocabulary.isCluedInCore -eq $False))
+            {
+                $vocab = Get-CluedInVocabularyById -Id $vocabulary.vocabularyId
+                $id = $vocabulary.vocabularyId
+                $found = $true
+
+                Write-Verbose "$($vocabulary.keyPrefix) maps to $($vocabulary.vocabularyName)"
+                break
+            }
+        }
+
+        if($found -eq $false)
+        {   
+            Write-Warning "Vocabulary '$id' was not found. This won't be backed up"; 
+            continue 
+        }
+    }
+    
 
     Write-Host "Exporting Vocabulary: '$($vocab.data.management.vocabulary.vocabularyName) ($id)'" -ForegroundColor 'Cyan'
     $vocab | Out-JsonFile -Path $vocabPath -Name $id

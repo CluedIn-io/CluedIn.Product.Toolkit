@@ -24,6 +24,14 @@ function Set-CluedInGlossaryTerm {
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'saveGlossaryTerm'
 
+    $ruleSet = $Object.ruleSet
+    if($ruleSet -eq $null)
+    {
+        $ruleSet = [PSCustomObject]@{
+            Rules = @()
+        }
+    }
+
     $query = @{
         variables = @{
             term = @{
@@ -34,7 +42,7 @@ function Set-CluedInGlossaryTerm {
                 certificationLevel = $Object.certificationLevel
                 description = $Object.description
                 isObsolete = $Object.isObsolete
-                ruleSet = $Object.ruleSet
+                ruleSet = $ruleSet
                 relatedTags = $Object.relatedTags
             }
         }

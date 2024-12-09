@@ -32,11 +32,20 @@ param(
     [switch]$IncludeSupportFiles
 )
 
-function checkResults($result) {
+function checkResults($result, $type) {
     if ($result.errors) {
         switch ($result.errors.message) {
-            {$_ -match '409'} { Write-Warning "An entry already exists" }
-            default { Write-Warning "Failed: $($result.errors.message)" }
+            {$_ -match '409'} { 
+                if($type -eq 'vocab') {
+                    Write-Host "Skipping vocab already exists or was unchanged" -ForegroundColor 'Cyan'
+                } else {
+                    Write-Warning "An entry already exists" 
+                }
+            }
+            default 
+            { 
+                Write-Warning "Failed: $($result.errors.message)" 
+            }
         }
     }
 }
@@ -111,33 +120,150 @@ if (Test-Path -Path $adminSettingsPath -PathType Leaf) {
     }
 }
 
+# Glossaries
+Write-Host "INFO: Importing Glossaries" -ForegroundColor 'Green'
+$glossaries = Get-ChildItem -Path $glossariesPath -Directory -ErrorAction 'SilentlyContinue'
+
+$currentGlossaries = Get-CluedInGlossary
+$currentGlossariesObject = $currentGlossaries.data.management.glossaryCategories
+
+$currentTerms = Get-CluedInGlossaryTerms
+$currentTermsObject = $currentTerms.data.management.glossaryTerms.data
+
+$lookupGlossaryTerms = @()
+
+foreach ($glossary in $glossaries) {
+    $glossaryId = $null
+    $glossaryPath = $glossary.FullName
+    $glossaryFile = Get-ChildItem -Path $glossaryPath -Filter "*Glossary.json" -Recurse
+    if ($glossaryFile.count -eq 0) { Write-Verbose "No glossaries, continuing"; continue }
+    if ($glossaryFile.count -gt 1) { Write-Warning "Too many Glossary files found. Skipping"; continue }
+
+    $termsFile = Get-ChildItem -Path $glossaryPath -Filter "*Term.json" -Recurse
+
+    $glossaryJson = Get-Content -Path $glossaryFile.FullName | ConvertFrom-Json -Depth 20
+    $glossaryObject = $glossaryJson.data.management.glossaryCategory
+
+    Write-Host "Processing Glossary: $($glossaryObject.name)" -ForegroundColor 'Green'
+    if ($glossaryObject.name -notin $currentGlossariesObject.name) {
+        Write-Host "Creating Glossary '$($glossaryObject.name)'" -ForegroundColor 'Cyan'
+        $glossaryResult = New-CluedInGlossary -Name $glossaryObject.name
+        checkResults($glossaryResult)
+
+        $glossaryId = $glossaryResult.data.management.createGlossaryCategory.id
+    }
+
+    $glossaryId = $glossaryId ??
+        ($currentGlossariesObject |
+            Where-Object { $_.name -eq $glossaryObject.name }).id
+
+    Write-Verbose "Processing Terms"
+    foreach ($term in $termsFile) {
+        $termId = $null
+        $termJson = Get-Content -Path $term.FullName | ConvertFrom-Json -Depth 20
+        $termObject = $termJson.data.management.glossaryTerm
+
+        Write-Host "Processing Term: $($termObject.name)" -ForegroundColor 'Cyan'
+        if ($termObject.name -notin $currentTermsObject.name) {
+            Write-Host "Creating Term '$($termObject.name)'" -ForegroundColor 'DarkCyan'
+            $termResult = New-CluedInGlossaryTerm -Name $termObject.name -GlossaryId $glossaryId
+            checkResults($termResult)
+
+            $termId = $termResult.data.management.createGlossaryTerm.id
+        }
+
+        $termId = $termId ??
+            ($currentTermsObject |
+                Where-Object { $_.name -eq $termObject.name }).id
+
+        $lookupGlossaryTerms += [PSCustomObject]@{
+            OriginalGlossaryTermId = $termObject.id
+            GlossaryTermId = $termId
+        }
+
+        Write-Verbose "Setting term configuration"
+        $setTermResult = Set-CluedInGlossaryTerm -Id $termId -Object $termObject
+        checkResults($setTermResult)
+    }
+}
+
 # Vocabulary
 Write-Host "INFO: Importing Vocabularies" -ForegroundColor 'Green'
 $restoreVocabularies = Get-ChildItem -Path $vocabPath -Filter "*.json"
+$lookupVocabularies = @()
 
 foreach ($vocabulary in $restoreVocabularies) {
     $vocabJson = Get-Content -Path $vocabulary.FullName | ConvertFrom-Json -Depth 20
     $vocabObject = $vocabJson.data.management.vocabulary
+    $originalVocabularyId = $vocabObject.vocabularyId
 
     Write-Host "Processing Vocab: $($vocabObject.vocabularyName) ($($vocabObject.vocabularyId))" -ForegroundColor 'Cyan'
     Write-Debug "$($vocabObject | Out-String)"
-
+    
+    
     $entityTypeResult = Get-CluedInEntityType -Search $($vocabObject.entityTypeConfiguration.displayName)
-    if ($entityTypeResult.data.management.entityTypeConfigurations.total -ne 1) {
+    if ($entityTypeResult.data.management.entityTypeConfigurations.total -lt 1) {
+        Write-Host "Creating entity type: $($entityTypeResult.data.management.entityTypeConfigurations.total)" 
         $entityResult = New-CluedInEntityType -Object $vocabObject.entityTypeConfiguration
         checkResults($entityResult)
     }
 
-    $exists = (Get-CluedInVocabulary -Search $vocabObject.vocabularyName -HardMatch).data.management.vocabularies.data
+    $exists = (Get-CluedInVocabulary -Search $vocabObject.vocabularyName -IncludeCore -HardMatch).data.management.vocabularies.data
     if (!$exists) {
-        $vocabResult = New-CluedInVocabulary -Object $vocabObject
-        checkResults($vocabResult)
+        $vocabCreateResult = New-CluedInVocabulary -Object $vocabObject
+        checkResults $vocabCreateResult
+        $createdVocabulary = (Get-CluedInVocabulary -Search $vocabObject.vocabularyName -HardMatch).data.management.vocabularies.data
+        
+        $lookupVocabularies += [PSCustomObject]@{
+            OriginalVocabularyId = $originalVocabularyId
+            VocabularyId = $createdVocabulary.vocabularyId
+        }
     }
     else {
-        if ($exists.count -ne 1) { Write-Warning "Issue with following:`n$exists. Only 1 should have been returned"; continue }
+        $vocabularyId = $null
+        if ($exists.count -ne 1) { 
+            
+            $found = $false
+            foreach ($v in $exists)
+            {
+                if($v.keyPrefix -eq $vocabObject.keyPrefix) {
+                    $vocabularyId = $v.vocabularyId
+                    $found = $true
+                    break
+                }
+            }
+                
+            if($found -eq $false) {
+                Write-Warning "Can not find exact match for the vocabulary"; 
+                continue 
+            }
+        } else {
+            $vocabularyId = $exists.vocabularyId
+        }
+        $vocabularyId = $null
+        if ($exists.count -ne 1) { 
+            
+            $found = $false
+            foreach ($v in $exists)
+            {
+                if($v.keyPrefix -eq $vocabObject.keyPrefix) {
+                    $vocabularyId = $v.vocabularyId
+                    $found = $true
+                    break
+                }
+            }
+                
+            if($found -eq $false) {
+                Write-Warning "Can not find exact match for the vocabulary"; 
+                continue 
+            }
+        } else {
+            $vocabularyId = $exists.vocabularyId
+        }
 
         # We have to get again because the `exists` section doesn't pull the configuration. Just metadata.
-        $currentVocab = (Get-CluedInVocabularyById -Id $exists.vocabularyId).data.management.vocabulary
+        $currentVocab = (Get-CluedInVocabularyById -Id $vocabularyId).data.management.vocabulary
+        $currentVocab = (Get-CluedInVocabularyById -Id $vocabularyId).data.management.vocabulary
         $vocabObject.vocabularyId = $currentVocab.vocabularyId # These cannot be updated once set
         $vocabObject.vocabularyName = $currentVocab.vocabularyName # These cannot be updated once set
         $vocabObject.keyPrefix = $currentVocab.keyPrefix # These cannot be updated once set
@@ -146,8 +272,17 @@ foreach ($vocabulary in $restoreVocabularies) {
         Write-Verbose "Restored Config`n$($vocabObject | Out-String)"
         Write-Verbose "Current Config`n$($currentVocab | Out-String)"
         $vocabUpdateResult = Set-CluedInVocabulary -Object $vocabObject
-        checkResults($vocabUpdateResult)
+        checkResults $vocabUpdateResult 'vocab'
+
+        $lookupVocabularies += [PSCustomObject]@{
+            OriginalVocabularyId = $originalVocabularyId
+            VocabularyId = $currentVocab.vocabularyId
+        }
     }
+}
+
+foreach ($lookup in $lookupVocabularies) {
+    Write-Host $lookup | Format-Table
 }
 
 Write-Host "INFO: Importing Vocabulary Keys" -ForegroundColor 'Green'
@@ -156,19 +291,41 @@ foreach ($vocabKey in $vocabKeys) {
     $vocabKeyJson = Get-Content -Path $vocabKey.FullName | ConvertFrom-Json -Depth 20
     $vocabKeyObject = $vocabKeyJson.data.management.vocabularyKeysFromVocabularyId.data
 
-    $vocabName = $vocabKeyObject.vocabulary.vocabularyName | Select-Object -First 1
-    $vocabulary = Get-CluedInVocabulary -Search $vocabName -IncludeCore -HardMatch
-    $vocabularyId = $vocabulary.data.management.vocabularies.data.vocabularyId
+    $vocabName = ''
+    $lookupVocabularyId = $null
+
+    # Find first key that is not a composite key
+    foreach($vk in $vocabKeyObject)
+    {
+        if($null -eq $vk.compositeVocabularyId)
+        {
+            $vocabName = $vk.vocabulary.vocabularyName
+            $lookupVocabularyId = $vk.vocabularyId
+            break
+        }
+    }
+
+    $vocabularyId = ($lookupVocabularies | Where-Object { $_.OriginalVocabularyId -eq $lookupVocabularyId }).VocabularyId
+    if([string]::IsNullOrWhiteSpace($vocabularyId))
+    {
+        Write-Error "Can not find matching vocabulary for '$vocabName'"
+        continue
+    }
+
+    Write-Host "Original Id:: $($lookupVocabularyId), New Id:: $($vocabularyId) - '$vocabName'"
+
     foreach ($key in $vocabKeyObject) {
-        if ($key.isObsolete) { Write-Verbose "Not importing: '$($key.key)' as it's obsolete"; continue }
+        if ($key.isObsolete) { 
+            Write-Verbose "Not importing: '$($key.key)' as it's obsolete"; 
+            continue 
+        }
 
         Write-Host "Processing Vocab Key: $($key.displayName) ($($key.vocabularyKeyId))" -ForegroundColor 'Cyan'
         Write-Debug "$($key | Out-String)"
 
-        $currentKeys = Get-CluedInVocabularyKey -Id $vocabularyId
-        $currentKeysObject = $currentKeys.data.management.vocabularyKeysFromVocabularyId.data
-        $currentVocabularyKeyObject = $currentKeysObject | Where-Object { $_.key -eq $key.key }
-
+        $currentVocabularyKeyObjectResult = Get-CluedInVocabularyKey -Search $key.key
+        $currentVocabularyKeyObject = $currentVocabularyKeyObjectResult.data.management.vocabularyPerKey
+        
         if ($key.mapsToOtherKeyId) {
             $mappedKeyId = Get-CluedInVocabularyKey -Search $key.mappedKey.key
             $key.mapsToOtherKeyId = $mappedKeyID ?
@@ -176,11 +333,36 @@ foreach ($vocabKey in $vocabKeys) {
                 $null
         }
 
+        if($null -ne $key.compositeVocabularyId) {
+            Write-Host "Skipping composite Vocab Key: $($key.key)" -ForegroundColor 'DarkCyan'
+            continue
+        }
+
         if (!$currentVocabularyKeyObject.key) {
             Write-Host "Creating '$($key.key)' as it doesn't exist" -ForegroundColor 'DarkCyan'
+            $keyVocabularyId = ($lookupVocabularies | Where-Object { $_.OriginalVocabularyId -eq $key.vocabularyId }).VocabularyId
+            Write-Host "Creating vocab id:: $($key.vocabularyId) new:::'$($keyVocabularyId)'" -ForegroundColor 'DarkCyan'
+            if([string]::IsNullOrWhiteSpace($keyVocabularyId))
+            {
+                Write-Warning "Can not find matching vocab '$vocabName' for key '$($key.key)'"
+                continue
+            }
+            
+            if($key.dataType -eq "Lookup"){
+                Write-Host "Resolving Lookup Glossary Term"  -ForegroundColor 'DarkCyan'
+                $glossaryTermId = ($lookupGlossaryTerms | Where-Object { $_.OriginalGlossaryTermId -eq $key.glossaryTermId }).GlossaryTermId
+                if([string]::IsNullOrWhiteSpace($glossaryTermId))
+                {
+                    Write-Error "Can not find matching glossary term for the look field. Vocabulary: '$vocabName'; NewGlossaryTermId: '$glossaryTermId'; OriginalTermId: '$($key.glossaryTermId)'"
+                    continue
+                }
+                Write-Host "Updating lookup glossary term id. Vocabulary: '$vocabName'; NewGlossaryTermId: '$glossaryTermId'; OriginalGlossaryTermId: '$($key.glossaryTermId)'"  -ForegroundColor 'DarkCyan'
+                $key.glossaryTermId = $glossaryTermId
+            }
+
             $params = @{
                 Object = $key
-                VocabId = $vocabulary.data.management.vocabularies.data.vocabularyId
+                VocabId = $keyVocabularyId
             }
             $vocabKeyResult = New-CluedInVocabularyKey @params
             checkResults($vocabKeyResult)
@@ -194,6 +376,13 @@ foreach ($vocabKey in $vocabKeys) {
             $key.vocabularyKeyId = $currentVocabularyKeyObject.vocabularyKeyId # These cannot be updated once set
             $key.vocabularyId = $currentVocabularyKeyObject.vocabularyId # These cannot be updated once set
             $key.name = $currentVocabularyKeyObject.name # These cannot be updated once set
+
+            $keyVocabularyId = ($lookupVocabularies | Where-Object { $_.VocabularyId -eq $currentVocabularyKeyObject.vocabularyId }).VocabularyId
+            if([string]::IsNullOrWhiteSpace($keyVocabularyId))
+            {
+                Write-Warning "Can not find matching vocab '$vocabName' for key '$($key.key)' - $($currentVocabularyKeyObject.vocabularyId)"
+                #continue
+            }
 
             Write-Verbose "'$($key.key)' exists, overwriting existing configuration"
             $vocabKeyUpdateResult = Set-CluedInVocabularyKey -Object $key
@@ -302,7 +491,7 @@ foreach ($dataSet in $dataSets) {
         $vocabObject = $vocabObject | Where-Object { $_.keyPrefix -eq $keyToMatch }
 
         if (!$vocabObject.count -eq 1) {
-            Write-Error "There was an issue getting vocab '${vocabName}'"
+            Write-Warning "There was an issue getting vocab '${vocabName}', please ensure it was exported correctly"
             Write-Debug $($vocabObject | Out-String)
             continue
         }
@@ -446,15 +635,32 @@ foreach ($rule in $rules) {
     $ruleJson = Get-Content -Path $rule.FullName | ConvertFrom-Json -Depth 20
     $ruleObject = $ruleJson.data.management.rule
     Write-Host "Processing Rule: $($ruleObject.name) ($($ruleObject.scope))" -ForegroundColor 'Cyan'
-
     $exists = Get-CluedInRules -Search $ruleObject.name -Scope $ruleObject.scope
+
     if (!$exists.data.management.rules.data) {
         Write-Verbose "Creating rule as it does not exist"
         $ruleResult = New-CluedInRule -Name $ruleObject.name -Scope $ruleObject.scope
         checkResults($ruleResult)
         $ruleObject.id = $ruleResult.data.management.createRule.id
     }
-    else { $ruleObject.id = $exists.data.management.rules.data.id }
+    else { 
+        $ruleObject.id = $exists.data.management.rules.data.id 
+
+        if($exists.data.management.rules.data.count -gt 1)
+        {
+            Write-Warning "Multiple matches for rule '$($ruleObject.name)'"
+            foreach($item in $exists.data.management.rules.data)
+            {
+                if($item.name -eq $ruleObject.name)
+                {
+                    $ruleObject.id = $item.id 
+                    continue
+                }
+            }
+        } else {           
+            $ruleObject.id = $exists.data.management.rules.data.id 
+        }
+    }
 
     Write-Verbose "Setting rule configuration"
     $setRuleResult = Set-CluedInRule -Object $ruleObject
@@ -467,21 +673,31 @@ $exportTargets = Get-ChildItem -Path $exportTargetsPath -Filter "*.json" -Recurs
 $installedExportTargets = (Get-CluedInInstalledExportTargets).data.inbound.connectors
 
 $cleanProperties = @(
-    'connectinString', 'password', 'host'
-    'AccountKey', 'AccountName', 'authorization'
+    'connectinString', 'connectionString', 'password'
+    'AccountKey', 'authorization'
 )
+# # # $cleanProperties = @(
+# # #     'connectinString', 'password', 'host'
+# # #     'AccountKey', 'AccountName', 'authorization'
+# # # )
+
+$lookupConnectors = @()
+
+$currentExportTargets = (Get-CluedInExportTargets).data.inbound.connectorConfigurations.configurations
+$targetExists = $targetObject.accountId -in $currentExportTargets.accountId
 
 foreach ($target in $exportTargets) {
     $targetJson = Get-Content -Path $target.FullName | ConvertFrom-Json -Depth 20
     $targetObject = $targetJson.data.inbound.connectorConfiguration
     $targetProperties = ($targetObject.helperConfiguration | Get-Member -MemberType 'NoteProperty').Name
+    $originalConnectorId = $targetObject.id
 
-    Write-Host "Processing Export Target: $($targetObject.accountId)" -ForegroundColor 'Cyan'
-
+    Write-Host "Processing Export Target: $($targetObject.accountDisplay)" -ForegroundColor 'Cyan'
     if (!$targetObject.accountId) {
-        Write-Warning "Account Id is null, cannot compare. Skipping."
-        Write-Host "You will need to manually add the '$($targetObject.name)' connector"
-        continue
+        $targetObject.accountId = '0'
+        # Write-Warning "Account Id is null, cannot compare. Skipping."
+        # Write-Host "You will need to manually add the '$($targetObject.name)' connector"
+        # continue
     }
 
     $cleanProperties.ForEach({
@@ -489,25 +705,53 @@ foreach ($target in $exportTargets) {
     })
 
     # We should constantly get latest as we may create a new one in prior iteration.
-    $currentExportTargets = (Get-CluedInExportTargets).data.inbound.connectorConfigurations.configurations
+    #$currentExportTargets = (Get-CluedInExportTargets).data.inbound.connectorConfigurations.configurations
+    
+    $hasTarget = $false
+    $id = $null;
 
-    $targetExists = $targetObject.accountId -in $currentExportTargets.accountId
-    if (!$targetExists) {
+    if($null -ne $currentExportTargets)
+    {
+        foreach($exportTarget in $currentExportTargets) {
+            $exportTargetDisplayName = $exportTarget.accountDisplay.Trim()
+            $targetDisplayName = "$($targetObject.helperConfiguration.accountName) $($targetObject.helperConfiguration.fileSystemName) $($targetObject.helperConfiguration.directoryName)"
+
+            if(($targetObject.accountId -eq $currentExportTargets.accountId) -and ($null -ne $targetObject.accountId) -and ('' -ne $targetObject.accountId) -and ('0' -ne $targetObject.accountId))
+            {
+                Write-Verbose "Found match on account id :: $($exportTarget.accountDisplay) == $($targetObject.accountDisplay)"
+                $hasTarget = $true
+                $id = $exportTarget.id
+                break
+            }elseif(($exportTarget.accountDisplay -eq $targetObject.accountDisplay) -and ($exportTarget.providerId -eq $targetObject.providerId))
+            {
+                Write-Verbose "Found match on display name :: $($exportTarget.accountDisplay) == $($targetObject.accountDisplay)"
+                $hasTarget = $true
+                $id = $exportTarget.id
+                break
+            } elseif(($exportTargetDisplayName -eq $targetDisplayName) -and ($exportTarget.providerId -eq $targetObject.providerId)) {
+                Write-Verbose "Found match on assumed display name :: $($exportTarget.accountDisplay) == $($targetObject.helperConfiguration.accountName) $($targetObject.helperConfiguration.fileSystemName) $($targetObject.helperConfiguration.directoryName)"
+                $hasTarget = $true
+                $id = $exportTarget.id
+                break
+            }
+        }
+    }
+
+    if ($hasTarget -eq $false) {
         if ($targetObject.providerId -notin $installedExportTargets.id) {
             Write-Warning "Export Target '$($targetObject.connector.name)' could not be found. Skipping creation."
             Write-Warning "Please install connector and try again"
             continue
         }
-
-        Write-Verbose "Creating Export Target"
+        
+        Write-Verbose "Creating Export Target $($targetObject.helperConfiguration)"
         $targetResult = New-CluedInExportTarget -ConnectorId $targetObject.providerId -Configuration $targetObject.helperConfiguration
         $id = $targetResult.data.inbound.createConnection.id
         if (!$id) { Write-Warning "Unable to get Id of target. Importing on top of existing export targets can be flakey. Please manually investigate."; continue }
     }
     else {
-        Write-Verbose "Export target exists. Setting configuration"
-        $id = ($currentExportTargets | Where-Object { $_.accountId -eq $targetObject.accountId }).id
-        $targetResult = Set-CluedInExportTargetConfiguration -Id $id -Configuration $targetObject.helperConfiguration
+        Write-Verbose "Updating Export target '$($targetDisplayName)' as it already exists"
+        $targetResult = Set-CluedInExportTargetConfiguration -Id $id -AccountDisplay $targetObject.accountDisplay -Configuration $targetObject.helperConfiguration
     }
 
     checkResults($targetResult)
@@ -523,6 +767,11 @@ foreach ($target in $exportTargets) {
     }
 
     if ($idsToSet) { Set-CluedInExportTargetPermissions -ConnectorId $id -UserId $idsToSet }
+
+    $lookupConnectors += [PSCustomObject]@{
+        OriginalConnectorId = $originalConnectorId
+        ConnectorId = $id
+    }
 }
 
 # Streams
@@ -546,10 +795,12 @@ foreach ($stream in $streams) {
             Write-Verbose "Creating Stream"
             $newStream = New-CluedInStream -Name $streamObject.name
             $streamId = $newStream.data.consume.createStream.id
+            Write-Warning "Created new stream $($streamId)"
         }
         '1' {
             Write-Verbose "Stream Exists. Updating"
             $streamId = $streamExists.id
+            Write-Warning "Using existing stream $($streamId)"
         }
         default { Write-Warning "Too many streams exist with name '$($streamObject.name)'"; continue }
     }
@@ -564,75 +815,27 @@ foreach ($stream in $streams) {
 
         $streamObject.isActive = $false
     }
+
     $setResult = Set-CluedInStream -Id $streamId -Object $streamObject
     checkResults($setResult)
+  
+    $lookupConnectorId = $streamObject.connector.Id
+    $connectorId = ($lookupConnectors | Where-Object { $_.OriginalConnectorId -eq $lookupConnectorId }).ConnectorId
 
-    $setStreamExportResult = Set-CluedInStreamExportTarget -Id $streamId -Object $streamObject
+    if($connectorId -eq $null)
+    {
+        $connectorId = $($streamObject.connector.Id)
+        Write-Host "INFO: Export target '$($connectorId)' was not imported within this run"
+    }
+    
+    $setStreamExportResult = Set-CluedInStreamExportTarget -Id $streamId -ConnectorProviderDefinitionId $connectorId -Object $streamObject
     checkResults($setStreamExportResult)
 }
 
-# Glossaries
-Write-Host "INFO: Importing Glossaries" -ForegroundColor 'Green'
-$glossaries = Get-ChildItem -Path $glossariesPath -Directory -ErrorAction 'SilentlyContinue'
 
-$currentGlossaries = Get-CluedInGlossary
-$currentGlossariesObject = $currentGlossaries.data.management.glossaryCategories
-
-$currentTerms = Get-CluedInGlossaryTerms
-$currentTermsObject = $currentTerms.data.management.glossaryTerms.data
-
-foreach ($glossary in $glossaries) {
-    $glossaryId = $null
-    $glossaryPath = $glossary.FullName
-    $glossaryFile = Get-ChildItem -Path $glossaryPath -Filter "*Glossary.json" -Recurse
-    if ($glossaryFile.count -eq 0) { Write-Verbose "No glossaries, continuing"; continue }
-    if ($glossaryFile.count -gt 1) { Write-Warning "Too many Glossary files found. Skipping"; continue }
-
-    $termsFile = Get-ChildItem -Path $glossaryPath -Filter "*Term.json" -Recurse
-
-    $glossaryJson = Get-Content -Path $glossaryFile.FullName | ConvertFrom-Json -Depth 20
-    $glossaryObject = $glossaryJson.data.management.glossaryCategory
-
-    Write-Host "Processing Glossary: $($glossaryObject.name)" -ForegroundColor 'Green'
-    if ($glossaryObject.name -notin $currentGlossariesObject.name) {
-        Write-Host "Creating Glossary '$($glossaryObject.name)'" -ForegroundColor 'Cyan'
-        $glossaryResult = New-CluedInGlossary -Name $glossaryObject.name
-        checkResults($glossaryResult)
-
-        $glossaryId = $glossaryResult.data.management.createGlossaryCategory.id
-    }
-
-    $glossaryId = $glossaryId ??
-        ($currentGlossariesObject |
-            Where-Object { $_.name -eq $glossaryObject.name }).id
-
-    Write-Verbose "Processing Terms"
-    foreach ($term in $termsFile) {
-        $termId = $null
-        $termJson = Get-Content -Path $term.FullName | ConvertFrom-Json -Depth 20
-        $termObject = $termJson.data.management.glossaryTerm
-
-        Write-Host "Processing Term: $($termObject.name)" -ForegroundColor 'Cyan'
-        if ($termObject.name -notin $currentTermsObject.name) {
-            Write-Host "Creating Term '$($termObject.name)'" -ForegroundColor 'DarkCyan'
-            $termResult = New-CluedInGlossaryTerm -Name $termObject.name -GlossaryId $glossaryId
-            checkResults($termResult)
-
-            $termId = $termResult.data.management.createGlossaryTerm.id
-        }
-
-        $termId = $termId ??
-            ($currentTermsObject |
-                Where-Object { $_.name -eq $termObject.name }).id
-
-        Write-Verbose "Setting term configuration"
-        $setTermResult = Set-CluedInGlossaryTerm -Id $termId -Object $termObject
-        checkResults($setTermResult)
-    }
-}
 
 # Clean Projects
-Write-Host "INFO: Importing Glossaries" -ForegroundColor 'Green'
+Write-Host "INFO: Importing Clean Projects" -ForegroundColor 'Green'
 $cleanProjects = Get-ChildItem -Path $cleanProjectsPath -Filter "*.json" -Recurse
 $currentCleanProjects = Get-CluedInCleanProjects
 $currentCleanProjectsObject = $currentCleanProjects.data.preparation.allCleanProjects.projects

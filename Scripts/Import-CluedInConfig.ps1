@@ -120,6 +120,73 @@ if (Test-Path -Path $adminSettingsPath -PathType Leaf) {
     }
 }
 
+# Glossaries
+Write-Host "INFO: Importing Glossaries" -ForegroundColor 'Green'
+$glossaries = Get-ChildItem -Path $glossariesPath -Directory -ErrorAction 'SilentlyContinue'
+
+$currentGlossaries = Get-CluedInGlossary
+$currentGlossariesObject = $currentGlossaries.data.management.glossaryCategories
+
+$currentTerms = Get-CluedInGlossaryTerms
+$currentTermsObject = $currentTerms.data.management.glossaryTerms.data
+
+$lookupGlossaryTerms = @()
+
+foreach ($glossary in $glossaries) {
+    $glossaryId = $null
+    $glossaryPath = $glossary.FullName
+    $glossaryFile = Get-ChildItem -Path $glossaryPath -Filter "*Glossary.json" -Recurse
+    if ($glossaryFile.count -eq 0) { Write-Verbose "No glossaries, continuing"; continue }
+    if ($glossaryFile.count -gt 1) { Write-Warning "Too many Glossary files found. Skipping"; continue }
+
+    $termsFile = Get-ChildItem -Path $glossaryPath -Filter "*Term.json" -Recurse
+
+    $glossaryJson = Get-Content -Path $glossaryFile.FullName | ConvertFrom-Json -Depth 20
+    $glossaryObject = $glossaryJson.data.management.glossaryCategory
+
+    Write-Host "Processing Glossary: $($glossaryObject.name)" -ForegroundColor 'Green'
+    if ($glossaryObject.name -notin $currentGlossariesObject.name) {
+        Write-Host "Creating Glossary '$($glossaryObject.name)'" -ForegroundColor 'Cyan'
+        $glossaryResult = New-CluedInGlossary -Name $glossaryObject.name
+        checkResults($glossaryResult)
+
+        $glossaryId = $glossaryResult.data.management.createGlossaryCategory.id
+    }
+
+    $glossaryId = $glossaryId ??
+        ($currentGlossariesObject |
+            Where-Object { $_.name -eq $glossaryObject.name }).id
+
+    Write-Verbose "Processing Terms"
+    foreach ($term in $termsFile) {
+        $termId = $null
+        $termJson = Get-Content -Path $term.FullName | ConvertFrom-Json -Depth 20
+        $termObject = $termJson.data.management.glossaryTerm
+
+        Write-Host "Processing Term: $($termObject.name)" -ForegroundColor 'Cyan'
+        if ($termObject.name -notin $currentTermsObject.name) {
+            Write-Host "Creating Term '$($termObject.name)'" -ForegroundColor 'DarkCyan'
+            $termResult = New-CluedInGlossaryTerm -Name $termObject.name -GlossaryId $glossaryId
+            checkResults($termResult)
+
+            $termId = $termResult.data.management.createGlossaryTerm.id
+        }
+
+        $termId = $termId ??
+            ($currentTermsObject |
+                Where-Object { $_.name -eq $termObject.name }).id
+
+        $lookupGlossaryTerms += [PSCustomObject]@{
+            OriginalGlossaryTermId = $termObject.id
+            GlossaryTermId = $termId
+        }
+
+        Write-Verbose "Setting term configuration"
+        $setTermResult = Set-CluedInGlossaryTerm -Id $termId -Object $termObject
+        checkResults($setTermResult)
+    }
+}
+
 # Vocabulary
 Write-Host "INFO: Importing Vocabularies" -ForegroundColor 'Green'
 $restoreVocabularies = Get-ChildItem -Path $vocabPath -Filter "*.json"
@@ -132,6 +199,7 @@ foreach ($vocabulary in $restoreVocabularies) {
 
     Write-Host "Processing Vocab: $($vocabObject.vocabularyName) ($($vocabObject.vocabularyId))" -ForegroundColor 'Cyan'
     Write-Debug "$($vocabObject | Out-String)"
+    
     
     $entityTypeResult = Get-CluedInEntityType -Search $($vocabObject.entityTypeConfiguration.displayName)
     if ($entityTypeResult.data.management.entityTypeConfigurations.total -lt 1) {
@@ -172,8 +240,29 @@ foreach ($vocabulary in $restoreVocabularies) {
         } else {
             $vocabularyId = $exists.vocabularyId
         }
+        $vocabularyId = $null
+        if ($exists.count -ne 1) { 
+            
+            $found = $false
+            foreach ($v in $exists)
+            {
+                if($v.keyPrefix -eq $vocabObject.keyPrefix) {
+                    $vocabularyId = $v.vocabularyId
+                    $found = $true
+                    break
+                }
+            }
+                
+            if($found -eq $false) {
+                Write-Warning "Can not find exact match for the vocabulary"; 
+                continue 
+            }
+        } else {
+            $vocabularyId = $exists.vocabularyId
+        }
 
         # We have to get again because the `exists` section doesn't pull the configuration. Just metadata.
+        $currentVocab = (Get-CluedInVocabularyById -Id $vocabularyId).data.management.vocabulary
         $currentVocab = (Get-CluedInVocabularyById -Id $vocabularyId).data.management.vocabulary
         $vocabObject.vocabularyId = $currentVocab.vocabularyId # These cannot be updated once set
         $vocabObject.vocabularyName = $currentVocab.vocabularyName # These cannot be updated once set
@@ -257,6 +346,18 @@ foreach ($vocabKey in $vocabKeys) {
             {
                 Write-Warning "Can not find matching vocab '$vocabName' for key '$($key.key)'"
                 continue
+            }
+            
+            if($key.dataType -eq "Lookup"){
+                Write-Host "Resolving Lookup Glossary Term"  -ForegroundColor 'DarkCyan'
+                $glossaryTermId = ($lookupGlossaryTerms | Where-Object { $_.OriginalGlossaryTermId -eq $key.glossaryTermId }).GlossaryTermId
+                if([string]::IsNullOrWhiteSpace($glossaryTermId))
+                {
+                    Write-Error "Can not find matching glossary term for the look field. Vocabulary: '$vocabName'; NewGlossaryTermId: '$glossaryTermId'; OriginalTermId: '$($key.glossaryTermId)'"
+                    continue
+                }
+                Write-Host "Updating lookup glossary term id. Vocabulary: '$vocabName'; NewGlossaryTermId: '$glossaryTermId'; OriginalGlossaryTermId: '$($key.glossaryTermId)'"  -ForegroundColor 'DarkCyan'
+                $key.glossaryTermId = $glossaryTermId
             }
 
             $params = @{
@@ -731,65 +832,7 @@ foreach ($stream in $streams) {
     checkResults($setStreamExportResult)
 }
 
-# Glossaries
-Write-Host "INFO: Importing Glossaries" -ForegroundColor 'Green'
-$glossaries = Get-ChildItem -Path $glossariesPath -Directory -ErrorAction 'SilentlyContinue'
 
-$currentGlossaries = Get-CluedInGlossary
-$currentGlossariesObject = $currentGlossaries.data.management.glossaryCategories
-
-$currentTerms = Get-CluedInGlossaryTerms
-$currentTermsObject = $currentTerms.data.management.glossaryTerms.data
-
-foreach ($glossary in $glossaries) {
-    $glossaryId = $null
-    $glossaryPath = $glossary.FullName
-    $glossaryFile = Get-ChildItem -Path $glossaryPath -Filter "*Glossary.json" -Recurse
-    if ($glossaryFile.count -eq 0) { Write-Verbose "No glossaries, continuing"; continue }
-    if ($glossaryFile.count -gt 1) { Write-Warning "Too many Glossary files found. Skipping"; continue }
-
-    $termsFile = Get-ChildItem -Path $glossaryPath -Filter "*Term.json" -Recurse
-
-    $glossaryJson = Get-Content -Path $glossaryFile.FullName | ConvertFrom-Json -Depth 20
-    $glossaryObject = $glossaryJson.data.management.glossaryCategory
-
-    Write-Host "Processing Glossary: $($glossaryObject.name)" -ForegroundColor 'Green'
-    if ($glossaryObject.name -notin $currentGlossariesObject.name) {
-        Write-Host "Creating Glossary '$($glossaryObject.name)'" -ForegroundColor 'Cyan'
-        $glossaryResult = New-CluedInGlossary -Name $glossaryObject.name
-        checkResults($glossaryResult)
-
-        $glossaryId = $glossaryResult.data.management.createGlossaryCategory.id
-    }
-
-    $glossaryId = $glossaryId ??
-        ($currentGlossariesObject |
-            Where-Object { $_.name -eq $glossaryObject.name }).id
-
-    Write-Verbose "Processing Terms"
-    foreach ($term in $termsFile) {
-        $termId = $null
-        $termJson = Get-Content -Path $term.FullName | ConvertFrom-Json -Depth 20
-        $termObject = $termJson.data.management.glossaryTerm
-
-        Write-Host "Processing Term: $($termObject.name)" -ForegroundColor 'Cyan'
-        if ($termObject.name -notin $currentTermsObject.name) {
-            Write-Host "Creating Term '$($termObject.name)'" -ForegroundColor 'DarkCyan'
-            $termResult = New-CluedInGlossaryTerm -Name $termObject.name -GlossaryId $glossaryId
-            checkResults($termResult)
-
-            $termId = $termResult.data.management.createGlossaryTerm.id
-        }
-
-        $termId = $termId ??
-            ($currentTermsObject |
-                Where-Object { $_.name -eq $termObject.name }).id
-
-        Write-Verbose "Setting term configuration"
-        $setTermResult = Set-CluedInGlossaryTerm -Id $termId -Object $termObject
-        checkResults($setTermResult)
-    }
-}
 
 # Clean Projects
 Write-Host "INFO: Importing Clean Projects" -ForegroundColor 'Green'

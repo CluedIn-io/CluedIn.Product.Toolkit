@@ -32,6 +32,7 @@ function New-CluedInVocabularyKey {
         $Description = $Object.description
         $Prefix = $Object.name
         $isVisible = $Object.isVisible
+        $glossaryTermId = $Object.glossaryTermId
     }
     else { $isVisible = $true }
 
@@ -47,6 +48,7 @@ function New-CluedInVocabularyKey {
                 isVisible = $isVisible
                 dataType = $DataType
                 description = $Description
+                glossaryTermId = $GlossaryTermId
             }
         }
         query = $queryContent

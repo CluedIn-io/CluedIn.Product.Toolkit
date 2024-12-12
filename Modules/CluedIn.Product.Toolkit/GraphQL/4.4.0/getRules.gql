@@ -1,4 +1,11 @@
-query getRules($searchName: String, $isActive: Boolean, $pageNumber: Int, $sortBy: String, $sortDirection: String, $scope: String) {
+query getRules(
+  $searchName: String
+  $isActive: Boolean
+  $pageNumber: Int
+  $sortBy: String
+  $sortDirection: String
+  $scope: String
+) {
   management {
     id
     rules(

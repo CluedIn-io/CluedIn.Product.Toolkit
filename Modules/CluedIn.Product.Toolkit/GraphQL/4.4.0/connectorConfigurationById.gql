@@ -1,0 +1,83 @@
+query connectorConfigurationById($id: ID) {
+  inbound {
+    id
+    connectorConfiguration(id: $id) {
+      ...ConnectorConfigurationFragment
+      __typename
+    }
+    __typename
+  }
+}
+
+fragment ConnectorConfigurationFragment on ConnectorConfiguration {
+  id
+  name
+  accountDisplay
+  accountId
+  active
+  autoSync
+  codeName
+  configuration
+  connector {
+    id
+    type
+    icon
+    name
+    authMethods
+    properties
+    streamModes
+    __typename
+  }
+  connectorStatus {
+    status
+    connectorStatusDetails {
+      providerDefinitionId
+      hasError
+      errorMessage
+      __typename
+    }
+    __typename
+  }
+  createdDate
+  entityId
+  failingAuthentication
+  guide
+  helperConfiguration
+  providerId
+  reAuthEndpoint
+  source
+  sourceQuality
+  stats
+  status
+  supportsAutomaticWebhookCreation
+  supportsConfiguration
+  supportsWebhooks
+  userId
+  userName
+  users {
+    id
+    username
+    roles
+    __typename
+  }
+  permissions {
+    user {
+      id
+      username
+      __typename
+    }
+    role {
+      id
+      name
+      userCount
+      __typename
+    }
+    createdDate
+    __typename
+  }
+  webhookManagementEndpoints
+  webhooks
+  isOwner
+  __typename
+}
+

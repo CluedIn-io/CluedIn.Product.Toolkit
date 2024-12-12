@@ -1,4 +1,12 @@
-query getAllTerms($searchName: String, $isActive: Boolean, $pageNumber: Int, $pageSize: Int, $sortBy: String, $sortDirection: String, $categoryId: ID) {
+query getAllTerms(
+  $searchName: String
+  $isActive: Boolean
+  $pageNumber: Int
+  $pageSize: Int
+  $sortBy: String
+  $sortDirection: String
+  $categoryId: ID
+) {
   management {
     id
     glossaryTerms(

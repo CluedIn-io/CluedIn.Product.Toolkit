@@ -1,7 +1,0 @@
-query getConfigurationSettings($id: ID!, $includeHiddenFromUi: Boolean) {
-  administration {
-    id
-    configurationSettings(id: $id, includeHiddenFromUi: $includeHiddenFromUi)
-    __typename
-  }
-}

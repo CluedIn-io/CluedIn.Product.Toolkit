@@ -1,4 +1,20 @@
-query getAllVocabularyKeys($searchName: String, $pageNumber: Int, $pageSize: Int, $dataType: String, $classification: String, $connectorId: ID, $isCluedInCore: Boolean, $isDynamic: Boolean, $filterIsObsolete: String, $isProvider: Boolean, $hasNoProvider: Boolean, $filterTypes: Int, $filterHasNoSource: Boolean, $filterIsUsed: Boolean, $skipFilterVisibility: Boolean) {
+query getAllVocabularyKeys(
+  $searchName: String
+  $pageNumber: Int
+  $pageSize: Int
+  $dataType: String
+  $classification: String
+  $connectorId: ID
+  $isCluedInCore: Boolean
+  $isDynamic: Boolean
+  $filterIsObsolete: String
+  $isProvider: Boolean
+  $hasNoProvider: Boolean
+  $filterTypes: Int
+  $filterHasNoSource: Boolean
+  $filterIsUsed: Boolean
+  $skipFilterVisibility: Boolean
+) {
   management {
     id
     vocabularyKeys(

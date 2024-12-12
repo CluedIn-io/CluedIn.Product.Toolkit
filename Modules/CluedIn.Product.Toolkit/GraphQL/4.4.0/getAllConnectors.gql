@@ -1,4 +1,11 @@
-query getAllConnectors($searchName: String, $itemsPerPage: Int, $pageNo: Int, $sortBy: String, $sortDirection: String, $status: String) {
+query getAllConnectors(
+  $searchName: String
+  $itemsPerPage: Int
+  $pageNo: Int
+  $sortBy: String
+  $sortDirection: String
+  $status: String
+) {
   inbound {
     id
     connectorConfigurations(

@@ -1,4 +1,16 @@
-query getAllVocabularies($searchName: String, $isActive: Boolean, $pageNumber: Int, $pageSize: Int, $sortBy: String, $sortDirection: String, $entityType: String, $connectorId: ID, $filterTypes: Int, $filterHasNoSource: Boolean, $filterIsUsed: Boolean) {
+query getAllVocabularies(
+  $searchName: String
+  $isActive: Boolean
+  $pageNumber: Int
+  $pageSize: Int
+  $sortBy: String
+  $sortDirection: String
+  $entityType: String
+  $connectorId: ID
+  $filterTypes: Int
+  $filterHasNoSource: Boolean
+  $filterIsUsed: Boolean
+) {
   management {
     id
     vocabularies(

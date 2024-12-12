@@ -1,4 +1,12 @@
-query getStreams($searchName: String, $status: String, $itemsPerPage: Int, $pageNumber: Int, $sortBy: String, $sortDirection: String, $exportTargetId: ID) {
+query getStreams(
+  $searchName: String
+  $status: String
+  $itemsPerPage: Int
+  $pageNumber: Int
+  $sortBy: String
+  $sortDirection: String
+  $exportTargetId: ID
+) {
   consume {
     id
     streams(

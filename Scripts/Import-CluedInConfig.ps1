@@ -102,7 +102,7 @@ if (Test-Path -Path $adminSettingsPath -PathType Leaf) {
     $currentSettings = (Get-CluedInAdminSetting).data.administration.configurationSettings
 
     # If we are on 4.4.0, prepare a hashtable to collect changes for bulk update
-    if ($env:CLUEDIN_CURRENTVERSION -eq "4.4.0") {
+    if ([version]${env:CLUEDIN_CURRENTVERSION} -eq [version]"4.4.0") {
         $settingsToUpdate = @{}
     }
 
@@ -117,14 +117,20 @@ if (Test-Path -Path $adminSettingsPath -PathType Leaf) {
         $newValue = $restoreAdminSetting.data.administration.configurationSettings.$key
         $currentValue = $currentSettings.$key
 
-        if ($newValue -ne $currentValue) {
+        # Determine if the value has changed
+        $hasChanged = $newValue -ne $currentValue
+
+        # For version 4.4.0, always add to the hashtable
+        if ($env:CLUEDIN_CURRENTVERSION -eq "4.4.0") {
+            $settingsToUpdate[$key] = $newValue
+        }
+
+        # Print message only if there's a change
+        if ($hasChanged) {
             Write-Host "Processing Admin Setting '$key'. Was: $currentValue, Now: $newValue" -ForegroundColor 'Cyan'
 
-            if ($cluedInVersion -eq "4.4.0") {
-                # For 4.4.0, just store the change in the hashtable
-                $settingsToUpdate[$key] = $newValue
-            } else {
-                # For older versions, apply immediately
+            # For older versions, apply the setting immediately
+            if ($env:CLUEDIN_CURRENTVERSION -ne "4.4.0") {
                 $adminSettingResult = Set-CluedInAdminSettings -Name $key -Value $newValue
                 checkResults($adminSettingResult)
             }
@@ -132,10 +138,9 @@ if (Test-Path -Path $adminSettingsPath -PathType Leaf) {
     }
 
     # If we are on 4.4.0 and have collected changes, perform the bulk update
-    if ($cluedInVersion -eq "4.4.0" -and $settingsToUpdate.Count -gt 0) {
+    if ([version]${env:CLUEDIN_CURRENTVERSION} -eq [version]"4.4.0" -and $settingsToUpdate.Count -gt 0) {
         Write-Host "INFO: Performing bulk update of admin settings..." -ForegroundColor 'Cyan'
         $bulkResult = Set-CluedInAdminSettingsBulk -SettingsToApply $settingsToUpdate
-        Write-Host "$bulkResult"
         checkResults($bulkResult)
     }
 }

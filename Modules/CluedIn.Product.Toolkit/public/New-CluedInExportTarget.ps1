@@ -6,31 +6,42 @@ function New-CluedInExportTarget {
         .DESCRIPTION
         GraphQL Query: Creates a new Export Target (Connector)
 
-        .PARAMETER Search
-        Allows you to filter results rather than returning everything
+        .PARAMETER ConnectorId
+        The unique identifier for the connector.
+
+        .PARAMETER Configuration
+        Configuration object containing authentication and other settings.
+
+        .PARAMETER AccountDisplay
+        (Optional) Display name for the account. Maintained for backward compatibility.
 
         .EXAMPLE
-        PS> New-CluedInExportTarget -ConnectorId '87e51d3c-a0fa-4c7e-aa62-68d2ec1c3f35' -AuthInfo $AuthInfo
+        PS> New-CluedInExportTarget -ConnectorId '87e51d3c-a0fa-4c7e-aa62-68d2ec1c3f35' -Configuration $Config
 
-        If no -Search is specified, it will return everything
+        If no -AccountDisplay is specified, it will default to a predefined value or omit it.
     #>
 
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)][guid]$ConnectorId,
         [PSCustomObject]$Configuration,
-        [Parameter(Mandatory)][string]$AccountDisplay
+        [Parameter(Mandatory = $false)][string]$AccountDisplay
     )
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'createConnection'
 
+    $variables = @{
+        connectorId = $ConnectorId
+        authInfo    = $Configuration
+    }
+
+    if ($PSBoundParameters.ContainsKey('AccountDisplay') -and $AccountDisplay) {
+        $variables.accountDisplay = $AccountDisplay
+    }
+
     $query = @{
-        variables = @{
-            connectorId = $ConnectorId
-            authInfo = $Configuration
-            accountDisplay = $AccountDisplay
-        }
-        query = $queryContent
+        variables = $variables
+        query     = $queryContent
     }
 
     return Invoke-CluedInGraphQL -Query $query

@@ -1,0 +1,19 @@
+mutation pauseConnectorConfiguration(
+  $providerId: ID
+  $connectorId: ID
+  $accountId: String
+) {
+  inbound {
+    pauseConnectorConfiguration(
+      providerId: $providerId
+      connectorId: $connectorId
+      accountId: $accountId
+    ) {
+      id
+      active
+      status
+      __typename
+    }
+    __typename
+  }
+}

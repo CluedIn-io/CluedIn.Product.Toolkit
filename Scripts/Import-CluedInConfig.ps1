@@ -327,6 +327,7 @@ foreach ($vocabKey in $vocabKeys) {
     }
 }
 
+# Data Sources, Sets and Source Sets
 Write-Host "INFO: Importing Data Sources" -ForegroundColor 'Green'
 $dataSources = Get-ChildItem -Path $dataSourcesPath -Filter "*.json"
 
@@ -595,7 +596,6 @@ foreach ($rule in $rules) {
 Write-Host "INFO: Importing Export Targets" -ForegroundColor 'Green'
 $exportTargets = Get-ChildItem -Path $exportTargetsPath -Filter "*.json" -Recurse
 $installedExportTargets = (Get-CluedInInstalledExportTargets).data.inbound.connectors
-Write-Host "$(Get-CluedInInstalledExportTargets)"
 
 $cleanProperties = @(
     'connectinString', 'connectionString', 'password'
@@ -647,13 +647,16 @@ foreach ($target in $exportTargets) {
                 $hasTarget = $true
                 $id = $exportTarget.id
                 break
-            }elseif(($exportTarget.accountDisplay -eq $targetObject.accountDisplay) -and ($exportTarget.providerId -eq $targetObject.providerId))
+            }
+            elseif(($exportTarget.accountDisplay -eq $targetObject.accountDisplay) -and ($exportTarget.providerId -eq $targetObject.providerId))
             {
                 Write-Verbose "Found match on display name :: $($exportTarget.accountDisplay) == $($targetObject.accountDisplay)"
                 $hasTarget = $true
                 $id = $exportTarget.id
                 break
-            } elseif(($exportTargetDisplayName -eq $targetDisplayName) -and ($exportTarget.providerId -eq $targetObject.providerId)) {
+            }
+            elseif(($exportTargetDisplayName -eq $targetDisplayName) -and ($exportTarget.providerId -eq $targetObject.providerId))
+            {
                 Write-Verbose "Found match on assumed display name :: $($exportTarget.accountDisplay) == $($targetObject.helperConfiguration.accountName) $($targetObject.helperConfiguration.fileSystemName) $($targetObject.helperConfiguration.directoryName)"
                 $hasTarget = $true
                 $id = $exportTarget.id
@@ -670,17 +673,49 @@ foreach ($target in $exportTargets) {
         }
         
         Write-Verbose "Creating Export Target $($targetObject.helperConfiguration)"
-        $accountDisplay = if ($targetObject.accountDisplay) { $targetObject.accountDisplay } else { $targetObject.accountId }
-        $targetResult = New-CluedInExportTarget -ConnectorId $targetObject.providerId -Configuration $targetObject.helperConfiguration -AccountDisplay $accountDisplay
+        if ([version]${env:CLUEDIN_CURRENTVERSION} -eq [version]"4.4.0")
+        {
+            # If the accountDisplay is null, we use id instead as the account display
+            $accountDisplay = if ($targetObject.accountDisplay) { $targetObject.accountDisplay } else { $targetObject.id }
+            $targetResult = New-CluedInExportTarget -ConnectorId $targetObject.providerId -Configuration $targetObject.helperConfiguration -AccountDisplay $accountDisplay
+        }
+        else
+        {
+            $targetResult = New-CluedInExportTarget -ConnectorId $targetObject.providerId -Configuration $targetObject.helperConfiguration
+        }
+
         $id = $targetResult.data.inbound.createConnection.id
         if (!$id) { Write-Warning "Unable to get Id of target. Importing on top of existing export targets can be flakey. Please manually investigate."; continue }
+        checkResults($targetResult)
+
+        Write-Verbose "Matching Export Target Status"
+        $currentTarget = (Get-CluedInExportTarget -Id $id).data.inbound.connectorConfiguration
+        $targetObjectStatus = $targetObject.active
+        $currentObjectStatus = $currentTarget.active
+        Write-Host "TargetObjectStatus: ${targetObjectStatus}, CurrentObjectStatus: ${currentObjectStatus}"
+
+        # We pause the export target if the target export target status is false. During creation, by default the export target is set to true
+        if (!$targetObjectStatus -and $currentObjectStatus)
+        {
+            Write-Host "Called"
+            $connectorId = $currentTarget.id
+            $providerId = $currentTarget.providerId
+            $accountId = $currentTarget.accountId
+
+            $targetStatusResult = Set-CluedInExportTargetStatusToPaused -ConnectorId $connectorId -ProviderId $providerId -AccountId $accountId
+            $jsonResponse = $targetStatusResult | ConvertTo-Json -Depth 10
+            Write-Host "Response Object:`n$jsonResponse"
+            checkResults($targetStatusResult)
+        }
     }
-    else {
+    else
+    {
         Write-Verbose "Updating Export target '$($targetDisplayName)' as it already exists"
         $targetResult = Set-CluedInExportTargetConfiguration -Id $id -AccountDisplay $targetObject.accountDisplay -Configuration $targetObject.helperConfiguration
-    }
+        checkResults($targetResult)
 
-    checkResults($targetResult)
+        # We do not need to update the status of the export target when updating since the export target might be tied to an active stream
+    }
 
     Write-Verbose "Setting Permissions"
     $currentTarget = (Get-CluedInExportTarget -Id $id).data.inbound.connectorConfiguration

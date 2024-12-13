@@ -692,19 +692,15 @@ foreach ($target in $exportTargets) {
         $currentTarget = (Get-CluedInExportTarget -Id $id).data.inbound.connectorConfiguration
         $targetObjectStatus = $targetObject.active
         $currentObjectStatus = $currentTarget.active
-        Write-Host "TargetObjectStatus: ${targetObjectStatus}, CurrentObjectStatus: ${currentObjectStatus}"
 
         # We pause the export target if the target export target status is false. During creation, by default the export target is set to true
         if (!$targetObjectStatus -and $currentObjectStatus)
         {
-            Write-Host "Called"
             $connectorId = $currentTarget.id
             $providerId = $currentTarget.providerId
             $accountId = $currentTarget.accountId
 
             $targetStatusResult = Set-CluedInExportTargetStatusToPaused -ConnectorId $connectorId -ProviderId $providerId -AccountId $accountId
-            $jsonResponse = $targetStatusResult | ConvertTo-Json -Depth 10
-            Write-Host "Response Object:`n$jsonResponse"
             checkResults($targetStatusResult)
         }
     }

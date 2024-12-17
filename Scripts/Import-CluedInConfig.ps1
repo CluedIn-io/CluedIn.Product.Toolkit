@@ -153,28 +153,35 @@ foreach ($glossary in $glossaries) {
         $glossaryId = $glossaryResult.data.management.createGlossaryCategory.id
     }
 
-    $glossaryId = $glossaryId ??
-        ($currentGlossariesObject |
-            Where-Object { $_.name -eq $glossaryObject.name }).id
+    $glossaryId = $glossaryId ?? ($currentGlossariesObject | Where-Object { $_.name -eq $glossaryObject.name }).id
 
     Write-Verbose "Processing Terms"
     foreach ($term in $termsFile) {
         $termId = $null
         $termJson = Get-Content -Path $term.FullName | ConvertFrom-Json -Depth 20
         $termObject = $termJson.data.management.glossaryTerm
+        $termRuleSet = $termObject.ruleSet
 
         Write-Host "Processing Term: $($termObject.name)" -ForegroundColor 'Cyan'
         if ($termObject.name -notin $currentTermsObject.name) {
             Write-Host "Creating Term '$($termObject.name)'" -ForegroundColor 'DarkCyan'
-            $termResult = New-CluedInGlossaryTerm -Name $termObject.name -GlossaryId $glossaryId
+
+            # In v4.4.0, we cannot create glossary term without specifying the ruleset
+            if (([version]${env:CLUEDIN_CURRENTVERSION} -ge [version]"4.4.0") -and $termRuleSet)
+            {
+                $termResult = New-CluedInGlossaryTerm -Name $termObject.name -GlossaryId $glossaryId -RuleSet $termRuleSet
+            }
+            else
+            {
+                $termResult = New-CluedInGlossaryTerm -Name $termObject.name -GlossaryId $glossaryId
+            }
+
             checkResults($termResult)
 
             $termId = $termResult.data.management.createGlossaryTerm.id
         }
 
-        $termId = $termId ??
-            ($currentTermsObject |
-                Where-Object { $_.name -eq $termObject.name }).id
+        $termId = $termId ?? ($currentTermsObject | Where-Object { $_.name -eq $termObject.name }).id
 
         $lookupGlossaryTerms += [PSCustomObject]@{
             OriginalGlossaryTermId = $termObject.id

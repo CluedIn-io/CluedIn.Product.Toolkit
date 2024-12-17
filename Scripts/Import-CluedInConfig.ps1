@@ -163,6 +163,10 @@ foreach ($glossary in $glossaries) {
         $termRuleSet = $termObject.ruleSet
 
         Write-Host "Processing Term: $($termObject.name)" -ForegroundColor 'Cyan'
+
+        # To cater to v4.4.0, we check if the term is already created with ruleSet
+        $isCreatedWithRuleSet = $false
+
         if ($termObject.name -notin $currentTermsObject.name) {
             Write-Host "Creating Term '$($termObject.name)'" -ForegroundColor 'DarkCyan'
 
@@ -170,6 +174,7 @@ foreach ($glossary in $glossaries) {
             if (([version]${env:CLUEDIN_CURRENTVERSION} -ge [version]"4.4.0") -and $termRuleSet)
             {
                 $termResult = New-CluedInGlossaryTerm -Name $termObject.name -GlossaryId $glossaryId -RuleSet $termRuleSet
+                $isCreatedWithRuleSet = $true
             }
             else
             {
@@ -182,6 +187,14 @@ foreach ($glossary in $glossaries) {
         }
 
         $termId = $termId ?? ($currentTermsObject | Where-Object { $_.name -eq $termObject.name }).id
+
+        if ($isCreatedWithRuleSet)
+        {
+            $currentTermConfig = Get-CluedInGlossaryTerm -Id $termId
+
+            # If the rule has been created during the create process, we replace the ruleset values with the current one
+            $termObject.ruleSet = $currentTermConfig.ruleSet
+        }
 
         $lookupGlossaryTerms += [PSCustomObject]@{
             OriginalGlossaryTermId = $termObject.id

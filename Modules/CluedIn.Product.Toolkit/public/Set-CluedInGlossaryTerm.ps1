@@ -32,6 +32,9 @@ function Set-CluedInGlossaryTerm {
         }
     }
 
+    # In v4.4.0, the key "__typename" in the export file, when included in the request causes 400 error
+    $relatedTags = $Object.relatedTags | Select-Object name
+
     $query = @{
         variables = @{
             term = @{
@@ -43,7 +46,7 @@ function Set-CluedInGlossaryTerm {
                 description = $Object.description
                 isObsolete = $Object.isObsolete
                 ruleSet = $ruleSet
-                relatedTags = $Object.relatedTags
+                relatedTags = $relatedTags
             }
         }
         query = $queryContent

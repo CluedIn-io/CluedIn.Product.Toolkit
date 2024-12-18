@@ -1,0 +1,44 @@
+query getRules(
+  $searchName: String
+  $isActive: Boolean
+  $pageNumber: Int
+  $sortBy: String
+  $sortDirection: String
+  $scope: String
+) {
+  management {
+    id
+    rules(
+      searchName: $searchName
+      isActive: $isActive
+      pageNumber: $pageNumber
+      sortBy: $sortBy
+      sortDirection: $sortDirection
+      scope: $scope
+    ) {
+      total
+      data {
+        id
+        name
+        order
+        description
+        isActive
+        createdBy
+        modifiedBy
+        createdAt
+        modifiedAt
+        author {
+          id
+          username
+          __typename
+        }
+        scope
+        isReprocessing
+        requiresAttention
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

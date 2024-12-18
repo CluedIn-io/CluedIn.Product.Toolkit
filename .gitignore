@@ -1,3 +1,8 @@
+# ide
+.idea
+.vscode
+
+# exports
 mmc
 mmc1
 mmc2
@@ -13,3 +18,4 @@ icgb
 test
 test2
 icgint
+export*

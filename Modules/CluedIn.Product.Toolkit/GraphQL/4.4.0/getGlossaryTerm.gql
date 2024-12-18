@@ -1,0 +1,39 @@
+query getGlossaryTerm($id: ID!) {
+  management {
+    id
+    glossaryTerm(id: $id) {
+      id
+      requiresAttention
+      name
+      categoryId
+      category {
+        id
+        name
+        __typename
+      }
+      active
+      createdBy
+      modifiedBy
+      isEndorsedByCurrentUser
+      isOwner
+      createdAt
+      modifiedAt
+      shortDescription
+      certificationLevel
+      userRating
+      rating
+      version
+      ruleSet
+      description
+      isObsolete
+      endorsedBy
+      relatedTags {
+        id
+        name
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

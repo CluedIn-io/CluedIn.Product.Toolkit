@@ -170,16 +170,8 @@ foreach ($glossary in $glossaries) {
         if ($termObject.name -notin $currentTermsObject.name) {
             Write-Host "Creating Term '$($termObject.name)'" -ForegroundColor 'DarkCyan'
 
-            # In v4.4.0, we cannot create glossary term without specifying the ruleset
-            if (([version]${env:CLUEDIN_CURRENTVERSION} -ge [version]"4.4.0") -and $termRuleSet)
-            {
-                $termResult = New-CluedInGlossaryTerm -Name $termObject.name -GlossaryId $glossaryId -RuleSet $termRuleSet
-                $isCreatedWithRuleSet = $true
-            }
-            else
-            {
-                $termResult = New-CluedInGlossaryTerm -Name $termObject.name -GlossaryId $glossaryId
-            }
+            $termResult = New-CluedInGlossaryTerm -Name $termObject.name -GlossaryId $glossaryId -RuleSet $termRuleSet
+            $isCreatedWithRuleSet = $true
 
             checkResults($termResult)
 

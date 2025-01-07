@@ -101,6 +101,8 @@ if (Test-Path -Path $adminSettingsPath -PathType Leaf) {
     $settings = ($restoreAdminSetting.data.administration.configurationSettings).psobject.properties.name
     $currentSettings = (Get-CluedInAdminSetting).data.administration.configurationSettings
 
+    $settingsToUpdate = @{}
+
     foreach ($setting in $settings) {
         $key = $setting
 
@@ -112,11 +114,20 @@ if (Test-Path -Path $adminSettingsPath -PathType Leaf) {
         $newValue = $restoreAdminSetting.data.administration.configurationSettings.$key
         $currentValue = $currentSettings.$key
 
-        if ($newValue -ne $currentValue) {
+        # Determine if the value has changed
+        $hasChanged = $newValue -ne $currentValue
+
+        $settingsToUpdate[$key] = $newValue
+
+        if ($hasChanged) {
             Write-Host "Processing Admin Setting '$key'. Was: $currentValue, Now: $newValue" -ForegroundColor 'Cyan'
-            $adminSettingResult = Set-CluedInAdminSettings -Name $key -Value $newValue
-            checkResults($adminSettingResult)
         }
+    }
+
+    if ($settingsToUpdate.Count -gt 0) {
+        Write-Host "INFO: Performing bulk update of admin settings..." -ForegroundColor 'Cyan'
+        $bulkResult = Set-CluedInAdminSettingsBulk -SettingsToApply $settingsToUpdate
+        checkResults($bulkResult)
     }
 }
 

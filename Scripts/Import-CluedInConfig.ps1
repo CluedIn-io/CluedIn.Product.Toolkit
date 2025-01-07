@@ -164,28 +164,40 @@ foreach ($glossary in $glossaries) {
         $glossaryId = $glossaryResult.data.management.createGlossaryCategory.id
     }
 
-    $glossaryId = $glossaryId ??
-        ($currentGlossariesObject |
-            Where-Object { $_.name -eq $glossaryObject.name }).id
+    $glossaryId = $glossaryId ?? ($currentGlossariesObject | Where-Object { $_.name -eq $glossaryObject.name }).id
 
     Write-Verbose "Processing Terms"
     foreach ($term in $termsFile) {
         $termId = $null
         $termJson = Get-Content -Path $term.FullName | ConvertFrom-Json -Depth 20
         $termObject = $termJson.data.management.glossaryTerm
+        $termRuleSet = $termObject.ruleSet
 
         Write-Host "Processing Term: $($termObject.name)" -ForegroundColor 'Cyan'
+
+        # To cater to v4.4.0, we check if the term is already created with ruleSet
+        $isCreatedWithRuleSet = $false
+
         if ($termObject.name -notin $currentTermsObject.name) {
             Write-Host "Creating Term '$($termObject.name)'" -ForegroundColor 'DarkCyan'
-            $termResult = New-CluedInGlossaryTerm -Name $termObject.name -GlossaryId $glossaryId
+
+            $termResult = New-CluedInGlossaryTerm -Name $termObject.name -GlossaryId $glossaryId -RuleSet $termRuleSet
+            $isCreatedWithRuleSet = $true
+
             checkResults($termResult)
 
             $termId = $termResult.data.management.createGlossaryTerm.id
         }
 
-        $termId = $termId ??
-            ($currentTermsObject |
-                Where-Object { $_.name -eq $termObject.name }).id
+        $termId = $termId ?? ($currentTermsObject | Where-Object { $_.name -eq $termObject.name }).id
+
+        if ($isCreatedWithRuleSet)
+        {
+            $currentTermConfig = Get-CluedInGlossaryTerm -Id $termId
+
+            # If the rule has been created during the create process, we replace the ruleset values with the current one
+            $termObject.ruleSet = $currentTermConfig.ruleSet
+        }
 
         $lookupGlossaryTerms += [PSCustomObject]@{
             OriginalGlossaryTermId = $termObject.id

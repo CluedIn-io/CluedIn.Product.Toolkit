@@ -32,6 +32,8 @@ function Set-CluedInGlossaryTerm {
         }
     }
 
+    $relatedTags = $Object.relatedTags | Select-Object name
+
     $query = @{
         variables = @{
             term = @{
@@ -43,7 +45,7 @@ function Set-CluedInGlossaryTerm {
                 description = $Object.description
                 isObsolete = $Object.isObsolete
                 ruleSet = $ruleSet
-                relatedTags = $Object.relatedTags
+                relatedTags = $relatedTags
             }
         }
         query = $queryContent

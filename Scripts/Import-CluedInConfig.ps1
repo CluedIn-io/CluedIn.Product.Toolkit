@@ -733,13 +733,16 @@ foreach ($target in $exportTargets) {
                 $hasTarget = $true
                 $id = $exportTarget.id
                 break
-            }elseif(($exportTarget.accountDisplay -eq $targetObject.accountDisplay) -and ($exportTarget.providerId -eq $targetObject.providerId))
+            }
+            elseif(($exportTarget.accountDisplay -eq $targetObject.accountDisplay) -and ($exportTarget.providerId -eq $targetObject.providerId))
             {
                 Write-Verbose "Found match on display name :: $($exportTarget.accountDisplay) == $($targetObject.accountDisplay)"
                 $hasTarget = $true
                 $id = $exportTarget.id
                 break
-            } elseif(($exportTargetDisplayName -eq $targetDisplayName) -and ($exportTarget.providerId -eq $targetObject.providerId)) {
+            }
+            elseif(($exportTargetDisplayName -eq $targetDisplayName) -and ($exportTarget.providerId -eq $targetObject.providerId))
+            {
                 Write-Verbose "Found match on assumed display name :: $($exportTarget.accountDisplay) == $($targetObject.helperConfiguration.accountName) $($targetObject.helperConfiguration.fileSystemName) $($targetObject.helperConfiguration.directoryName)"
                 $hasTarget = $true
                 $id = $exportTarget.id
@@ -756,7 +759,10 @@ foreach ($target in $exportTargets) {
         }
         
         Write-Verbose "Creating Export Target $($targetObject.helperConfiguration)"
-        $targetResult = New-CluedInExportTarget -ConnectorId $targetObject.providerId -Configuration $targetObject.helperConfiguration
+        # If the accountDisplay is null, we use id instead as the account display
+        $accountDisplay = if ($targetObject.accountDisplay) { $targetObject.accountDisplay } else { $targetObject.id }
+        $targetResult = New-CluedInExportTarget -ConnectorId $targetObject.providerId -Configuration $targetObject.helperConfiguration -AccountDisplay $accountDisplay
+
         $id = $targetResult.data.inbound.createConnection.id
         if (!$id) { Write-Warning "Unable to get Id of target. Importing on top of existing export targets can be flakey. Please manually investigate."; continue }
     }

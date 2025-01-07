@@ -101,12 +101,7 @@ if (Test-Path -Path $adminSettingsPath -PathType Leaf) {
     $settings = ($restoreAdminSetting.data.administration.configurationSettings).psobject.properties.name
     $currentSettings = (Get-CluedInAdminSetting).data.administration.configurationSettings
 
-    # If we are on 4.4.0, prepare a hashtable to collect changes for bulk update
-    $isCurrEnv440 = [version]${env:CLUEDIN_CURRENTVERSION} -ge [version]"4.4.0"
-
-    if ($isCurrEnv440) {
-        $settingsToUpdate = @{}
-    }
+    $settingsToUpdate = @{}
 
     foreach ($setting in $settings) {
         $key = $setting
@@ -122,24 +117,14 @@ if (Test-Path -Path $adminSettingsPath -PathType Leaf) {
         # Determine if the value has changed
         $hasChanged = $newValue -ne $currentValue
 
-        # For version 4.4.0, always add to the hashtable
-        if ($isCurrEnv440) {
-            $settingsToUpdate[$key] = $newValue
-        }
+        $settingsToUpdate[$key] = $newValue
 
         if ($hasChanged) {
             Write-Host "Processing Admin Setting '$key'. Was: $currentValue, Now: $newValue" -ForegroundColor 'Cyan'
-
-            # For older versions, apply the setting immediately
-            if (!$isCurrEnv440) {
-                $adminSettingResult = Set-CluedInAdminSettings -Name $key -Value $newValue
-                checkResults($adminSettingResult)
-            }
         }
     }
 
-    # If we are on 4.4.0 and have collected changes, perform the bulk update
-    if ($isCurrEnv440 -and $settingsToUpdate.Count -gt 0) {
+    if ($settingsToUpdate.Count -gt 0) {
         Write-Host "INFO: Performing bulk update of admin settings..." -ForegroundColor 'Cyan'
         $bulkResult = Set-CluedInAdminSettingsBulk -SettingsToApply $settingsToUpdate
         checkResults($bulkResult)

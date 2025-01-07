@@ -748,16 +748,9 @@ foreach ($target in $exportTargets) {
         }
         
         Write-Verbose "Creating Export Target $($targetObject.helperConfiguration)"
-        if ([version]${env:CLUEDIN_CURRENTVERSION} -ge [version]"4.4.0")
-        {
-            # If the accountDisplay is null, we use id instead as the account display
-            $accountDisplay = if ($targetObject.accountDisplay) { $targetObject.accountDisplay } else { $targetObject.id }
-            $targetResult = New-CluedInExportTarget -ConnectorId $targetObject.providerId -Configuration $targetObject.helperConfiguration -AccountDisplay $accountDisplay
-        }
-        else
-        {
-            $targetResult = New-CluedInExportTarget -ConnectorId $targetObject.providerId -Configuration $targetObject.helperConfiguration
-        }
+        # If the accountDisplay is null, we use id instead as the account display
+        $accountDisplay = if ($targetObject.accountDisplay) { $targetObject.accountDisplay } else { $targetObject.id }
+        $targetResult = New-CluedInExportTarget -ConnectorId $targetObject.providerId -Configuration $targetObject.helperConfiguration -AccountDisplay $accountDisplay
 
         $id = $targetResult.data.inbound.createConnection.id
         if (!$id) { Write-Warning "Unable to get Id of target. Importing on top of existing export targets can be flakey. Please manually investigate."; continue }

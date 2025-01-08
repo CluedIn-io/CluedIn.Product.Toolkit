@@ -173,6 +173,11 @@ foreach ($glossary in $glossaries) {
         $termObject = $termJson.data.management.glossaryTerm
         $termRuleSet = $termObject.ruleSet
 
+        if($null -eq $termRuleSet -Or $termRuleSet.rules.count -eq 0){
+            Write-Warning "Skipping Term '$($termObject.name)' as it does not have a valid filter"
+            continue
+        }
+
         Write-Host "Processing Term: $($termObject.name)" -ForegroundColor 'Cyan'
         if ($termObject.name -notin $currentTermsObject.name) {
             Write-Host "Creating Term '$($termObject.name)'" -ForegroundColor 'DarkCyan'
@@ -208,8 +213,6 @@ foreach ($vocabulary in $restoreVocabularies) {
     $originalVocabularyId = $vocabObject.vocabularyId
 
     Write-Host "Processing Vocab: $($vocabObject.vocabularyName) ($($vocabObject.vocabularyId))" -ForegroundColor 'Cyan'
-    Write-Debug "$($vocabObject | Out-String)"
-    
     
     $entityTypeResult = Get-CluedInEntityType -Search $($vocabObject.entityTypeConfiguration.displayName)
     if ($entityTypeResult.data.management.entityTypeConfigurations.total -lt 1) {
@@ -291,28 +294,37 @@ foreach ($vocabulary in $restoreVocabularies) {
     }
 }
 
-foreach ($lookup in $lookupVocabularies) {
-    Write-Host $lookup | Format-Table
-}
-
 Write-Host "INFO: Importing Vocabulary Keys" -ForegroundColor 'Green'
 $vocabKeys = Get-ChildItem -Path $vocabKeysPath -Filter "*.json"
 foreach ($vocabKey in $vocabKeys) {
     $vocabKeyJson = Get-Content -Path $vocabKey.FullName | ConvertFrom-Json -Depth 20
     $vocabKeyObject = $vocabKeyJson.data.management.vocabularyKeysFromVocabularyId.data
 
+    if($vocabKeyObject.count -eq 0){
+        # There are no vocabulary keys to import from that file
+        continue
+    }
+
     $vocabName = ''
     $lookupVocabularyId = $null
 
-    # Find first key that is not a composite key
+    $everyKeyIsACompositeKey = $true
+
+    # Find first key that is not a composite key to identify the new vocabulary id to assign the keys to
     foreach($vk in $vocabKeyObject)
     {
         if($null -eq $vk.compositeVocabularyId)
         {
             $vocabName = $vk.vocabulary.vocabularyName
             $lookupVocabularyId = $vk.vocabularyId
+            $everyKeyIsACompositeKey = $false
             break
         }
+    }
+
+    if($everyKeyIsACompositeKey -eq $true){
+        Write-Warning "All vocabulary keys are composite keys so skipping the file '$($vocabKey.FullName)'"
+        continue
     }
 
     $vocabularyId = ($lookupVocabularies | Where-Object { $_.OriginalVocabularyId -eq $lookupVocabularyId }).VocabularyId
@@ -322,8 +334,6 @@ foreach ($vocabKey in $vocabKeys) {
         continue
     }
 
-    Write-Host "Original Id:: $($lookupVocabularyId), New Id:: $($vocabularyId) - '$vocabName'"
-
     foreach ($key in $vocabKeyObject) {
         if ($key.isObsolete) { 
             Write-Verbose "Not importing: '$($key.key)' as it's obsolete"; 
@@ -331,7 +341,6 @@ foreach ($vocabKey in $vocabKeys) {
         }
 
         Write-Host "Processing Vocab Key: $($key.displayName) ($($key.vocabularyKeyId))" -ForegroundColor 'Cyan'
-        Write-Debug "$($key | Out-String)"
 
         $currentVocabularyKeyObjectResult = Get-CluedInVocabularyKey -Search $key.key
         $currentVocabularyKeyObject = $currentVocabularyKeyObjectResult.data.management.vocabularyPerKey
@@ -346,6 +355,12 @@ foreach ($vocabKey in $vocabKeys) {
         if($null -ne $key.compositeVocabularyId) {
             Write-Host "Skipping composite Vocab Key: $($key.key)" -ForegroundColor 'DarkCyan'
             continue
+        }
+
+        if($key.dataType -eq "Text" -And $key.storage -ne "Keyword"){
+            # As of 4.4.0 Anything with datatype text must be stored as a Keyword
+            Write-Warning "Changing the storage type to 'Keyword' for '$($key.key)' as keys with a Text data type now have to be stored as 'Keywords"
+            $key.storage = "Keyword"
         }
 
         if (!$currentVocabularyKeyObject.key) {
@@ -811,12 +826,12 @@ foreach ($stream in $streams) {
             Write-Verbose "Creating Stream"
             $newStream = New-CluedInStream -Name $streamObject.name
             $streamId = $newStream.data.consume.createStream.id
-            Write-Warning "Created new stream $($streamId)"
+            Write-Host "Created new stream $($streamId)" -ForegroundColor 'Cyan'
         }
         '1' {
             Write-Verbose "Stream Exists. Updating"
             $streamId = $streamExists.id
-            Write-Warning "Using existing stream $($streamId)"
+            Write-Host "Using existing stream $($streamId)" -ForegroundColor 'Cyan'
         }
         default { Write-Warning "Too many streams exist with name '$($streamObject.name)'"; continue }
     }

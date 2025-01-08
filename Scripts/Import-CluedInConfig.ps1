@@ -174,15 +174,10 @@ foreach ($glossary in $glossaries) {
         $termRuleSet = $termObject.ruleSet
 
         Write-Host "Processing Term: $($termObject.name)" -ForegroundColor 'Cyan'
-
-        # To cater to v4.4.0, we check if the term is already created with ruleSet
-        $isCreatedWithRuleSet = $false
-
         if ($termObject.name -notin $currentTermsObject.name) {
             Write-Host "Creating Term '$($termObject.name)'" -ForegroundColor 'DarkCyan'
 
             $termResult = New-CluedInGlossaryTerm -Name $termObject.name -GlossaryId $glossaryId -RuleSet $termRuleSet
-            $isCreatedWithRuleSet = $true
 
             checkResults($termResult)
 
@@ -191,21 +186,13 @@ foreach ($glossary in $glossaries) {
 
         $termId = $termId ?? ($currentTermsObject | Where-Object { $_.name -eq $termObject.name }).id
 
-        if ($isCreatedWithRuleSet)
-        {
-            $currentTermConfig = Get-CluedInGlossaryTerm -Id $termId
-
-            # If the rule has been created during the create process, we replace the ruleset values with the current one
-            $termObject.ruleSet = $currentTermConfig.ruleSet
-        }
-
         $lookupGlossaryTerms += [PSCustomObject]@{
             OriginalGlossaryTermId = $termObject.id
             GlossaryTermId = $termId
         }
 
-        Write-Verbose "Setting term configuration"
-        $setTermResult = Set-CluedInGlossaryTerm -Id $termId -Object $termObject
+        Write-Host "Updating Term Configuration" -ForegroundColor 'DarkCyan'
+        $setTermResult = Set-CluedInGlossaryTerm -Id $termId -Object $termObject -GlossaryId $glossaryId
         checkResults($setTermResult)
     }
 }

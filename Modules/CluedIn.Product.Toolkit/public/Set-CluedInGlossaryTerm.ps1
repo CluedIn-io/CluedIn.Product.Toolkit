@@ -12,6 +12,9 @@ function Set-CluedInGlossaryTerm {
         .PARAMETER Id
         This is the id of the new Glossary Term to be configured
 
+        .PARAMETER GlossaryId
+        This is the id of the Glossary the Glossary Term is assigned to
+
         .EXAMPLE
         PS> Set-CluedInGlossaryTerm
     #>
@@ -19,7 +22,8 @@ function Set-CluedInGlossaryTerm {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)][guid]$Id,
-        [Parameter(Mandatory)][PSCustomObject]$Object
+        [Parameter(Mandatory)][PSCustomObject]$Object,
+        [Parameter(Mandatory)][guid]$GlossaryId
     )
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'saveGlossaryTerm'
@@ -32,7 +36,10 @@ function Set-CluedInGlossaryTerm {
         }
     }
 
-    $relatedTags = $Object.relatedTags | Select-Object name
+    $relatedTags = @()
+    if ($Object.relatedTags) {
+        $relatedTags = $Object.relatedTags | Select-Object -ExpandProperty name
+    }
 
     $query = @{
         variables = @{
@@ -44,6 +51,7 @@ function Set-CluedInGlossaryTerm {
                 certificationLevel = $Object.certificationLevel
                 description = $Object.description
                 isObsolete = $Object.isObsolete
+                categoryId = $GlossaryId
                 ruleSet = $ruleSet
                 relatedTags = $relatedTags
             }

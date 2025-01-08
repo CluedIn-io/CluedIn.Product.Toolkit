@@ -19,6 +19,7 @@ function New-CluedInVocabularyKey {
         [Parameter(ParameterSetName = 'New')][string]$DisplayName,
         [Parameter(ParameterSetName = 'New')][string]$GroupName,
         [Parameter(ParameterSetName = 'New')][string]$DataType,
+        [Parameter(ParameterSetName = 'New')][string]$Storage,
         [Parameter(ParameterSetName = 'New')][string]$Description,
         [Parameter(ParameterSetName = 'New')][string]$Prefix,
         [Parameter(Mandatory)][guid]$VocabId,
@@ -29,6 +30,7 @@ function New-CluedInVocabularyKey {
         $DisplayName = $Object.displayName
         $GroupName = $Object.groupName
         $DataType = $Object.dataType
+        $Storage = $Object.storage
         $Description = $Object.description
         $Prefix = $Object.name
         $isVisible = $Object.isVisible
@@ -47,6 +49,7 @@ function New-CluedInVocabularyKey {
                 groupName = $GroupName
                 isVisible = $isVisible
                 dataType = $DataType
+                storage = $Storage
                 description = $Description
                 glossaryTermId = $GlossaryTermId
             }

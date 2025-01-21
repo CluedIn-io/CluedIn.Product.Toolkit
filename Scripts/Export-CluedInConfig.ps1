@@ -154,6 +154,14 @@ foreach ($id in $dataSetIds) {
             Get-CluedInAnnotations -id $annotationId | Out-JsonFile -Path $path -Name ('{0}-Annotation' -f $id)
         }
     }
+
+    switch ($annotationId) {
+        $null { Write-Warning "No annotation detected. Skipping export of pre-process data set rules" }
+        default {
+            Write-Host "Exporting Preprocess data set rules" -ForegroundColor 'Cyan'
+            Get-CluedPreProcessDataSetRules -Id $annotationId | Out-JsonFile -Path $path -Name ('{0}-Preprocess-dataset-rules' -f $id)
+        }
+    }
 }
 
 # Vocabulary

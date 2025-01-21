@@ -1,0 +1,53 @@
+query getAllPreProcessDataSetRules(
+  $annotationId: ID!
+  $page: Int
+  $pageSize: Int
+) {
+  preparation {
+    id
+    getAllPreProcessDataSetRules(
+      annotationId: $annotationId
+      page: $page
+      pageSize: $pageSize
+    ) {
+      total
+      data {
+        id
+        annotationId
+        displayName
+        orderNumber
+        lastModifiedBy
+        transformations {
+          filters {
+            id
+            displayName
+            inverse
+            parameters {
+              key
+              value
+              __typename
+            }
+            __typename
+          }
+          operations {
+            id
+            displayName
+            inverse
+            parameters {
+              key
+              value
+              __typename
+            }
+            __typename
+          }
+          __typename
+        }
+        author
+        isActive
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

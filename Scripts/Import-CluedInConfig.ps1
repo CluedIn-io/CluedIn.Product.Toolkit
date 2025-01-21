@@ -504,6 +504,7 @@ foreach ($dataSet in $dataSets) {
     $annotationPath = Join-Path -Path $dataSetsPath -ChildPath ('{0}-Annotation.json' -f $dataSetObject.id)
     if (!(Test-Path -Path $annotationPath -PathType 'Leaf')) { Write-Warning "No annotation to import"; continue }
 
+    $lookupAnnotations = @()
     Try {
         $annotationJson = Get-Content -Path $annotationPath | ConvertFrom-Json -Depth 20
         $annotationObject = $annotationJson.data.preparation.annotation
@@ -535,6 +536,11 @@ foreach ($dataSet in $dataSets) {
             checkResults($annotationResult)
 
             $annotationId = (Get-CluedInDataSet -id $dataSetId).data.inbound.dataSet.annotationId
+        }
+
+        $lookupAnnotations += [PSCustomObject]@{
+            OriginalAnnotationId = $annotationObject.id
+            AnnotationId = $annotationId
         }
 
         Write-Verbose "Setting Annotation Configuration"
@@ -651,6 +657,32 @@ foreach ($dataSet in $dataSets) {
         Write-Debug $_
         continue
     }
+
+    Write-Host "Updating PreProcess DataSet Rules for $($dataSetObject.name)" -ForegroundColor 'Cyan'
+        $preProcessRulesPath = Join-Path -Path $dataSetsPath -ChildPath ('{0}-Preprocess-dataset-rules.json' -f $dataSetObject.id)
+        if (!(Test-Path -Path $preProcessRulesPath -PathType 'Leaf')) { Write-Warning "No pre process rules to import"; continue}
+
+        $preProcessRulesJson = Get-Content -Path $preProcessRulesPath | ConvertFrom-Json -Depth 20
+        $preProcessRulesObject = $preProcessRulesJson.data.preparation.getAllPreProcessDataSetRules
+
+        foreach($preProcessingRule in $preProcessRulesObject.data){
+            $annotationId = ($lookupAnnotations | Where-Object { $_.OriginalAnnotationId -eq $preProcessingRule.annotationId }).AnnotationId
+            if($null -eq $annotationId){
+                Write-Warning "Could not find the new annotation id to assign to the pre processing rule. PreProcessingRuleId: $($preProcessingRule.id); Original Annotation Id: $($preProcessingRule.annotationId);"
+            }
+
+            $existingPreProcessRuleObjects = (Get-CluedPreProcessDataSetRules -Id $annotationId).data.preparation.getAllPreProcessDataSetRules.data
+            $existingPreProcessingRule = $existingPreProcessRuleObjects | Where-Object { $_.displayName -eq $preProcessingRule.displayName }
+            # If Exists Update
+            if($null -ne $existingPreProcessingRule){
+                Write-Host "Updating PreProcessingRule: $($preProcessingRule.displayname)" -ForegroundColor 'Cyan'
+                Set-CluedInPreProcessDataSetRule -Id $existingPreProcessingRule.Id -Configuration $preProcessingRule
+            } else {
+                # Create
+                Write-Host "Creating PreProcessingRule: $($preProcessingRule.displayname)" -ForegroundColor 'Cyan'
+                New-CluedInPreProcessDataSetRule -AnnotationId $annotationId -Configuration $preProcessingRule
+            }
+        }
 }
 
 # Rules

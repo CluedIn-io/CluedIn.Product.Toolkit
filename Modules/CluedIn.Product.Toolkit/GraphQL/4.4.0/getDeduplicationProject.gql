@@ -1,0 +1,26 @@
+query deDupProject($id: ID!) {
+  management {
+    deDupProject(id: $id) {
+      id
+      name
+      status
+      createdBy
+      description
+      deduplicationScopeFilter
+      deduplicationScopeFilterType
+      requiresAttention
+      createdDate
+      shouldLimitQuerySize
+      querySizeLimit
+      groupCount
+      isOwner
+      author {
+        id
+        username
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

@@ -1,0 +1,32 @@
+query deDupProjects(
+  $pageNumber: Int
+  $itemsPerPage: Int
+  $excludeProjectStages: [String]
+  $includeProjectStages: [String]
+) {
+  management {
+    deDupProjects(
+      pageNumber: $pageNumber
+      itemsPerPage: $itemsPerPage
+      excludeProjectStages: $excludeProjectStages
+      includeProjectStages: $includeProjectStages
+    ) {
+      total
+      data {
+        id
+        name
+        status
+        createdDate
+        author {
+          id
+          username
+          __typename
+        }
+        requiresAttention
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

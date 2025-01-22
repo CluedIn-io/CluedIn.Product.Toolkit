@@ -101,7 +101,9 @@ FunctionsToExport = 'Connect-CluedInOrganization', 'Get-CluedInAdminSetting',
                'Get-CluedInCleanProject', 'Set-CluedInCleanProject',
                'Import-CluedInUsers', 'Test-IsGuid',
                'Get-CluedPreProcessDataSetRules', 'Set-CluedInPreProcessDataSetRule',
-               'New-CluedInPreProcessDataSetRule'
+               'New-CluedInPreProcessDataSetRule', 'Get-CluedInDeduplicationProjects',
+               'Get-CluedInDeduplicationProject', 'Get-CluedInDeduplicationMatchingRules',
+               'Export-DeduplicationProjects'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()

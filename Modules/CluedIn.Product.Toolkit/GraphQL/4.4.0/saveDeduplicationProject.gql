@@ -1,0 +1,16 @@
+mutation saveDedupProject($id: ID!, $dedupProject: InputDedupProject) {
+  management {
+    id
+    saveDedupProject(id: $id, dedupProject: $dedupProject) {
+      id
+      name
+      deduplicationScopeFilter
+      requiresAttention
+      description
+      querySizeLimit
+      shouldLimitQuerySize
+      __typename
+    }
+    __typename
+  }
+}

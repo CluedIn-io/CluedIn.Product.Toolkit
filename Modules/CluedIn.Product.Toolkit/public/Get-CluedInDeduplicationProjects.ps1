@@ -14,7 +14,6 @@ function Get-CluedInDeduplicationProjects {
 
     [CmdletBinding()]
     param(
-        [string]$Search = ""
     )
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'getDeduplicationProjects'

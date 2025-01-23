@@ -44,7 +44,7 @@ function Import-DeduplicationProjects{
             $deduplicationProjectResult = New-CluedInDeduplicationProject -Name $deduplicationProjectObject.name -Object $deduplicationProjectObject
             Check-ImportResult -Result $deduplicationProjectResult
 
-            $deduplicationProjectId = $deduplicationProjectResult.createDedupProject.id
+            $deduplicationProjectId = $deduplicationProjectResult.data.management.createDedupProject.id
         }else{
             $deduplicationProjectId = ($currentDeduplicationProjectObjects | Where-Object { $_.name -eq $deduplicationProjectObject.name }).id
             if ($deduplicationProjectId.count -ne 1) { Write-Error "Multiple Deduplication Project Ids returned"; continue }

@@ -32,11 +32,12 @@ param(
     [switch]$IncludeSupportFiles
 )
 
-function checkResults($result, $type) {
-    if ($result.errors) {
-        switch ($result.errors.message) {
+function Check-ImportResult($Result,$Type)
+{
+    if ($Result.errors) {
+        switch ($Result.errors.message) {
             {$_ -match '409'} { 
-                if($type -eq 'vocab') {
+                if($Type -eq 'vocab') {
                     Write-Host "Skipping vocab already exists or was unchanged" -ForegroundColor 'Cyan'
                 } else {
                     Write-Warning "An entry already exists" 
@@ -44,7 +45,7 @@ function checkResults($result, $type) {
             }
             default 
             { 
-                Write-Warning "Failed: $($result.errors.message)" 
+                Write-Warning "Failed: $($Result.errors.message)" 
             }
         }
     }
@@ -127,7 +128,7 @@ if (Test-Path -Path $adminSettingsPath -PathType Leaf) {
     if ($settingsToUpdate.Count -gt 0) {
         Write-Host "INFO: Performing bulk update of admin settings..." -ForegroundColor 'Cyan'
         $bulkResult = Set-CluedInAdminSettingsBulk -SettingsToApply $settingsToUpdate
-        checkResults($bulkResult)
+        Check-ImportResult($bulkResult)
     }
 }
 
@@ -159,7 +160,8 @@ foreach ($glossary in $glossaries) {
     if ($glossaryObject.name -notin $currentGlossariesObject.name) {
         Write-Host "Creating Glossary '$($glossaryObject.name)'" -ForegroundColor 'Cyan'
         $glossaryResult = New-CluedInGlossary -Name $glossaryObject.name
-        checkResults($glossaryResult)
+        
+        Check-ImportResult -Result $glossaryResult
 
         $glossaryId = $glossaryResult.data.management.createGlossaryCategory.id
     }
@@ -184,7 +186,7 @@ foreach ($glossary in $glossaries) {
 
             $termResult = New-CluedInGlossaryTerm -Name $termObject.name -GlossaryId $glossaryId -RuleSet $termRuleSet
 
-            checkResults($termResult)
+            Check-ImportResult -Result $termResult
 
             $termId = $termResult.data.management.createGlossaryTerm.id
         }
@@ -198,7 +200,7 @@ foreach ($glossary in $glossaries) {
 
         Write-Host "Updating Term Configuration" -ForegroundColor 'DarkCyan'
         $setTermResult = Set-CluedInGlossaryTerm -Id $termId -Object $termObject -GlossaryId $glossaryId
-        checkResults($setTermResult)
+        Check-ImportResult -Result $setTermResult
     }
 }
 
@@ -218,13 +220,13 @@ foreach ($vocabulary in $restoreVocabularies) {
     if ($entityTypeResult.data.management.entityTypeConfigurations.total -lt 1) {
         Write-Host "Creating entity type: $($entityTypeResult.data.management.entityTypeConfigurations.total)" 
         $entityResult = New-CluedInEntityType -Object $vocabObject.entityTypeConfiguration
-        checkResults($entityResult)
+        Check-ImportResult -Result $entityResult
     }
 
     $exists = (Get-CluedInVocabulary -Search $vocabObject.vocabularyName -IncludeCore -HardMatch).data.management.vocabularies.data
     if (!$exists) {
         $vocabCreateResult = New-CluedInVocabulary -Object $vocabObject
-        checkResults $vocabCreateResult
+        Check-ImportResult -Result $vocabCreateResult
         $createdVocabulary = (Get-CluedInVocabulary -Search $vocabObject.vocabularyName -HardMatch).data.management.vocabularies.data
         
         $lookupVocabularies += [PSCustomObject]@{
@@ -285,7 +287,7 @@ foreach ($vocabulary in $restoreVocabularies) {
         Write-Verbose "Restored Config`n$($vocabObject | Out-String)"
         Write-Verbose "Current Config`n$($currentVocab | Out-String)"
         $vocabUpdateResult = Set-CluedInVocabulary -Object $vocabObject
-        checkResults $vocabUpdateResult 'vocab'
+        Check-ImportResult -Result $vocabUpdateResult -Type 'vocab'
 
         $lookupVocabularies += [PSCustomObject]@{
             OriginalVocabularyId = $originalVocabularyId
@@ -390,7 +392,7 @@ foreach ($vocabKey in $vocabKeys) {
                 VocabId = $keyVocabularyId
             }
             $vocabKeyResult = New-CluedInVocabularyKey @params
-            checkResults($vocabKeyResult)
+            Check-ImportResult -Result $vocabKeyResult
 
             if ($?) {
                 $key.vocabularyId = $vocabKeyResult.data.management.createVocabularyKey.vocabularyId
@@ -411,7 +413,7 @@ foreach ($vocabKey in $vocabKeys) {
 
             Write-Verbose "'$($key.key)' exists, overwriting existing configuration"
             $vocabKeyUpdateResult = Set-CluedInVocabularyKey -Object $key
-            checkResults($vocabKeyUpdateResult)
+            Check-ImportResult -Result $vocabKeyUpdateResult
         }
 
         if ($key.mapsToOtherKeyId) {
@@ -422,7 +424,7 @@ foreach ($vocabKey in $vocabKeys) {
             if ($keyLookupId) {
                 Write-Host "Setting Vocab Key mapping '$($key.key)' to '$($key.mappedKey.key)'" -ForegroundColor 'DarkCyan'
                 $mapResult = Set-CluedInVocabularyKeyMapping -Source $key.vocabularyKeyId -Destination $keyLookupId
-                checkResults($mapResult)
+                Check-ImportResult -Result $mapResult
             }
         }
     }
@@ -441,7 +443,7 @@ foreach ($dataSource in $dataSources) {
         Where-Object {$_.name -match "^$dataSourceSetName$"}
     if (!$dataSourceSetMatch) {
         $dataSourceSetResult = New-CluedInDataSourceSet -DisplayName $dataSourceSetName
-        checkResults($dataSourceSetResult)
+        Check-ImportResult -Result $dataSourceSetResult
         $dataSourceSetMatch = (Get-CluedInDataSourceSet -Search $dataSourceSetName).data.inbound.dataSourceSets.data
     }
     $dataSourceObject.dataSourceSet.id = $dataSourceSetMatch.id
@@ -451,7 +453,7 @@ foreach ($dataSource in $dataSources) {
     if (!$exists) {
         Write-Host "Creating '$($dataSourceObject.name)' as it doesn't exist" -ForegroundColor 'DarkCyan'
         $dataSourceResult = New-CluedInDataSource -Object $dataSourceObject
-        checkResults($dataSourceResult)
+        Check-ImportResult -Result $dataSourceResult
     }
     $dataSourceId = $exists.id ?? $dataSourceResult.data.inbound.createDataSource.id
 
@@ -460,7 +462,7 @@ foreach ($dataSource in $dataSources) {
         (Get-CluedInDataSource -Search $dataSourceObject.name).data.inbound.dataSource.connectorConfiguration.id
     $dataSourceObject.connectorConfiguration.configuration.DataSourceId = $dataSourceId
     $dataSourceConfigResult = Set-CluedInDataSourceConfiguration -Object $dataSourceObject.connectorConfiguration
-    checkResults($dataSourceConfigResult)
+    Check-ImportResult -Result $dataSourceConfigResult
 }
 
 Write-Host "INFO: Importing Data Sets" -ForegroundColor 'Green'
@@ -491,7 +493,7 @@ foreach ($dataSet in $dataSets) {
 
         Write-Host "Creating '$($dataSetObject.name)' as it doesn't exist" -ForegroundColor 'DarkCyan'
         $dataSetResult = New-CluedInDataSet -Object $dataSetObject
-        checkResults($dataSetResult)
+        Check-ImportResult -Result $dataSetResult
         $dataSetId = $dataSetResult.data.inbound.createDataSets.id
 
         if ($dataSetObject.dataSource.type -eq 'endpoint') {
@@ -533,7 +535,7 @@ foreach ($dataSet in $dataSets) {
         if (!$annotationId) {
             Write-Host "Creating Annotation"
             $annotationResult = New-CluedInAnnotation -Object $annotationObject -DataSetId $dataSetId
-            checkResults($annotationResult)
+            Check-ImportResult -Result $annotationResult
 
             $annotationId = (Get-CluedInDataSet -id $dataSetId).data.inbound.dataSet.annotationId
         }
@@ -546,7 +548,7 @@ foreach ($dataSet in $dataSets) {
         Write-Verbose "Setting Annotation Configuration"
         $annotationObject.id = $annotationId
         $setAnnotationResult = Set-CluedInAnnotation -Id $annotationObject.id -Object $annotationObject
-        checkResults($setAnnotationResult)
+        Check-ImportResult -Result $setAnnotationResult
 
         Write-Verbose "Configuring Mappings"
         if (!$dataSetObject.fieldMappings) { Write-Warning "No field mappings detected." }
@@ -577,7 +579,7 @@ foreach ($dataSet in $dataSets) {
                         }
                         $dataSetMappingResult = Set-CluedInDataSetMapping @mappingParams
                     }
-                    checkResults($dataSetMappingResult)
+                    Check-ImportResult -Result $dataSetMappingResult
                 }
                 default {
                     $fieldVocabKey = Get-CluedInVocabularyKey -Search $mapping.key
@@ -624,7 +626,7 @@ foreach ($dataSet in $dataSets) {
 
                         $dataSetMappingResult = Set-CluedInDataSetMapping @dataSetMappingsParams
                     }
-                    checkResults($dataSetMappingResult)
+                    Check-ImportResult -Result $dataSetMappingResult
                 }
             }
         }
@@ -633,7 +635,7 @@ foreach ($dataSet in $dataSets) {
         $entities = $annotationObject.annotationProperties | Where-Object { $_.useAsEntityCode }
         foreach ($entity in $entities) {
             $setAnnotationEntityCodesResult = Set-CluedInAnnotationEntityCodes -Object $entity -Id $annotationObject.id
-            checkResults($setAnnotationEntityCodesResult)
+            Check-ImportResult -Result $setAnnotationEntityCodesResult
         }
 
         # Blocked as not currently in scope
@@ -649,7 +651,7 @@ foreach ($dataSet in $dataSets) {
         #     $edge.edgeProperties.vocabularyKey.vocabularyId = $edgeVocabularyObject.vocabularyId
 
         #     $edgeResult = New-CluedInEdgeMapping -Object $edge -AnnotationId $annotationObject.id
-        #     checkResults($edgeResult)
+        #     Check-ImportResult -Result $edgeResult
         # }
     }
     catch {
@@ -676,11 +678,13 @@ foreach ($dataSet in $dataSets) {
             # If Exists Update
             if($null -ne $existingPreProcessingRule){
                 Write-Host "Updating PreProcessingRule: $($preProcessingRule.displayname)" -ForegroundColor 'Cyan'
-                Set-CluedInPreProcessDataSetRule -Id $existingPreProcessingRule.Id -Configuration $preProcessingRule
+                $setPreProcessRuleResult = Set-CluedInPreProcessDataSetRule -Id $existingPreProcessingRule.Id -Configuration $preProcessingRule
+                Check-ImportResult -Result $setCluedInPrProcessRuleResult
             } else {
                 # Create
                 Write-Host "Creating PreProcessingRule: $($preProcessingRule.displayname)" -ForegroundColor 'Cyan'
-                New-CluedInPreProcessDataSetRule -AnnotationId $annotationId -Configuration $preProcessingRule
+                $newPreProcessRuleResults = New-CluedInPreProcessDataSetRule -AnnotationId $annotationId -Configuration $preProcessingRule
+                Check-ImportResult -Result $newPreProcessRuleResults
             }
         }
 }
@@ -697,7 +701,7 @@ foreach ($rule in $rules) {
     if (!$exists.data.management.rules.data) {
         Write-Verbose "Creating rule as it does not exist"
         $ruleResult = New-CluedInRule -Name $ruleObject.name -Scope $ruleObject.scope
-        checkResults($ruleResult)
+        Check-ImportResult -Result $ruleResult
         $ruleObject.id = $ruleResult.data.management.createRule.id
     }
     else { 
@@ -721,7 +725,7 @@ foreach ($rule in $rules) {
 
     Write-Verbose "Setting rule configuration"
     $setRuleResult = Set-CluedInRule -Object $ruleObject
-    checkResults($setRuleResult)
+    Check-ImportResult -Result $setRuleResult
 }
 
 # Export Targets
@@ -817,7 +821,7 @@ foreach ($target in $exportTargets) {
         $targetResult = Set-CluedInExportTargetConfiguration -Id $id -AccountDisplay $targetObject.accountDisplay -Configuration $targetObject.helperConfiguration
     }
 
-    checkResults($targetResult)
+    Check-ImportResult -Result $targetResult
 
     Write-Verbose "Setting Permissions"
     $currentTarget = (Get-CluedInExportTarget -Id $id).data.inbound.connectorConfiguration
@@ -880,7 +884,7 @@ foreach ($stream in $streams) {
     }
 
     $setResult = Set-CluedInStream -Id $streamId -Object $streamObject
-    checkResults($setResult)
+    Check-ImportResult -Result $setResult
   
     $lookupConnectorId = $streamObject.connector.Id
     $connectorId = ($lookupConnectors | Where-Object { $_.OriginalConnectorId -eq $lookupConnectorId }).ConnectorId
@@ -892,7 +896,7 @@ foreach ($stream in $streams) {
     }
     
     $setStreamExportResult = Set-CluedInStreamExportTarget -Id $streamId -ConnectorProviderDefinitionId $connectorId -Object $streamObject
-    checkResults($setStreamExportResult)
+    Check-ImportResult -Result $setStreamExportResult
 }
 
 
@@ -911,7 +915,7 @@ foreach ($cleanProject in $cleanProjects) {
     if ($cleanProjectObject.name -notin $currentCleanProjectsObject.name) {
         Write-Host "Creating Clean Project '$($cleanProjectObject.name)'" -ForegroundColor 'Cyan'
         $cleanProjectResult = New-CluedInCleanProject -Name $cleanProjectObject.name -Object $cleanProjectObject
-        checkResults($cleanProjectResult)
+        Check-ImportResult -Result $cleanProjectResult
         continue # No need to drift check on new creations
     }
 
@@ -920,8 +924,11 @@ foreach ($cleanProject in $cleanProjects) {
 
     Write-Host "Setting Configuration" -ForegroundColor 'Cyan'
     $setConfigurationResult = Set-CluedInCleanProject -Id $cleanProjectId -Object $cleanProjectObject
-    checkResults($setConfigurationResult)
+    Check-ImportResult -Result $setConfigurationResult
+
 }
+
+Import-DeduplicationProjects -RestorePath $RestorePath -SelectDeduplicationProjects $SelectDeduplicationProjects
 
 Write-Host "INFO: Import Complete" -ForegroundColor 'Green'
 
@@ -936,3 +943,5 @@ if ($IncludeSupportFiles) {
 
     Write-Host "Support files ready for sending '$zippedArchive'"
 }
+
+

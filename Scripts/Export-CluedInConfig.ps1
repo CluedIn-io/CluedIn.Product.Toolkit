@@ -47,6 +47,9 @@
     .PARAMETER SelectCleanProjects
     Specifies what Clean Projects to export. It supports All, None, and csv format of the Id's
 
+    .PARAMETER SelectDeduplicationProjects
+    Specifies what Deduplication Projects to export. It supports All, None, and csv format of the Id's
+
     .PARAMETER IncludeSupportFiles
     Exports a transcript along with the produced JSON files for CluedIn support to use to diagnose any issues relating to migration.
 
@@ -68,6 +71,7 @@ param(
     [string]$SelectStreams = 'None',
     [string]$SelectGlossaries = 'None',
     [string]$SelectCleanProjects = 'None',
+    [string]$SelectDeduplicationProjects = 'None',
     [switch]$IncludeSupportFiles
 )
 
@@ -359,6 +363,30 @@ foreach ($cleanProjectId in $cleanProjectsIds) {
     $cleanProjectConfig = Get-CluedInCleanProject -Id $cleanProjectId
     $cleanProjectConfig | Out-JsonFile -Path $cleanProjectsPath -Name $cleanProjectId
 }
+
+
+# Clean Projects
+Write-Host "INFO: Exporting Clean Projects" -ForegroundColor 'Green'
+$cleanProjectsPath = Join-Path -Path $BackupPath -ChildPath 'CleanProjects'
+if (!(Test-Path -Path $cleanProjectsPath -PathType Container)) { New-Item $cleanProjectsPath -ItemType Directory | Out-Null }
+
+switch ($SelectCleanProjects) {
+    'All' {
+        $cleanProjects = Get-CluedInCleanProjects
+        [array]$cleanProjectsIds = $cleanProjects.data.preparation.allCleanProjects.projects.id
+    }
+    'None' { $null }
+    default { $cleanProjectsIds = ($SelectCleanProjects -Split ',').Trim() }
+}
+
+foreach ($cleanProjectId in $cleanProjectsIds) {
+    $cleanProjectConfig = Get-CluedInCleanProject -Id $cleanProjectId
+    $cleanProjectConfig | Out-JsonFile -Path $cleanProjectsPath -Name $cleanProjectId
+}
+
+
+Export-DeduplicationProjects -BackupPath $BackupPath -SelectDeduplicationProjects $SelectDeduplicationProjects 
+
 
 Write-Host "INFO: Backup now complete"
 

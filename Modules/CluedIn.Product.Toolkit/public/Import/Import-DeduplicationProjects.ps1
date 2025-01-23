@@ -1,27 +1,23 @@
 function Import-DeduplicationProjects{
     <#
         .SYNOPSIS
-        Wrapper for exporting deduplicationproject logic
+        Imports deduplication projects
 
         .DESCRIPTION
-        Wrapper for exporting deduplicationproject logic
+        Imports deduplication projects
 
         .PARAMETER RestorePath
-        This is the location of the export files ran by Export-CluedInConfig
-
-        .PARAMETER SelectDeduplicationProjects
-        Specifies what Deduplication Projects to export. It supports All, None, and csv format of the Id's
+        This is the location of the export files
 
         .EXAMPLE
-        PS> Export-DeduplicationProjects -BackupPath "c:\backuplocation" -SelectDeduplicationProjects 'All'
+        PS> Import-DeduplicationProjects -RestorePath "c:\backuplocation"
 
-        This will export all of the deduplication project details
+        This will import all of the deduplication projects
     #>
 
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory)][string]$RestorePath,
-        [string]$SelectDeduplicationProjects = 'None'
+        [Parameter(Mandatory)][string]$RestorePath
     )
 
     # Variables

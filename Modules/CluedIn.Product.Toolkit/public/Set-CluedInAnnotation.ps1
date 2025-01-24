@@ -41,6 +41,8 @@ function Set-CluedInAnnotation {
                 origin = $Object.origin
                 createdDateMap = $Object.createdDateMap
                 modifiedDateMap = $Object.modifiedDateMap
+                beforeCreatingClue = $Object.beforeCreatingClue
+                beforeSendingClue = $Object.beforeSendingClue
             }
         }
         query = $queryContent

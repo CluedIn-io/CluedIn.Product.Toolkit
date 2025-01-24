@@ -1,0 +1,13 @@
+mutation savePreProcessDataSetRule($rule: InputPreProcessDataSetRule) {
+  preparation {
+    savePreProcessDataSetRule(rule: $rule) {
+      id
+      displayName
+      orderNumber
+      author
+      isActive
+      __typename
+    }
+    __typename
+  }
+}

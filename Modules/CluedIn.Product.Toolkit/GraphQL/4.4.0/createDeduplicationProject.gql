@@ -1,0 +1,16 @@
+mutation createDedupProject($dedupProject: InputDedupProject) {
+  management {
+    id
+    createDedupProject(dedupProject: $dedupProject) {
+      id
+      name
+      deduplicationScopeFilter
+      requiresAttention
+      description
+      querySizeLimit
+      shouldLimitQuerySize
+      __typename
+    }
+    __typename
+  }
+}

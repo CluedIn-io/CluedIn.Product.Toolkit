@@ -47,6 +47,9 @@
     .PARAMETER SelectCleanProjects
     Specifies what Clean Projects to export. It supports All, None, and csv format of the Id's
 
+    .PARAMETER SelectDeduplicationProjects
+    Specifies what Deduplication Projects to export. It supports All, None, and csv format of the Id's
+
     .PARAMETER IncludeSupportFiles
     Exports a transcript along with the produced JSON files for CluedIn support to use to diagnose any issues relating to migration.
 
@@ -68,6 +71,7 @@ param(
     [string]$SelectStreams = 'None',
     [string]$SelectGlossaries = 'None',
     [string]$SelectCleanProjects = 'None',
+    [string]$SelectDeduplicationProjects = 'None',
     [switch]$IncludeSupportFiles
 )
 
@@ -97,64 +101,9 @@ if ($BackupAdminSettings) {
     Get-CluedInAdminSetting | Out-JsonFile -Path $generalPath -Name 'AdminSetting'
 }
 
-# Data Source Sets
-$path = Join-Path -Path $BackupPath -ChildPath 'Data/SourceSets'
-if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
+$dataSourceSets = Export-DataSourceSets -BackupPath $BackupPath
 
-Write-Host "INFO: Exporting Data Sources and Sets" -ForegroundColor 'Green'
-$dataSourceSets = Get-CluedInDataSourceSet
-$dataSourceSets | Out-JsonFile -Path $path -Name 'DataSourceSet'
-
-# Data Sources (Backup occurs during data set run only)
-$dataSourcePath = Join-Path -Path $BackupPath -ChildPath 'Data/Sources'
-if (!(Test-Path -Path $dataSourcePath -PathType Container)) { New-Item $dataSourcePath -ItemType Directory | Out-Null }
-
-$dataSources = $dataSourceSets.data.inbound.dataSourceSets.data.datasources
-$dataSourceBackup = @{}
-
-# Data Sets and Annotations
-$path = Join-Path -Path $BackupPath -ChildPath 'Data/Sets'
-if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
-
-$dataSetIds = switch ($SelectDataSets) {
-    'All' { $dataSources.dataSets.id }
-    'None' { $null }
-    default { ($SelectDataSets -Split ',').Trim() }
-}
-
-foreach ($id in $dataSetIds) {
-    Write-Verbose "Processing id: $id"
-    $set = Get-CluedInDataSet -id $id
-    if ((!$?) -or ($set.errors)) { Write-Warning "Data Set Id '$id' was not found. This won't be backed up"; continue }
-
-    $dataSourceId = $set.data.inbound.dataSet.dataSourceId
-    $dataSource = Get-CluedInDataSource -Id $dataSourceId
-
-    if (!($dataSource.data.inbound.dataSource)) { Write-Warning "Data Source Id '$dataSourceId' was not found. This won't be backed up"; continue }
-
-    # Caching of exports to avoid duplicated work.
-    if (!$dataSourceBackup[$dataSourceId]) {
-        Write-Host "Exporting Data Source Id: $dataSourceId" -ForegroundColor 'Cyan'
-        $dataSource | Out-JsonFile -Path $dataSourcePath -Name ('{0}-DataSource' -f $dataSourceId)
-        $dataSourceBackup[$dataSourceId] = $true
-    }
-
-    Write-Host "Exporting Data Set: '$($set.data.inbound.dataSet.name) ($id)'" -ForegroundColor 'Cyan'
-    $set | Out-JsonFile -Path $path -Name ('{0}-DataSet' -f $id)
-
-    if ($set.data.inbound.dataSet.dataSource.type -eq 'file') {
-        Get-CluedInDataSetContent -id $id | Out-JsonFile -Path $path -Name ('{0}-DataSetContent' -f $id)
-    }
-
-    $annotationId = $set.data.inbound.dataSet.annotationId
-    switch ($annotationId) {
-        $null { Write-Warning "No annotation detected. Skipping export of annotations" }
-        default {
-            Write-Host "Exporting Annotation" -ForegroundColor 'Cyan'
-            Get-CluedInAnnotations -id $annotationId | Out-JsonFile -Path $path -Name ('{0}-Annotation' -f $id)
-        }
-    }
-}
+Export-DataSets -BackupPath $BackupPath -SelectDataSets $SelectDataSets -DataSourceSets $dataSourceSets
 
 # Vocabulary
 $dataCatalogPath = Join-Path -Path $BackupPath -ChildPath 'DataCatalog'
@@ -351,6 +300,30 @@ foreach ($cleanProjectId in $cleanProjectsIds) {
     $cleanProjectConfig = Get-CluedInCleanProject -Id $cleanProjectId
     $cleanProjectConfig | Out-JsonFile -Path $cleanProjectsPath -Name $cleanProjectId
 }
+
+
+# Clean Projects
+Write-Host "INFO: Exporting Clean Projects" -ForegroundColor 'Green'
+$cleanProjectsPath = Join-Path -Path $BackupPath -ChildPath 'CleanProjects'
+if (!(Test-Path -Path $cleanProjectsPath -PathType Container)) { New-Item $cleanProjectsPath -ItemType Directory | Out-Null }
+
+switch ($SelectCleanProjects) {
+    'All' {
+        $cleanProjects = Get-CluedInCleanProjects
+        [array]$cleanProjectsIds = $cleanProjects.data.preparation.allCleanProjects.projects.id
+    }
+    'None' { $null }
+    default { $cleanProjectsIds = ($SelectCleanProjects -Split ',').Trim() }
+}
+
+foreach ($cleanProjectId in $cleanProjectsIds) {
+    $cleanProjectConfig = Get-CluedInCleanProject -Id $cleanProjectId
+    $cleanProjectConfig | Out-JsonFile -Path $cleanProjectsPath -Name $cleanProjectId
+}
+
+
+Export-DeduplicationProjects -BackupPath $BackupPath -SelectDeduplicationProjects $SelectDeduplicationProjects 
+
 
 Write-Host "INFO: Backup now complete"
 

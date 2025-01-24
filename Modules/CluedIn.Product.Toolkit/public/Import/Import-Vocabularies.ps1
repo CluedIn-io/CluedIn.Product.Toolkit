@@ -22,7 +22,7 @@ function Import-Vocabularies{
     
     Write-Host "INFO: Importing Vocabularies" -ForegroundColor 'Green'
 
-    $vocabPath = Join-Path -Path $dataCatalogPath -ChildPath 'DataCatalog/Vocab'
+    $vocabPath = Join-Path -Path $RestorePath -ChildPath 'DataCatalog/Vocab'
 
     $restoreVocabularies = Get-ChildItem -Path $vocabPath -Filter "*.json"
     $lookupVocabularies = @()

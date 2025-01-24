@@ -1,0 +1,33 @@
+query deDuplicateProjectRules($id: ID!, $pageNumber: Int, $itemsPerPage: Int) {
+  management {
+    id
+    deDuplicateProjectRules(
+      id: $id
+      pageNumber: $pageNumber
+      itemsPerPage: $itemsPerPage
+    ) {
+      total
+      data {
+        id
+        name
+        enabled
+        order
+        createdBy
+        creationDate
+        matchingCriteria {
+          name
+          objectType
+          fieldName
+          matchingTypeId
+          matchingTypeDisplayName
+          comparisonConfiguration
+          normalizationConfiguration
+          __typename
+        }
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

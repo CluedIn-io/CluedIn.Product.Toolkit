@@ -1,0 +1,16 @@
+mutation createRule($rule: InputCreateRule!) {
+  management {
+    id
+    createRule(rule: $rule) {
+      id
+      name
+      description
+      isActive
+      createdBy
+      modifiedBy
+      isOwner
+      __typename
+    }
+    __typename
+  }
+}

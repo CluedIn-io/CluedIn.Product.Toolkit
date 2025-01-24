@@ -1,0 +1,25 @@
+mutation updateConfigurationSettings(
+  $organizationId: ID!
+  $model: UpdateConfigurations!
+) {
+  administration {
+    id
+    updateConfigurationSettings(
+      organizationId: $organizationId
+      model: $model
+    ) {
+      errors {
+        groupName
+        messages
+        keys {
+          key
+          messages
+          __typename
+        }
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

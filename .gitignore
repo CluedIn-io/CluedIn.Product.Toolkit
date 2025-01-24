@@ -1,15 +1,3 @@
-mmc
-mmc1
-mmc2
-mmc3
-mmc4
-mmc5
-mmc6
-mmc7
-ops1
-icgint
-icga
-icgb
-test
-test2
-icgint
+# ide
+.idea
+.vscode

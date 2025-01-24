@@ -8,7 +8,7 @@ function Invoke-CluedInGraphQL {
 
         Allows functions to easily be created without much thought into how to reach the endpoint.
         All GraphQL sub-functions should go through this function.
-        Will automatically paginate when the variable pageNumber exists
+        Will automatically paginate when the variable pageNumber or page exists
 
         .PARAMETER Query
         A hashtable input that's sent to Invoke-CluedInWebRequest.
@@ -32,19 +32,17 @@ function Invoke-CluedInGraphQL {
 
     $response = Invoke-CluedInWebRequest -Uri $endpoint -Body $body -Method 'POST'
 
-    if ($Query['variables']['pageNumber']) {
-        Write-Verbose "Pagination required as variable 'pageNumber' was detected"
-
+    if (HasPagination($Query)) {
+        $pageSize = GetPageSize($Query)
         $exclusionList = @( 'id', '__typename' )
         $propertyA = $response.data.psobject.Properties.name
         $propertyB = $response.data.$propertyA.psobject.Properties.name | Where-Object { $_ -notin $exclusionList }
         $total = $response.data.$propertyA.$propertyB.total
 
-        if ($total -gt $query['variables']['itemsPerPage']) {
+        if ($total -gt $pageSize) {
             while ($true) {
-                Write-Verbose "Paginating: Page '$($query['variables']['pageNumber'])'"
+                IncreasePageCount($Query)
 
-                $query['variables']['pageNumber']++
                 [string]$body = $Query | ConvertTo-Json -Compress -Depth 20
                 $nextPage = Invoke-CluedInWebRequest -Uri $endpoint -Body $body -Method 'POST'
                 $response.data.$propertyA.$propertyB.data += $nextPage.data.$propertyA.$propertyB.data
@@ -55,4 +53,26 @@ function Invoke-CluedInGraphQL {
     Write-Debug "status: $response"
 
     return $response
+}
+
+function HasPagination([hashtable]$Query){
+    return $Query['variables'].ContainsKey('pageNumber') -or $Query['variables'].ContainsKey('page')
+}
+
+function IncreasePageCount([hashtable]$Query){
+    if ($Query['variables'].ContainsKey('pageNumber')) {
+        $query['variables']['pageNumber']++
+    }elseif ($Query['variables'].ContainsKey('page')){
+        $query['variables']['page']++
+    }
+}
+
+function GetPageSize([hashtable]$Query){
+    if ($Query['variables'].ContainsKey('itemsPerPage')) {
+        return $query['variables']['itemsPerPage']
+    }elseif ($Query['variables'].ContainsKey('pageSize')){
+        return $query['variables']['pageSize']
+    }else{
+        return 20
+    }
 }

@@ -1,0 +1,10 @@
+mutation updateDedupRule($id: ID!, $ruleId: ID!, $rule: InputDedupProjectRule) {
+  management {
+    id
+    updateDedupRule(id: $id, ruleId: $ruleId, rule: $rule) {
+      id
+      __typename
+    }
+    __typename
+  }
+}

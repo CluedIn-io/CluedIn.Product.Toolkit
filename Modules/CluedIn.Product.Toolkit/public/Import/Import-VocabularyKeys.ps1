@@ -26,7 +26,7 @@ function Import-VocabularyKeys{
     
     Write-Host "INFO: Importing Vocabulary Keys" -ForegroundColor 'Green'
 
-    $vocabKeysPath = Join-Path -Path $dataCatalogPath -ChildPath 'DataCatalog/Keys'
+    $vocabKeysPath = Join-Path -Path $RestorePath -ChildPath 'DataCatalog/Keys'
 
     $vocabKeys = Get-ChildItem -Path $vocabKeysPath -Filter "*.json"
     foreach ($vocabKey in $vocabKeys) {

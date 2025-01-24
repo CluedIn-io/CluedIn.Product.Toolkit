@@ -1,4 +1,4 @@
-function Import-ExportTargets{
+function Import-Glossaries{
     <#
         .SYNOPSIS
         Imports deduplication projects
@@ -10,9 +10,9 @@ function Import-ExportTargets{
         This is the location of the export files
 
         .EXAMPLE
-        PS> Import-ExportTargets -RestorePath "c:\backuplocation"
+        PS> Import-Glossaries -RestorePath "c:\backuplocation"
 
-        This will import all of the export targets
+        This will import all of the glossaries
     #>
 
     [CmdletBinding()]

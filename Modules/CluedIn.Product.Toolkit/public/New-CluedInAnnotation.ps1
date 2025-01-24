@@ -45,6 +45,8 @@ function New-CluedInAnnotation {
                 }
             }
             isDynamicVocab = $Object.isDynamicVocab
+            beforeCreatingClue = $Object.beforeCreatingClue
+            beforeSendingClue = $Object.beforeSendingClue
         }
         query = $queryContent
     }

@@ -58,15 +58,6 @@ function Import-Streams{
         }
 
         Write-Verbose "Setting configuration"
-        # The logic of streams has changed since 3.7.0[2023.07] to 4.0.0[2024.01]. Because of this,
-        # configuration sitting on a new version needs the isActive property field
-        if ([version]${env:CLUEDIN_CURRENTVERSION} -lt [version]'4.0.0') {
-            if (!$streamObject.psobject.Properties.match('isActive').count) {
-                $streamObject | Add-Member -MemberType NoteProperty -Name 'isActive' -Value ''
-            }
-
-            $streamObject.isActive = $false
-        }
 
         $setResult = Set-CluedInStream -Id $streamId -Object $streamObject
         Check-ImportResult -Result $setResult

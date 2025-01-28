@@ -236,7 +236,7 @@ function Import-DataSets{
             if($null -ne $existingPreProcessingRule){
                 Write-Host "Updating PreProcessingRule: $($preProcessingRule.displayname)" -ForegroundColor 'Cyan'
                 $setPreProcessRuleResult = Set-CluedInPreProcessDataSetRule -Id $existingPreProcessingRule.Id -Configuration $preProcessingRule
-                Check-ImportResult -Result $setCluedInPrProcessRuleResult
+                Check-ImportResult -Result $setPreProcessRuleResult
             } else {
                 # Create
                 Write-Host "Creating PreProcessingRule: $($preProcessingRule.displayname)" -ForegroundColor 'Cyan'

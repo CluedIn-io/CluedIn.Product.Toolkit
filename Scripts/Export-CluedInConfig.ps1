@@ -92,238 +92,25 @@ Connect-CluedInOrganization -BaseURL $BaseURL -Organization $Organization -UseHT
 
 Write-Host "INFO: Starting backup"
 
-# Settings
-$generalPath = Join-Path -Path $BackupPath -ChildPath 'General'
-if (!(Test-Path -Path $generalPath -PathType Container)) { New-Item $generalPath -ItemType Directory | Out-Null }
-
-Write-Host "INFO: Exporting Admin Settings" -ForegroundColor 'Green'
-if ($BackupAdminSettings) {
-    Get-CluedInAdminSetting | Out-JsonFile -Path $generalPath -Name 'AdminSetting'
-}
+Export-Settings -BackupPath $BackupPath -BackupAdminSettings:$BackupAdminSettings
 
 $dataSourceSets = Export-DataSourceSets -BackupPath $BackupPath
 
 Export-DataSets -BackupPath $BackupPath -SelectDataSets $SelectDataSets -DataSourceSets $dataSourceSets
 
-# Vocabulary
-$dataCatalogPath = Join-Path -Path $BackupPath -ChildPath 'DataCatalog'
-$vocabPath = Join-Path -Path $dataCatalogPath -ChildPath 'Vocab'
-if (!(Test-Path -Path $vocabPath -PathType Container)) { New-Item $vocabPath -ItemType Directory | Out-Null }
+Export-Vocabularies -BackupPath $BackupPath -SelectVocabularies $SelectVocabularies
 
-$vocabKeysPath = Join-Path -Path $dataCatalogPath -ChildPath 'Keys'
-if (!(Test-Path -Path $vocabKeysPath -PathType Container)) { New-Item $vocabKeysPath -ItemType Directory | Out-Null }
+Export-Rules -BackupPath $BackupPath -SelectRules $SelectRules
 
-if ($SelectVocabularies -ne 'None') {
-    $vocabularies = Get-CluedInVocabulary -IncludeCore
-    Write-Host "INFO: Exporting Vocabularies and Keys" -ForegroundColor 'Green'
-}
+Export-ExportTargets -BackupPath $BackupPath -SelectExportTargets $SelectExportTargets
 
-$vocabularyIds = switch ($SelectVocabularies) {
-    'All' {
-        $null # All not supported at the moment
-        #($vocabularies.data.management.vocabularies.data | Where-Object {$_.isCluedInCore -eq $False}).vocabularyId
-    }
-    'None' { $null }
-    default { ($SelectVocabularies -Split ',').Trim() }
-}
+Export-Streams -BackupPath $BackupPath -SelectStreams $SelectStreams
 
-foreach ($id in $vocabularyIds) {
-    # Vocab
-    if(Test-IsGuid $id)
-    {
-        $vocab = Get-CluedInVocabularyById -Id $id
+Export-Glossaries -BackupPath $BackupPath -SelectGlossaries $SelectGlossaries
 
-        if ((!$?) -or ($vocab.errors)) {    
-            Write-Warning "Id '$id' was not found. This won't be backed up"; 
-            continue 
-        }
-    } else {
-        $found = $false
-        foreach($vocabulary in $vocabularies.data.management.vocabularies.data) {
-            if(($vocabulary.keyPrefix -eq $id) -and ($vocabulary.isCluedInCore -eq $False))
-            {
-                $vocab = Get-CluedInVocabularyById -Id $vocabulary.vocabularyId
-                $id = $vocabulary.vocabularyId
-                $found = $true
-
-                Write-Verbose "$($vocabulary.keyPrefix) maps to $($vocabulary.vocabularyName)"
-                break
-            }
-        }
-
-        if($found -eq $false)
-        {   
-            Write-Warning "Vocabulary '$id' was not found. This won't be backed up"; 
-            continue 
-        }
-    }
-    
-
-    Write-Host "Exporting Vocabulary: '$($vocab.data.management.vocabulary.vocabularyName) ($id)'" -ForegroundColor 'Cyan'
-    $vocab | Out-JsonFile -Path $vocabPath -Name $id
-
-    # Keys
-    $vocabKey = Get-CluedInVocabularyKey -Id $id
-    if ((!$?) -or ($vocabKey.errors)) { Write-Warning "Id '$id' was not found. This won't be backed up"; continue }
-
-    $keys = $vocabKey.data.management.vocabularyKeysFromVocabularyId.data.displayName
-    $keys = ($keys.ForEach({'[{0}]' -f $_})) -Join ', '
-    Write-Host "Exporting Keys: $keys" -ForegroundColor 'Cyan'
-    $vocabKey | Out-JsonFile -Path $vocabKeysPath -Name $id
-}
-
-# Rules
-Write-Host "INFO: Exporting Rules" -ForegroundColor 'Green'
-$rulesPath = Join-Path -Path $BackupPath -ChildPath 'Rules'
-$dataPartRulesPath = Join-Path -Path $rulesPath -ChildPath 'DataPart'
-$survivorshipRulesPath = Join-Path -Path $rulesPath -ChildPath 'Survivorship'
-$goldenRecordsRulesPath = Join-Path -Path $rulesPath -ChildPath 'Entity' # Golden Records
-if (!(Test-Path -Path $rulesPath -PathType Container)) {
-    New-Item $dataPartRulesPath -ItemType Directory | Out-Null
-    New-Item $survivorshipRulesPath -ItemType Directory | Out-Null
-    New-Item $goldenRecordsRulesPath -ItemType Directory | Out-Null
-}
-
-$ruleIds = @()
-switch ($SelectRules) {
-    'All' {
-        foreach ($i in @('Survivorship', 'DataPart', 'Entity')) {
-            $rules = Get-CluedInRules -Scope $i
-            if ($rules.data.management.rules.data) { $ruleIds += $rules.data.management.rules.data.id }
-        }
-    }
-    'None' { $null }
-    default { $ruleIds = ($SelectRules -Split ',').Trim() }
-}
-
-foreach ($id in $ruleIds) {
-    $rule = Get-CluedInRules -Id $id
-    $ruleObject = $rule.data.management.rule
-    $rule | Out-JsonFile -Path (Join-Path -Path $rulesPath -ChildPath $ruleObject.scope) -Name $id
-}
-
-# Export Targets
-Write-Host "INFO: Exporting Export Targets (Connectors)" -ForegroundColor 'Green'
-$exportTargetsPath = Join-Path -Path $BackupPath -ChildPath 'ExportTargets'
-if (!(Test-Path -Path $exportTargetsPath -PathType Container)) { New-Item $exportTargetsPath -ItemType Directory | Out-Null }
-
-switch ($SelectExportTargets) {
-    'All' {
-        $exportTargets = Get-CluedInExportTargets
-        [array]$exportTargetsId = $exportTargets.data.inbound.connectorConfigurations.configurations.id
-    }
-    'None' { $null }
-    default { $exportTargetsId = ($SelectExportTargets -Split ',').Trim() }
-}
-
-foreach ($id in $exportTargetsId) {
-    $exportTargetConfig = Get-CluedInExportTarget -Id $id
-    $exportTargetConfig | Out-JsonFile -Path $exportTargetsPath -Name $id
-}
-
-# Steams
-Write-Host "INFO: Exporting Streams" -ForegroundColor 'Green'
-$exportStreamsPath = Join-Path -Path $BackupPath -ChildPath 'Streams'
-if (!(Test-Path -Path $exportStreamsPath -PathType Container)) { New-Item $exportStreamsPath -ItemType Directory | Out-Null }
-
-switch ($SelectStreams) {
-    'All' {
-        $streams = Get-CluedInStreams
-        [array]$streamsId = $streams.data.consume.streams.data.id
-    }
-    'None' { $null }
-    default { $streamsId = ($SelectStreams -Split ',').Trim() }
-}
-
-foreach ($id in $streamsId) {
-    $streamConfig = Get-CluedInStream -Id $id
-    if ($streamConfig.errors) {
-        Write-Warning "Cannot export StreamId '$id'. This is common if permissions are missing on the export target."
-        Write-Error "Error: $($streamConfig.errors.message)"
-        continue
-    }
-    $streamConfig | Out-JsonFile -Path $exportStreamsPath -Name $id
-}
-
-# Glossaries
-Write-Host "INFO: Exporting Glossaries" -ForegroundColor 'Green'
-$glossaryPath = Join-Path -Path $BackupPath -ChildPath 'Glossaries'
-if (!(Test-Path -Path $glossaryPath -PathType Container)) { New-Item $glossaryPath -ItemType Directory | Out-Null }
-
-switch ($SelectGlossaries) {
-    'All' {
-        $glossaries = Get-CluedInGlossary
-        [array]$glossaryIds = $glossaries.data.management.glossaryCategories.id
-    }
-    'None' { $null }
-    default { $glossaryIds = ($SelectGlossaries -Split ',').Trim() }
-}
-
-foreach ($glossaryId in $glossaryIds) {
-    $glossaryExportPath = Join-Path -Path $glossaryPath -ChildPath $glossaryId
-    if (!(Test-Path -Path $glossaryExportPath -PathType Container)) { New-Item $glossaryExportPath -ItemType Directory | Out-Null }
-
-    # Glossary
-    $glossaryConfig = Get-CluedInGlossary -Id $glossaryId
-    if ($glossaryConfig.errors) {
-        Write-Warning "Received error '$($glossaryConfig.errors.message)'. Skipping id '$glossaryId'."
-        continue
-    }
-    $glossaryConfig | Out-JsonFile -Path $glossaryExportPath -Name ('{0}-Glossary' -f $glossaryId)
-
-    # Glossary Terms
-    $glossaryTerms = Get-CluedInGlossaryTerms -GlossaryId $glossaryId
-    $glossaryTermsIds = $glossaryTerms.data.management.glossaryTerms.data.id
-
-    # Glossary Term Configuration
-    foreach ($termId in $glossaryTermsIds) {
-        $glossaryTermConfig = Get-CluedInGlossaryTerm -Id $termId
-        $glossaryTermConfig | Out-JsonFile -Path $glossaryExportPath -Name ('{0}-Term' -f $termId)
-    }
-}
-
-# Clean Projects
-Write-Host "INFO: Exporting Clean Projects" -ForegroundColor 'Green'
-$cleanProjectsPath = Join-Path -Path $BackupPath -ChildPath 'CleanProjects'
-if (!(Test-Path -Path $cleanProjectsPath -PathType Container)) { New-Item $cleanProjectsPath -ItemType Directory | Out-Null }
-
-switch ($SelectCleanProjects) {
-    'All' {
-        $cleanProjects = Get-CluedInCleanProjects
-        [array]$cleanProjectsIds = $cleanProjects.data.preparation.allCleanProjects.projects.id
-    }
-    'None' { $null }
-    default { $cleanProjectsIds = ($SelectCleanProjects -Split ',').Trim() }
-}
-
-foreach ($cleanProjectId in $cleanProjectsIds) {
-    $cleanProjectConfig = Get-CluedInCleanProject -Id $cleanProjectId
-    $cleanProjectConfig | Out-JsonFile -Path $cleanProjectsPath -Name $cleanProjectId
-}
-
-
-# Clean Projects
-Write-Host "INFO: Exporting Clean Projects" -ForegroundColor 'Green'
-$cleanProjectsPath = Join-Path -Path $BackupPath -ChildPath 'CleanProjects'
-if (!(Test-Path -Path $cleanProjectsPath -PathType Container)) { New-Item $cleanProjectsPath -ItemType Directory | Out-Null }
-
-switch ($SelectCleanProjects) {
-    'All' {
-        $cleanProjects = Get-CluedInCleanProjects
-        [array]$cleanProjectsIds = $cleanProjects.data.preparation.allCleanProjects.projects.id
-    }
-    'None' { $null }
-    default { $cleanProjectsIds = ($SelectCleanProjects -Split ',').Trim() }
-}
-
-foreach ($cleanProjectId in $cleanProjectsIds) {
-    $cleanProjectConfig = Get-CluedInCleanProject -Id $cleanProjectId
-    $cleanProjectConfig | Out-JsonFile -Path $cleanProjectsPath -Name $cleanProjectId
-}
-
+Export-CleanProjects -BackupPath $BackupPath -SelectCleanProjects $SelectCleanProjects
 
 Export-DeduplicationProjects -BackupPath $BackupPath -SelectDeduplicationProjects $SelectDeduplicationProjects 
-
 
 Write-Host "INFO: Backup now complete"
 

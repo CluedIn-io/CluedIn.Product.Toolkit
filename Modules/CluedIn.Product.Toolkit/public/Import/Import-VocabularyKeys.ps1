@@ -75,11 +75,11 @@ function Import-VocabularyKeys{
 
             Write-Host "Processing Vocab Key: $($key.displayName) ($($key.vocabularyKeyId))" -ForegroundColor 'Cyan'
 
-            $currentVocabularyKeyObjectResult = Get-CluedInVocabularyKey -Search $key.key
+            $currentVocabularyKeyObjectResult = Get-CluedInVocabularyKey -KeyName $key.key
             $currentVocabularyKeyObject = $currentVocabularyKeyObjectResult.data.management.vocabularyPerKey
             
             if ($key.mapsToOtherKeyId) {
-                $mappedKeyId = Get-CluedInVocabularyKey -Search $key.mappedKey.key
+                $mappedKeyId = Get-CluedInVocabularyKey -KeyName $key.mappedKey.key
                 $key.mapsToOtherKeyId = $mappedKeyID ?
                     $mappedKeyId.data.management.vocabularyPerKey.vocabularyKeyId :
                     $null

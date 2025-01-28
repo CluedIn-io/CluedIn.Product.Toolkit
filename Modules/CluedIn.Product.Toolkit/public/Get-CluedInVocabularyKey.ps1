@@ -26,6 +26,7 @@ function Get-CluedInVocabularyKey {
     [CmdletBinding()]
     param (
         [Parameter(ParameterSetName = 'Id')][guid]$Id,
+        [Parameter(ParameterSetName = 'KeyName')][string]$KeyName = "",
         [Parameter(ParameterSetName = 'Search')][string]$Search = "",
         [Parameter(ParameterSetName = 'All')][switch]$All
     )
@@ -91,6 +92,16 @@ function Get-CluedInVocabularyKey {
                     $result.data.management.vocabularyPerKey = $secondResult.data.management.vocabularyKeys.data[0]
                 }
             }
+        }
+        'KeyName' {
+            Write-Verbose "Getting key by key name"
+            $script:queryContent = Get-CluedInGQLQuery -OperationName 'getVocabularyByKeyName'
+
+            $variables = @{
+                key = $KeyName
+            }
+
+            $result = GetResult
         }
         'All' { $result = SearchAll }
     }

@@ -1,11 +1,15 @@
 query deDupProjects(
   $pageNumber: Int
   $itemsPerPage: Int
+  $excludeProjectStages: [String]
+  $includeProjectStages: [String]
 ) {
   management {
     deDupProjects(
       pageNumber: $pageNumber
       itemsPerPage: $itemsPerPage
+      excludeProjectStages: $excludeProjectStages
+      includeProjectStages: $includeProjectStages
     ) {
       total
       data {

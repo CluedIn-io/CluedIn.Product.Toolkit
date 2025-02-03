@@ -107,15 +107,21 @@ function Import-VocabularyKeys{
                 }
                 
                 if($key.dataType -eq "Lookup"){
-                    Write-Host "Resolving Lookup Glossary Term"  -ForegroundColor 'DarkCyan'
-                    $glossaryTermId = ($lookupGlossaryTerms | Where-Object { $_.OriginalGlossaryTermId -eq $key.glossaryTermId }).GlossaryTermId
-                    if([string]::IsNullOrWhiteSpace($glossaryTermId))
-                    {
-                        Write-Error "Can not find matching glossary term for the look field. Vocabulary: '$vocabName'; NewGlossaryTermId: '$glossaryTermId'; OriginalTermId: '$($key.glossaryTermId)'"
-                        continue
+                    
+                    if($null -eq $key.glossaryTermId){
+                        Write-Warning "Lookup vocabulary key does not have a glossary term assigned. Vocabulary: '$vocabName'; Vocabulary Key: '$($key.name)';"
+                    } else {
+
+                        Write-Host "Resolving Lookup Glossary Term"  -ForegroundColor 'DarkCyan'
+                        $glossaryTermId = ($lookupGlossaryTerms | Where-Object { $_.OriginalGlossaryTermId -eq $key.glossaryTermId }).GlossaryTermId
+                        if([string]::IsNullOrWhiteSpace($glossaryTermId))
+                        {
+                            Write-Error "Can not find matching glossary term for the look up field. Vocabulary: '$vocabName'; Vocabulary Key: '$($key.name)'; NewGlossaryTermId: '$glossaryTermId'; OriginalTermId: '$($key.glossaryTermId)'"
+                            continue
+                        }
+                        Write-Host "Updating lookup glossary term id. Vocabulary: '$vocabName'; Vocabulary Key: '$($key.name)'; NewGlossaryTermId: '$glossaryTermId'; OriginalGlossaryTermId: '$($key.glossaryTermId)'"  -ForegroundColor 'DarkCyan'
+                        $key.glossaryTermId = $glossaryTermId
                     }
-                    Write-Host "Updating lookup glossary term id. Vocabulary: '$vocabName'; NewGlossaryTermId: '$glossaryTermId'; OriginalGlossaryTermId: '$($key.glossaryTermId)'"  -ForegroundColor 'DarkCyan'
-                    $key.glossaryTermId = $glossaryTermId
                 }
 
                 $params = @{

@@ -39,6 +39,7 @@ function Get-CluedInRules {
             $query = @{
                 variables = @{
                     searchName = $Search
+                    pageNumber = 1
                     scope = $Scope
                 }
                 query = $queryContent

@@ -51,7 +51,7 @@ Import-Settings -RestorePath $RestorePath
 
 Import-Glossaries -RestorePath $RestorePath
 
-$lookupVocabularies = Import-Vocabularies -RestorePath $RestorePath
+$lookupVocabularies = @(Import-Vocabularies -RestorePath $RestorePath)
 
 Import-VocabularyKeys -RestorePath $RestorePath -LookupVocabularies $lookupVocabularies
 
@@ -61,7 +61,7 @@ Import-DataSets -RestorePath $RestorePath
 
 Import-Rules -RestorePath $RestorePath
 
-$lookupConnectors = Import-ExportTargets -RestorePath $RestorePath
+$lookupConnectors = $lookupVocabularies = @(Import-ExportTargets -RestorePath $RestorePath)
 
 Import-Streams -RestorePath $RestorePath -LookupConnectors $lookupConnectors
 

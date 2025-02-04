@@ -107,15 +107,7 @@ FunctionsToExport = 'Connect-CluedInOrganization', 'Get-CluedInAdminSetting',
                'New-CluedInDeduplicationMatchingRule', 'New-CluedInDeduplicationProject',
                'Set-CluedInDeduplicationMatchingRule', 'Set-CluedInDeduplicationProject',
                'Import-DataSources', 'Import-DataSets',
-               'Export-DataSets', 'Export-DataSourceSets',
-               'Import-CleanProjects', 'Import-ExportTargets',
-               'Import-Streams', 'Import-Rules',
-               'Import-Settings', 'Import-Vocabularies',
-               'Import-VocabularyKeys', 'Export-Settings',
-               'Export-Vocabularies', 'Export-Rules',
-               'Export-ExportTargets', 'Export-Streams',
-               'Export-Glossaries', 'Export-CleanProjects',
-               'Import-Glossaries'
+               'Export-DataSets', 'Export-DataSourceSets'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()

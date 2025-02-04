@@ -14,6 +14,11 @@ function Set-CluedInAdminSettingsBulk {
         [Parameter(Mandatory)][hashtable]$SettingsToApply
     )
 
+    if ($env:CLUEDIN_CURRENTVERSION -ne "4.4.0") {
+        Write-Host "Bulk update is only applicable to version 4.4.0." -ForegroundColor Yellow
+        return
+    }
+
     if (-not $SettingsToApply -or $SettingsToApply.Count -eq 0) {
         Write-Host "No admin settings to bulk update." -ForegroundColor Cyan
         return

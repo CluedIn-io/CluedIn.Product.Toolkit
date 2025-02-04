@@ -1,0 +1,52 @@
+query getStream($id: ID!) {
+  consume {
+    id
+    stream(id: $id) {
+      ...Stream
+      description
+      connector {
+        id
+        name
+        accountDisplay
+        streamModes
+        connector {
+          id
+          name
+          icon
+          streamModes
+          __typename
+        }
+        __typename
+      }
+      mappingConfiguration
+      __typename
+    }
+    __typename
+  }
+}
+
+fragment Stream on Stream {
+  id
+  name
+  isActive
+  createdBy
+  modifiedBy
+  type
+  modifiedAt
+  createdAt
+  ownedBy
+  condition
+  rules
+  numberOfRecords
+  rulesApplied
+  containerName
+  mode
+  exportOutgoingEdges
+  exportIncomingEdges
+  author {
+    id
+    username
+    __typename
+  }
+  __typename
+}

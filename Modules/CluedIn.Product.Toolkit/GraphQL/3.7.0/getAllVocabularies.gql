@@ -1,0 +1,51 @@
+query getAllVocabularies(
+  $searchName: String
+  $isActive: Boolean
+  $pageNumber: Int
+  $pageSize: Int
+  $sortBy: String
+  $sortDirection: String
+  $entityType: String
+  $connectorId: ID
+  $filterTypes: Int
+  $filterHasNoSource: Boolean
+) {
+  management {
+    id
+    vocabularies(
+      searchName: $searchName
+      isActive: $isActive
+      pageNumber: $pageNumber
+      pageSize: $pageSize
+      sortBy: $sortBy
+      sortDirection: $sortDirection
+      entityType: $entityType
+      connectorId: $connectorId
+      filterTypes: $filterTypes
+      filterHasNoSource: $filterHasNoSource
+    ) {
+      total
+      data {
+        vocabularyId
+        vocabularyName
+        keyPrefix
+        isCluedInCore
+        isDynamic
+        isProvider
+        isActive
+        grouping
+        createdAt
+        connector {
+          id
+          name
+          about
+          icon
+          __typename
+        }
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

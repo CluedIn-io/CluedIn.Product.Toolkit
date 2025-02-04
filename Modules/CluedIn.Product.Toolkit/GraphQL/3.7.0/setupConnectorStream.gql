@@ -1,0 +1,33 @@
+mutation setupConnectorStream(
+  $streamId: ID!
+  $exportConfiguration: InputExportConfiguration
+) {
+  consume {
+    id
+    setupConnectorStream(
+      streamId: $streamId
+      exportConfiguration: $exportConfiguration
+    ) {
+      id
+      containerName
+      mode
+      exportOutgoingEdges
+      exportIncomingEdges
+      connector {
+        id
+        name
+        accountDisplay
+        connector {
+          id
+          name
+          icon
+          __typename
+        }
+        __typename
+      }
+      mappingConfiguration
+      __typename
+    }
+    __typename
+  }
+}

@@ -1,0 +1,17 @@
+mutation createConnection(
+  $connectorId: ID
+  $authInfo: JSON
+  $accountDisplay: String
+) {
+  inbound {
+    createConnection(
+      connectorId: $connectorId
+      authInfo: $authInfo
+      accountDisplay: $accountDisplay
+    ) {
+      id
+      __typename
+    }
+    __typename
+  }
+}

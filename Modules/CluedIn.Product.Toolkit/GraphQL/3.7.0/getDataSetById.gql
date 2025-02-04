@@ -1,0 +1,90 @@
+query getDataSetById($id: ID!) {
+  inbound {
+    dataSet(id: $id) {
+      id
+      name
+      touched
+      createdAt
+      hasError
+      latestErrorMessage
+      errorType
+      elasticTotal
+      expectedTotal
+      lastPurgedAt
+      lastPurgedBy
+      isBridge
+      isArchive
+      hasQuarantineData
+      archivedBy
+      fileSize
+      currentLoadedSize
+      hasValidationParsingError
+      failedLoadingTotal
+      hasFailureInLoading
+      archivedByUser {
+        id
+        username
+        __typename
+      }
+      lastPurgedByUser {
+        id
+        username
+        __typename
+      }
+      author {
+        id
+        username
+        __typename
+      }
+      annotationId
+      annotation {
+        originEntityCodeKey
+        annotationProperties {
+          key
+          __typename
+        }
+        __typename
+      }
+      dataSourceId
+      canBeDeleted
+      configuration
+      dataSource {
+        id
+        name
+        type
+        stopped
+        crashedDuringUpload
+        dataSourceSet {
+          id
+          name
+          __typename
+        }
+        __typename
+      }
+      originalFields
+      stats {
+        total
+        successful
+        failed
+        bytes
+        __typename
+      }
+      fieldMappings {
+        originalField
+        key
+        id
+        edges {
+          edgeType
+          dataSetId
+          dataSourceId
+          dataSourceGroupId
+          entityType
+          __typename
+        }
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

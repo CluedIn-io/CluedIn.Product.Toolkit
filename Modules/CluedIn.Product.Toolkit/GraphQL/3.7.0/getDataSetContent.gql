@@ -1,0 +1,16 @@
+query getDataSetContent(
+  $dataSetId: ID!
+  $page: Int
+  $pageSize: Int
+  $terms: String
+) {
+  inbound {
+    dataSetContent(
+      id: $dataSetId
+      page: $page
+      pageSize: $pageSize
+      terms: $terms
+    )
+    __typename
+  }
+}

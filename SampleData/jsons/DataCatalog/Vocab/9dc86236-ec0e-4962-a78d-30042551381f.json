@@ -1,0 +1,51 @@
+{
+  "data": {
+    "management": {
+      "id": "management",
+      "vocabulary": {
+        "vocabularyId": "9dc86236-ec0e-4962-a78d-30042551381f",
+        "vocabularyName": "Sample Vocabulary 2",
+        "keyPrefix": "sampleVocab2",
+        "isCluedInCore": false,
+        "entityTypeConfiguration": {
+          "icon": "User",
+          "entityType": "/Infrastructure/User",
+          "displayName": "User",
+          "__typename": "EntityTypeConfiguration"
+        },
+        "isDynamic": true,
+        "isProvider": false,
+        "isActive": false,
+        "grouping": "/Infrastructure/User",
+        "createdAt": "2024-03-08T16:02:15.9151375+00:00",
+        "providerId": "742f9d66-8ef2-4544-8a90-41531a26cc59",
+        "description": "[{\"type\":\"paragraph\",\"children\":[{\"text\":\"Sample Vocabulary 2\"}]}]",
+        "connector": {
+          "id": "742f9d66-8ef2-4544-8a90-41531a26cc59",
+          "name": "Endpoint Data Source",
+          "about": "Some text about Endpoint Data Sources",
+          "icon": "api/integration/connector/icon/742f9d66-8ef2-4544-8a90-41531a26cc59",
+          "__typename": "Connector"
+        },
+        "__typename": "Vocabulary",
+        "isVocabularyOwner": true,
+        "author": {
+          "id": "af71fc3b-38bf-49d8-9520-826bed19cda5",
+          "username": "admin@devcluedin.com",
+          "__typename": "User"
+        },
+        "owners": [
+          {
+            "id": "af71fc3b-38bf-49d8-9520-826bed19cda5",
+            "username": "admin@devcluedin.com",
+            "roles": [
+              "OrganizationAdmin"
+            ],
+            "__typename": "User"
+          }
+        ]
+      },
+      "__typename": "Management"
+    }
+  }
+}

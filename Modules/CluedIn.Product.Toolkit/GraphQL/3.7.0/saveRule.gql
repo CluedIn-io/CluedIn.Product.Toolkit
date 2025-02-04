@@ -1,0 +1,25 @@
+mutation saveRule($rule: InputRule!) {
+  management {
+    id
+    saveRule(rule: $rule) {
+      id
+      name
+      description
+      isActive
+      createdBy
+      modifiedBy
+      ownedBy
+      createdAt
+      modifiedAt
+      condition
+      actions
+      author {
+        id
+        username
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

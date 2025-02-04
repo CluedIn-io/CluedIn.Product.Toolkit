@@ -1,0 +1,9 @@
+mutation createDataSets($dataSourceId: ID, $dataSets: [InputDataSet]) {
+  inbound {
+    createDataSets(dataSourceId: $dataSourceId, dataSets: $dataSets) {
+      id
+      __typename
+    }
+    __typename
+  }
+}

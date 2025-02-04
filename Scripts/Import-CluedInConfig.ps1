@@ -49,11 +49,11 @@ Connect-CluedInOrganization -BaseURL $BaseURL -Organization $Organization -UseHT
 
 Import-Settings -RestorePath $RestorePath
 
-Import-Glossaries -RestorePath $RestorePath
+$lookupGlossaryTerms = @(Import-Glossaries -RestorePath $RestorePath)
 
 $lookupVocabularies = @(Import-Vocabularies -RestorePath $RestorePath)
 
-Import-VocabularyKeys -RestorePath $RestorePath -LookupVocabularies $lookupVocabularies
+Import-VocabularyKeys -RestorePath $RestorePath -LookupVocabularies $lookupVocabularies -LookupGlossaryTerms $lookupGlossaryTerms
 
 Import-DataSources -RestorePath $RestorePath
 

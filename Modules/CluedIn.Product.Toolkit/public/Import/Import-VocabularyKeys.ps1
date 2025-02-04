@@ -12,6 +12,9 @@ function Import-VocabularyKeys{
         .PARAMETER LookupVocabularies
         A list that maps original vocabulary ids to the newly created ones in the system
 
+        .PARAMETER LookupGlossaryTerms
+        A list that maps original glossary term ids to the newly created ones in the system
+
         .EXAMPLE
         PS> Import-VocabularyKeys -RestorePath "c:\backuplocation"
 
@@ -21,7 +24,8 @@ function Import-VocabularyKeys{
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)][string]$RestorePath,
-        [Parameter(Mandatory)][Object]$LookupVocabularies
+        [Parameter(Mandatory)][Object]$LookupVocabularies,
+        [Parameter(Mandatory)][Object]$LookupGlossaryTerms
     )
     
     Write-Host "INFO: Importing Vocabulary Keys" -ForegroundColor 'Green'
@@ -113,7 +117,7 @@ function Import-VocabularyKeys{
                     } else {
 
                         Write-Host "Resolving Lookup Glossary Term"  -ForegroundColor 'DarkCyan'
-                        $glossaryTermId = ($lookupGlossaryTerms | Where-Object { $_.OriginalGlossaryTermId -eq $key.glossaryTermId }).GlossaryTermId
+                        $glossaryTermId = ($LookupGlossaryTerms | Where-Object { $_.OriginalGlossaryTermId -eq $key.glossaryTermId }).GlossaryTermId
                         if([string]::IsNullOrWhiteSpace($glossaryTermId))
                         {
                             Write-Error "Can not find matching glossary term for the look up field. Vocabulary: '$vocabName'; Vocabulary Key: '$($key.name)'; NewGlossaryTermId: '$glossaryTermId'; OriginalTermId: '$($key.glossaryTermId)'"

@@ -93,4 +93,6 @@ function Import-Glossaries{
             Check-ImportResult -Result $setTermResult
         }
     }
+
+    return $lookupGlossaryTerms
 }

@@ -116,7 +116,6 @@ steps:
     @(
       "$wd/Pipelines/publish-powershell-module.yaml"
       "$wd/ReleaseNotes"
-      "$wd/SampleData"
       "$wd/Modules/CluedIn.Product.Toolkit/CluedIn.Product.Toolkit.nuspec"
       "$wd/Modules/CluedIn.Product.Toolkit/tests"
     ) | ForEach-Object { Remove-Item -Path $_ -Force -Recurse }

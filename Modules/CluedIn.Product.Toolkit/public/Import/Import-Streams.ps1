@@ -62,16 +62,19 @@ function Import-Streams{
         $setResult = Set-CluedInStream -Id $streamId -Object $streamObject
         Check-ImportResult -Result $setResult
     
-        $lookupConnectorId = $streamObject.connector.Id
-        $connectorId = ($LookupConnectors | Where-Object { $_.OriginalConnectorId -eq $lookupConnectorId }).ConnectorId
+        if($null -ne $streamObject.connector.Id) {
+            $lookupConnectorId = $streamObject.connector.Id
+            $connectorId = ($LookupConnectors | Where-Object { $_.OriginalConnectorId -eq $lookupConnectorId }).ConnectorId
 
-        if($connectorId -eq $null)
-        {
-            $connectorId = $($streamObject.connector.Id)
-            Write-Host "INFO: Export target '$($connectorId)' was not imported within this run"
+            if($connectorId -eq $null)
+            {
+                $connectorId = $($streamObject.connector.Id)
+                Write-Host "INFO: Export target '$($connectorId)' was not imported within this run"
+                continue
+            }
+            
+            $setStreamExportResult = Set-CluedInStreamExportTarget -Id $streamId -ConnectorProviderDefinitionId $connectorId -Object $streamObject
+            Check-ImportResult -Result $setStreamExportResult
         }
-        
-        $setStreamExportResult = Set-CluedInStreamExportTarget -Id $streamId -ConnectorProviderDefinitionId $connectorId -Object $streamObject
-        Check-ImportResult -Result $setStreamExportResult
     }
 }

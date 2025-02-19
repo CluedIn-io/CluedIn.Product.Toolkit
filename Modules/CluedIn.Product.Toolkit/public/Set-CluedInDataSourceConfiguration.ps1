@@ -21,6 +21,7 @@ function Set-CluedInDataSourceConfiguration {
         variables = @{
             connectorConfiguration = @{
                 id = $Object.id
+                accountDisplay = $Object.accountDisplay
                 helperConfiguration = @{
                     EndpointName = $Object.name
                     DataSourceId = $Object.configuration.DataSourceId

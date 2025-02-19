@@ -25,6 +25,9 @@ function Import-DataSets{
     Write-Host "INFO: Importing Data Sets" -ForegroundColor 'Green'
     $dataSets = Get-ChildItem -Path $dataSetsPath -Filter "*-DataSet.json"
 
+    $vocabulariesKeys = Get-CluedInVocabularyKey -All
+    $vocabulariesKeysObject = $vocabulariesKeys.data.management.vocabularyKeys.data
+
     foreach ($dataSet in $dataSets) {
         $dataSetJson = Get-Content -Path $dataSet.FullName | ConvertFrom-Json -Depth 20
         $dataSetObject = $dataSetJson.data.inbound.dataSet
@@ -110,10 +113,10 @@ function Import-DataSets{
             Write-Verbose "Configuring Mappings"
             if (!$dataSetObject.fieldMappings) { Write-Warning "No field mappings detected." }
 
+            $currentFieldMappings = (Get-CluedInDataSet -Id $dataSetId).data.inbound.dataSet.fieldMappings
             foreach ($mapping in $dataSetObject.fieldMappings) {
                 Write-Host "Processing field mapping: $($mapping.originalField)" -ForegroundColor 'Cyan'
-                $currentFieldMappings = (Get-CluedInDataSet -Id $dataSetId).data.inbound.dataSet.fieldMappings
-
+                
                 switch ($mapping.key) {
                     '--ignore--' {
                         if ($mapping.originalField -notin $currentFieldMappings.originalField) {
@@ -139,8 +142,7 @@ function Import-DataSets{
                         Check-ImportResult -Result $dataSetMappingResult
                     }
                     default {
-                        $fieldVocabKey = Get-CluedInVocabularyKey -Search $mapping.key
-                        $fieldVocabKeyObject = $fieldVocabKey.data.management.vocabularyPerKey
+                        $fieldVocabKeyObject = $vocabulariesKeysObject | Where-Object { $_.key -eq $mapping.key } 
                         if (!$fieldVocabKeyObject.vocabularyKeyId) {
                             Write-Warning "Key: $($mapping.key) doesn't exist. Mapping will be skipped for '$($mapping.originalField)'"
                             continue

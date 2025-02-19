@@ -17,7 +17,7 @@ jobs:
       - name: Prepare Release Archive
         run: |
           zip -r product-toolkit-${{ github.ref_name }}.zip . \
-            -x ".git/*" ".github/*" "ReleaseNotes/*" "tests/*" "*.log"
+            -x ".git/*" ".github/*" "ReleaseNotes/*" "tests/*" "*.log" ".gitignore"
           mkdir release
 
       - name: Create GitHub Release

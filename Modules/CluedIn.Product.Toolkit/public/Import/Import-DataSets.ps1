@@ -34,7 +34,7 @@ function Import-DataSets{
         Write-Host "Processing Data Set: $($dataSetObject.name) ($($dataSetObject.id))" -ForegroundColor 'Cyan'
 
         if ($dataSetObject.dataSource.type -eq 'file') {
-            Write-Warning "Importing of 'file' type data sets are not supported. Only endpoints are. Skipping import."
+            Write-Warning "Importing of 'file' type data sets are not supported. Only endpoints and databases are. Skipping import."
             continue
         }
 
@@ -48,8 +48,11 @@ function Import-DataSets{
 
         $exists = ($dataSetObject.name -in $dataSource.data.inbound.dataSource.dataSets.name)
         if (!$exists) {
-            # Force autoSubmit to false as we don't want it to process automatically when transferred
-            $dataSetObject.configuration.object.autoSubmit = $false
+            
+            if($dataSetObject.dataSource.type -eq "endpoint"){
+                # Force autoSubmit to false as we don't want it to process automatically when transferred
+                $dataSetObject.configuration.object.autoSubmit = $false
+            }
 
             Write-Host "Creating '$($dataSetObject.name)' as it doesn't exist" -ForegroundColor 'DarkCyan'
             $dataSetResult = New-CluedInDataSet -Object $dataSetObject

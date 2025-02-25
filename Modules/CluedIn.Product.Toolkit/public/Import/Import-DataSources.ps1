@@ -42,10 +42,22 @@ function Import-DataSources{
 
         Write-Host "Processing Data Source: $($dataSourceObject.name) ($($dataSourceObject.id))" -ForegroundColor 'Cyan'
         $exists = (Get-CluedInDataSource -Search $dataSourceObject.name).data.inbound.dataSource
+        $dataSourceId = $exists.id
         if (!$exists) {
             Write-Host "Creating '$($dataSourceObject.name)' as it doesn't exist" -ForegroundColor 'DarkCyan'
             $dataSourceResult = New-CluedInDataSource -Object $dataSourceObject
             Check-ImportResult -Result $dataSourceResult
+
+            $dataSourceId ??= $dataSourceResult.data.inbound.createDataSource.id
+
+            if($dataSourceObject.type -eq "sql")
+            {    
+                # We only want to  update the configuration if we are creating the datasource as this is essentially the connection string and we do not want to overwrite it
+                Write-Host "Updating Database Configuration for $($dataSourceObject.name)" -ForegroundColor 'Cyan'
+                $dataSourceDatabaseConfigResult = Set-CluedInDataSourceDatabaseConfiguration -DataSourceId $dataSourceId -Object $dataSourceObject
+    
+                Check-ImportResult -Result $dataSourceDatabaseConfigResult
+            }
         }
         $dataSourceId = $exists.id ?? $dataSourceResult.data.inbound.createDataSource.id
 

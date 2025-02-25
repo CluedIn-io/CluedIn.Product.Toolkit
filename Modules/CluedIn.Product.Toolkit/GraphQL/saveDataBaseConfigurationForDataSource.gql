@@ -1,0 +1,12 @@
+mutation saveDataBaseConfigurationForDataSource(
+  $id: ID!
+  $configuration: JSON
+) {
+  inbound {
+    saveDataBaseConfigurationForDataSource(
+      id: $id
+      configuration: $configuration
+    )
+    __typename
+  }
+}

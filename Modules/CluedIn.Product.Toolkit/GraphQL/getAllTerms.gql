@@ -1,0 +1,11 @@
+query getAllTerms {
+  management {
+    id
+    glossaryTags {
+      id
+      name
+      __typename
+    }
+    __typename
+  }
+}

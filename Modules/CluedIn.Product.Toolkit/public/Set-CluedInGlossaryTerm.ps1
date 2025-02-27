@@ -36,9 +36,30 @@ function Set-CluedInGlossaryTerm {
         }
     }
 
-    $relatedTags = @()
+    # Initialize an empty array for the new tags list
+    $newRelatedTagsList = @()
     if ($Object.relatedTags) {
-        $relatedTags = $Object.relatedTags | Select-Object -ExpandProperty name
+        # Get Current tags
+        $glossaryTerms = Get-CluedInGlossaryTags
+
+        # Loop through each related tag
+        foreach ($tag in $Object.relatedTags) {
+            $existingTag = $glossaryTags | Where-Object { $_.name -eq $tag.name }
+
+            if ($existingTag) {
+                # If the name exists, add existing name and id
+                $newRelatedTagsList += [PSCustomObject]@{
+                    id   = $existingTag.id
+                    name = $existingTag.name
+                }
+            } else {
+                # If the name does not exist, add just the name
+                $newRelatedTagsList += [PSCustomObject]@{
+                    # id   = $null  # No ID since it doesn't exist
+                    name = $tag.name
+                }
+            }
+        }
     }
 
     $query = @{
@@ -53,7 +74,7 @@ function Set-CluedInGlossaryTerm {
                 isObsolete = $Object.isObsolete
                 categoryId = $GlossaryId
                 ruleSet = $ruleSet
-                relatedTags = $relatedTags
+                relatedTags = $newRelatedTagsList
             }
         }
         query = $queryContent

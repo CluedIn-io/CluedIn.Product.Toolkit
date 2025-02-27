@@ -55,7 +55,6 @@ function Set-CluedInGlossaryTerm {
             } else {
                 # If the name does not exist, add just the name
                 $newRelatedTagsList += [PSCustomObject]@{
-                    # id   = $null  # No ID since it doesn't exist
                     name = $tag.name
                 }
             }

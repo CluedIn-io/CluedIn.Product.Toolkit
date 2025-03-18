@@ -56,7 +56,7 @@ function Invoke-CluedInGraphQL {
 }
 
 function HasPagination([hashtable]$Query){
-    return $Query['variables'].ContainsKey('pageNumber') -or $Query['variables'].ContainsKey('page')
+    return $Query['variables'].ContainsKey('pageNumber') -or $Query['variables'].ContainsKey('page') -or $Query['variables'].ContainsKey('pageNo')
 }
 
 function IncreasePageCount([hashtable]$Query){
@@ -64,6 +64,8 @@ function IncreasePageCount([hashtable]$Query){
         $query['variables']['pageNumber']++
     }elseif ($Query['variables'].ContainsKey('page')){
         $query['variables']['page']++
+    }elseif ($Query['variables'].ContainsKey('pageNo')){
+        $query['variables']['pageNo']++
     }
 }
 

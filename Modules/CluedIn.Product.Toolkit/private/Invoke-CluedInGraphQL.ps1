@@ -34,9 +34,10 @@ function Invoke-CluedInGraphQL {
 
     if (HasPagination($Query)) {
         $pageSize = GetPageSize($Query)
-        $exclusionList = @( 'id', '__typename' )
+        $exclusionList = @( 'id', '__typename', 'total', 'searchAfterKey' )
         $propertyA = $response.data.psobject.Properties.name
         $propertyB = $response.data.$propertyA.psobject.Properties.name | Where-Object { $_ -notin $exclusionList }
+        $propertyC = $response.data.$propertyA.$propertyB.psobject.Properties.name | Where-Object { $_ -notin $exclusionList }
         $total = $response.data.$propertyA.$propertyB.total
 
         if ($total -gt $pageSize) {
@@ -45,8 +46,8 @@ function Invoke-CluedInGraphQL {
 
                 [string]$body = $Query | ConvertTo-Json -Compress -Depth 20
                 $nextPage = Invoke-CluedInWebRequest -Uri $endpoint -Body $body -Method 'POST'
-                $response.data.$propertyA.$propertyB.data += $nextPage.data.$propertyA.$propertyB.data
-                if ($response.data.$propertyA.$propertyB.data.count -ge $total) { break }
+                $response.data.$propertyA.$propertyB.$propertyC += $nextPage.data.$propertyA.$propertyB.$propertyC
+                if ($response.data.$propertyA.$propertyB.$propertyC.count -ge $total) { break }
             }
         }
     }

@@ -35,8 +35,16 @@ function Get-CluedInDataSource {
         $dataSourceSets = Get-CluedInDataSourceSet
         $dataSourceSetsObject = $dataSourceSets.data.inbound.dataSourceSets.data.dataSources
         $regex = '^{0}$' -f [Regex]::Escape($Search)
-        $Id = $dataSourceSetsObject | Where-Object { $_.name -match $regex } | Select-Object -ExpandProperty id
+        $dataSourceIds = $dataSourceSetsObject | Where-Object { $_.name -match $regex } | Select-Object -ExpandProperty id
+
+        if($dataSourceIds.count -gt 1){
+            Write-Warning "Multiple matches found for the data source '${search}'"
+            return 
+        }
+
+        $Id = $dataSourceIds
         if (!$Id) { return }
+        
     }
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'getDataSourceById'

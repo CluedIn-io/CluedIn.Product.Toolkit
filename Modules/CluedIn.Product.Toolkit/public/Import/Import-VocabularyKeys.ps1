@@ -110,23 +110,7 @@ function Import-VocabularyKeys{
                     continue
                 }
                 
-                if($key.dataType -eq "Lookup"){
-                    
-                    if($null -eq $key.glossaryTermId){
-                        Write-Warning "Lookup vocabulary key does not have a glossary term assigned. Vocabulary: '$vocabName'; Vocabulary Key: '$($key.name)';"
-                    } else {
-
-                        Write-Host "Resolving Lookup Glossary Term"  -ForegroundColor 'DarkCyan'
-                        $glossaryTermId = ($LookupGlossaryTerms | Where-Object { $_.OriginalGlossaryTermId -eq $key.glossaryTermId }).GlossaryTermId
-                        if([string]::IsNullOrWhiteSpace($glossaryTermId))
-                        {
-                            Write-Error "Can not find matching glossary term for the look up field. Vocabulary: '$vocabName'; Vocabulary Key: '$($key.name)'; NewGlossaryTermId: '$glossaryTermId'; OriginalTermId: '$($key.glossaryTermId)'"
-                            continue
-                        }
-                        Write-Host "Updating lookup glossary term id. Vocabulary: '$vocabName'; Vocabulary Key: '$($key.name)'; NewGlossaryTermId: '$glossaryTermId'; OriginalGlossaryTermId: '$($key.glossaryTermId)'"  -ForegroundColor 'DarkCyan'
-                        $key.glossaryTermId = $glossaryTermId
-                    }
-                }
+                ResolveLookupKeys $key $LookupGlossaryTerms
 
                 $params = @{
                     Object = $key
@@ -152,6 +136,8 @@ function Import-VocabularyKeys{
                     #continue
                 }
 
+                ResolveLookupKeys $key $LookupGlossaryTerms
+
                 Write-Verbose "'$($key.key)' exists, overwriting existing configuration"
                 $vocabKeyUpdateResult = Set-CluedInVocabularyKey -Object $key
                 Check-ImportResult -Result $vocabKeyUpdateResult
@@ -168,6 +154,24 @@ function Import-VocabularyKeys{
                     Check-ImportResult -Result $mapResult
                 }
             }
+        }
+    }
+}
+
+function ResolveLookupKeys ($key, $LookupGlossaryTerms) {
+    if($key.dataType -eq "Lookup"){
+        if($null -eq $key.glossaryTermId){
+            Write-Warning "Lookup vocabulary key does not have a glossary term assigned. Vocabulary: '$vocabName'; Vocabulary Key: '$($key.name)';"
+        } else {
+            Write-Host "Resolving Lookup Glossary Term"  -ForegroundColor 'DarkCyan'
+            $glossaryTermId = ($LookupGlossaryTerms | Where-Object { $_.OriginalGlossaryTermId -eq $key.glossaryTermId }).GlossaryTermId
+            if([string]::IsNullOrWhiteSpace($glossaryTermId))
+            {
+                Write-Error "Can not find matching glossary term for the look up field. Vocabulary: '$vocabName'; Vocabulary Key: '$($key.name)'; NewGlossaryTermId: '$glossaryTermId'; OriginalTermId: '$($key.glossaryTermId)'"
+                continue
+            }
+            Write-Host "Updating lookup glossary term id. Vocabulary: '$vocabName'; Vocabulary Key: '$($key.name)'; NewGlossaryTermId: '$glossaryTermId'; OriginalGlossaryTermId: '$($key.glossaryTermId)'"  -ForegroundColor 'DarkCyan'
+            $key.glossaryTermId = $glossaryTermId
         }
     }
 }

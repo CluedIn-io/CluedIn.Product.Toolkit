@@ -1,0 +1,11 @@
+mutation saveDataSet($dataSet: InputSaveDataSet) {
+  inbound {
+    saveDataSet(dataSet: $dataSet) {
+      id
+      name
+      hashCheck
+      __typename
+    }
+    __typename
+  }
+}

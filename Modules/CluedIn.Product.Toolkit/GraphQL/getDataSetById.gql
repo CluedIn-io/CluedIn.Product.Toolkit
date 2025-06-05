@@ -199,6 +199,7 @@ query getDataSetById($id: ID!) {
         columnSubType
         __typename
       }
+      onlyUpdateClueHeadVersion
       __typename
     }
     __typename

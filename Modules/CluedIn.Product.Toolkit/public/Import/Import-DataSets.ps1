@@ -63,7 +63,24 @@ function Import-DataSets{
                 $endpoint = '{0}/upload/api/endpoint/{1}' -f ${env:CLUEDIN_ENDPOINT}, $dataSetId
                 Write-Host "New Endpoint created: $endPoint"
             }
+
+            # Update data set configuration
+            Set-CluedInDataSetConfig -Id $dataSetId -OnlyUpdateClueHeadVersion $dataSetObject.onlyUpdateClueHeadVersion 
+
+        } else {
+            $dataSourceObject = (Get-CluedInDataSource -Search $dataSetObject.dataSource.name).data.inbound.dataSource
+            $destinationDataSetObject = $dataSourceObject.dataSets | Where-Object { $_.name -eq $dataSetObject.name }
+            $dataSetId = $destinationDataSetObject.id
+
+            if (!$dataSetId) { Write-Error "Issue getting dataSetId so could not update existing dataset configuration"; continue }
+
+            # Update data set configuration
+            Set-CluedInDataSetConfig -Id $dataSetId -OnlyUpdateClueHeadVersion $dataSetObject.onlyUpdateClueHeadVersion 
         }
+        
+        
+
+        
 
         Write-Host "Updating Annotations for $($dataSetObject.name)" -ForegroundColor 'Cyan'
         $annotationPath = Join-Path -Path $dataSetsPath -ChildPath ('{0}-Annotation.json' -f $dataSetObject.id)
@@ -249,5 +266,30 @@ function Import-DataSets{
                 Check-ImportResult -Result $newPreProcessRuleResults
             }
         }
+    }
+}
+
+function Set-CluedInDataSetConfig {
+    param (
+        [Parameter(Mandatory)]
+        [guid]$Id,
+
+        [Parameter(Mandatory)]
+        [bool]$OnlyUpdateClueHeadVersion
+    )
+
+    # Check and ensure onlyUpdateClueHeadVersion is set
+    $updateParams = @{
+        Id = $Id
+        onlyUpdateClueHeadVersion = $OnlyUpdateClueHeadVersion
+    }
+
+    try {
+        Write-Host "Updating Data Set configuration for: $($DataSetObject.name)" -ForegroundColor 'Cyan'
+        $updateResult = Set-CluedInDataSet @updateParams
+        Check-ImportResult -Result $updateResult
+    } catch {
+        Write-Warning "Failed to update dataset configuration for $($DataSetObject.name)"
+        Write-Debug $_
     }
 }

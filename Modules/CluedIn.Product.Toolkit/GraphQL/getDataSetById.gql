@@ -14,11 +14,16 @@ query getDataSetById($id: ID!) {
       elasticTotal
       hasParsingWarnings
       expectedTotal
+      canResetMapping
+      hasSubmissions
       lastPurgedAt
+      isOwner
       lastPurgedBy
       isBridge
       isArchive
       hasQuarantineData
+      hasPendingRecordsApproval
+      supportsIngestionSourceId
       archivedBy
       fileSize
       editableIndex
@@ -50,6 +55,8 @@ query getDataSetById($id: ID!) {
       hasValidationStoringError
       hasValidationMappingError
       hasValidationProcessingError
+      editModeElasticTotal
+      hasSubmissions
       failedLoadingTotal
       isDeleteInProgress
       archivedByUser {
@@ -83,6 +90,7 @@ query getDataSetById($id: ID!) {
           key
           vocabKey
           useAsEntityCode
+          type
           __typename
         }
         __typename
@@ -122,12 +130,41 @@ query getDataSetById($id: ID!) {
         createdAt
         __typename
       }
+      validations {
+        id
+        dataSetId
+        name
+        field
+        operationDefinition
+        createdAt
+        updatedAt
+        advancedValidation
+        operation {
+          id
+          parameters {
+            key
+            value
+            __typename
+          }
+          __typename
+        }
+        count
+        invalid
+        valid
+        inverse
+        required
+        __typename
+      }
       operations {
         id
         name
         operation {
           id
-          parameters
+          parameters {
+            key
+            value
+            __typename
+          }
           __typename
         }
         filters {

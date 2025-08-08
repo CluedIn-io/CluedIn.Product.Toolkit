@@ -217,21 +217,60 @@ function Import-DataSets{
                 Check-ImportResult -Result $setAnnotationEntityCodesResult
             }
 
-            # Blocked as not currently in scope
+            Write-Host "Processing Edges" -ForegroundColor 'Cyan'
+            $edges = $annotationObject.annotationProperties | Where-Object {$_.annotationEdges}
+            $cuedInAnnotation = Get-CluedInAnnotations -id $annotationId
+            
+            if($null -eq $cuedInAnnotation){
+                Write-Warning "Could not find the annotation with id $annotationId. Skipping edges"
+            }else{
+                foreach ($edge in $edges) {
+                    foreach ($edgeMapping in $edge.annotationEdges) {
+                        # Skip if strict edge as we cannot guarentee we find the correct dataset/source/group
+                        if($null -ne $edgeMapping.DataSetId -or $null -ne $edgeMapping.DataSourceGroupId -or $null -ne $edgeMapping.DataSourceId) {
+                            Write-Warning "Importing of Strict Edges are not supported. Skipping strict edge for $($edgeMapping.key)"
+                            continue
+                        }
+                        # Check if any object inside annotationEdges matches all values in edgeMapping (excluding id and dataSetId), regardless of extra properties in the candidate
+                        $existingEdge = $false
 
-            # Write-Verbose "Adding Edge Mappings"
-            # $edges = $annotationObject.annotationProperties | Where-Object {$_.annotationEdges}
+                        # 1. Choose the properties you want to IGNORE.
+                        $ignore = 'id', 'dataSetId'
 
-            # foreach ($edge in $edges) {
-            #     $edge = $edge.annotationEdges
-            #     $edgeVocabulary = Get-CluedInVocabularyKey -Search $edge.edgeProperties.vocabularyKey.key
-            #     $edgeVocabularyObject = $edgeVocabulary.data.management.vocabularyPerKey
-            #     $edge.edgeProperties.vocabularyKey.vocabularyKeyId = $edgeVocabularyObject.vocabularyKeyId
-            #     $edge.edgeProperties.vocabularyKey.vocabularyId = $edgeVocabularyObject.vocabularyId
+                        # 2. Build a once-off JSON string for the reference object (minus the ignored props).
+                        $refJson =$refJson = Remove-NestedProperties ($edgeMapping | Select-Object -ExcludeProperty $ignore) | ConvertTo-Json -Depth 20 -Compress
 
-            #     $edgeResult = New-CluedInEdgeMapping -Object $edge -AnnotationId $annotationObject.id
-            #     Check-ImportResult -Result $edgeResult
-            # }
+                        # 3. Walk the array and compare each element.
+                        $matches = foreach ($edge in $cuedInAnnotation.data.preparation.annotation.annotationProperties.annotationEdges) {
+                            $edgeJson = Remove-NestedProperties ($edge | Select-Object -ExcludeProperty $ignore) | ConvertTo-Json -Depth 20 -Compress
+                            if ($edgeJson -eq $refJson) {
+                                $existingEdge = $true
+                            }
+                        }
+
+                        if ($existingEdge) {
+                            Write-Warning "Edge $($edgeMapping.edgeType) for $($edgeMapping.key) already exists. Skipping creation."
+                            continue
+                        }
+
+                        # Resolve edge property mappings     
+                        if($edgeMapping.edgeProperties.count -ne 0){
+                            $edgeVocabularyObject = $vocabulariesKeysObject | Where-Object { $_.key -eq $edgeMapping.edgeProperties.vocabularyKey.key }
+                            if (!$fieldVocabKeyObject.vocabularyKeyId) {
+                                Write-Warning "Coule not resolve the vocabulary key $($edgeMapping.edgeProperties.vocabularyKey.key) when trying to add the edge properties. It most likely doesn't exist. Edge creation will be skipped for $($edgeMapping.key)"
+                                continue
+                            }
+                            $edgeMapping.edgeProperties.vocabularyKey.vocabularyKeyId = $edgeVocabularyObject.vocabularyKeyId
+                            $edgeMapping.edgeProperties.vocabularyKey.vocabularyId = $edgeVocabularyObject.vocabularyId
+                        }
+
+                        # Create the edge mapping
+                        Write-Host "Creating edge $($edgeMapping.edgeType) for $($annotationObject.name)" -ForegroundColor 'Cyan'
+                        $edgeResult = New-CluedInEdgeMapping -Object $edgeMapping -AnnotationId $annotationId
+                        Check-ImportResult -Result $edgeResult
+                    }
+                }
+            }
         }
         catch {
             Write-Verbose "Annotation file '$annotationPath' not found or error occured during run"
@@ -292,4 +331,20 @@ function Set-CluedInDataSetConfig {
         Write-Warning "Failed to update dataset configuration for $($DataSetObject.name)"
         Write-Debug $_
     }
+}
+
+function Remove-NestedProperties {
+    param($edgeMapping)
+    $copy = $edgeMapping | ConvertTo-Json -Depth 20 | ConvertFrom-Json
+    if ($copy.edgeProperties) {
+        foreach ($prop in $copy.edgeProperties) {
+            $prop.PSObject.Properties.Remove('id')
+            $prop.PSObject.Properties.Remove('annotationEdgeId')
+            if ($prop.vocabularyKey) {
+                $prop.vocabularyKey.PSObject.Properties.Remove('vocabularyId')
+                $prop.vocabularyKey.PSObject.Properties.Remove('vocabularyKeyId')
+            }
+        }
+    }
+    return $copy
 }

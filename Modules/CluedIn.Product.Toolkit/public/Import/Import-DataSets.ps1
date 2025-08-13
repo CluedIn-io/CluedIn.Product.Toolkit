@@ -241,7 +241,7 @@ function Import-DataSets{
                         $refJson =$refJson = Remove-NestedProperties ($edgeMapping | Select-Object -ExcludeProperty $ignore) | ConvertTo-Json -Depth 20 -Compress
 
                         # 3. Walk the array and compare each element.
-                        $matches = foreach ($edge in $cuedInAnnotation.data.preparation.annotation.annotationProperties.annotationEdges) {
+                        foreach ($edge in $cuedInAnnotation.data.preparation.annotation.annotationProperties.annotationEdges) {
                             $edgeJson = Remove-NestedProperties ($edge | Select-Object -ExcludeProperty $ignore) | ConvertTo-Json -Depth 20 -Compress
                             if ($edgeJson -eq $refJson) {
                                 $existingEdge = $true

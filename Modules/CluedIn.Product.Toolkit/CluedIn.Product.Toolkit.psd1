@@ -116,7 +116,7 @@ FunctionsToExport = 'Connect-CluedInOrganization', 'Get-CluedInAdminSetting',
                'Export-ExportTargets', 'Export-Streams',
                'Export-Glossaries', 'Export-CleanProjects',
                'Import-Glossaries', 'Set-CluedInDataSourceDatabaseConfiguration',
-               'Get-CluedInGlossaryTags'
+               'Get-CluedInGlossaryTags', 'Set-CluedInDataSet'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()

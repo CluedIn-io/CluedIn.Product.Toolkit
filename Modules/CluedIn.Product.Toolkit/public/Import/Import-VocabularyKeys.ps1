@@ -164,7 +164,10 @@ function ResolveLookupKeys ($key, $LookupGlossaryTerms) {
             Write-Warning "Lookup vocabulary key does not have a glossary term assigned. Vocabulary: '$vocabName'; Vocabulary Key: '$($key.name)';"
         } else {
             Write-Host "Resolving Lookup Glossary Term"  -ForegroundColor 'DarkCyan'
-            $glossaryTermId = ($LookupGlossaryTerms | Where-Object { $_.OriginalGlossaryTermId -eq $key.glossaryTermId }).GlossaryTermId
+
+            if($null -eq $LookupGlossaryTerms -or $LookupGlossaryTerms.Count -eq 0){
+                Write-Warning "No Lookup Glossary Terms provided. Most likey due to no Glossary Terms not being imported. Please make sure you export and import required glossaries if you are importing lookup keys."
+            }
             if([string]::IsNullOrWhiteSpace($glossaryTermId))
             {
                 Write-Error "Can not find matching glossary term for the look up field. Vocabulary: '$vocabName'; Vocabulary Key: '$($key.name)'; NewGlossaryTermId: '$glossaryTermId'; OriginalTermId: '$($key.glossaryTermId)'"

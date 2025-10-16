@@ -94,7 +94,7 @@ Write-Host "INFO: Starting backup"
 
 Export-Settings -BackupPath $BackupPath -BackupAdminSettings:$BackupAdminSettings
 
-$dataSourceSets = Export-DataSourceSets -BackupPath $BackupPath
+$dataSourceSets = Export-DataSourceSets -BackupPath $BackupPath -SelectDataSets $SelectDataSets
 
 Export-DataSets -BackupPath $BackupPath -SelectDataSets $SelectDataSets -DataSourceSets $dataSourceSets
 

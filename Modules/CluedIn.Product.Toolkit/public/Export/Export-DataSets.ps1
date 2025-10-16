@@ -18,17 +18,17 @@ function Export-DataSets{
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)][string]$BackupPath,
-        [Parameter(Mandatory)][PSCustomObject]$DataSourceSets,
+        [Parameter()][PSCustomObject]$DataSourceSets,
         [string]$SelectDataSets = 'None'
     )
 
-    $dataSources = $dataSourceSets.data.inbound.dataSourceSets.data.datasources
-    
     $path = Join-Path -Path $BackupPath -ChildPath 'Data/Sets'
     if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
 
     $dataSourcePath = Join-Path -Path $BackupPath -ChildPath 'Data/Sources'
     if (!(Test-Path -Path $dataSourcePath -PathType Container)) { New-Item $dataSourcePath -ItemType Directory | Out-Null }
+
+    $dataSources = $DataSourceSets.data.inbound.dataSourceSets.data.datasources
 
     $dataSetIds = switch ($SelectDataSets) {
         'All' { $dataSources.dataSets.id }

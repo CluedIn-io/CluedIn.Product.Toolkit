@@ -25,6 +25,8 @@ function Import-DataSets{
     Write-Host "INFO: Importing Data Sets" -ForegroundColor 'Green'
     $dataSets = Get-ChildItem -Path $dataSetsPath -Filter "*-DataSet.json"
 
+    if ($dataSets.count -eq 0) { return }
+
     $vocabulariesKeys = Get-CluedInVocabularyKey -All
     $vocabulariesKeysObject = $vocabulariesKeys.data.management.vocabularyKeys.data
 

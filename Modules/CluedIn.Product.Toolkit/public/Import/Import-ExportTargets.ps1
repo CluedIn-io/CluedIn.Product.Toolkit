@@ -109,17 +109,6 @@ function Import-ExportTargets{
 
         Check-ImportResult -Result $targetResult
 
-        Write-Verbose "Setting Permissions"
-        $currentTarget = (Get-CluedInExportTarget -Id $id).data.inbound.connectorConfiguration
-        $usersToAdd = Compare-Object -ReferenceObject $currentTarget.users.username -DifferenceObject $targetObject.users.username -PassThru |
-            Where-Object { $_.SideIndicator -eq '=>' }
-
-        $idsToSet = @()
-        foreach ($user in $usersToAdd) {
-            $idsToSet += ($allUsers | Where-Object { $_.account.UserName -eq $user }).id
-        }
-
-        if ($idsToSet) { Set-CluedInExportTargetPermissions -ConnectorId $id -UserId $idsToSet }
 
         $lookupConnectors += [PSCustomObject]@{
             OriginalConnectorId = $originalConnectorId

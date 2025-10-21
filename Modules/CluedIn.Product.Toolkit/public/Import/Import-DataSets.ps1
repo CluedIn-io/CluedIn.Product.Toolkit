@@ -192,7 +192,7 @@ function Import-DataSets{
                                 originalField = $currentMappingObject.originalField
                                 id = $currentMappingObject.id
                                 useAsAlias = $desiredAnnotation.useAsAlias
-                                useAsEntityCode = $desiredAnnotation.useAsEntityCode
+                                useAsEntityCode = $false
                                 vocabularyKeyConfiguration = @{
                                     vocabularyId = $fieldVocabKeyObject.vocabularyId
                                     new = $false
@@ -210,13 +210,6 @@ function Import-DataSets{
                         Check-ImportResult -Result $dataSetMappingResult
                     }
                 }
-            }
-
-            Write-Verbose "Setting Annotation Entity Codes"
-            $entities = $annotationObject.annotationProperties | Where-Object { $_.useAsEntityCode }
-            foreach ($entity in $entities) {
-                $setAnnotationEntityCodesResult = Set-CluedInAnnotationEntityCodes -Object $entity -Id $annotationObject.id
-                Check-ImportResult -Result $setAnnotationEntityCodesResult
             }
 
             Write-Host "Processing Edges" -ForegroundColor 'Cyan'
@@ -280,9 +273,43 @@ function Import-DataSets{
             continue
         }
 
+        Write-Host "Updating Identifiers for $($dataSetObject.name)" -ForegroundColor 'Cyan'
+        $annotationCodesPath = Join-Path -Path $dataSetsPath -ChildPath ('{0}-Annotation-Codes.json' -f $dataSetObject.id)
+        if (!(Test-Path -Path $annotationCodesPath -PathType 'Leaf')) { Write-Information "No codes to import"; continue}
+
+        $annotationCodesJson = Get-Content -Path $annotationCodesPath | ConvertFrom-Json -Depth 20
+        $annotationCodesObject = $annotationCodesJson.data.preparation.getAnnotationCodes
+
+        foreach($annotationCode in $annotationCodesObject){
+            $annotationId = ($lookupAnnotations | Where-Object { $_.OriginalAnnotationId -eq $annotationCode.annotationId }).AnnotationId
+            if($null -eq $annotationId){
+                Write-Warning "Could not find the new annotation id to assign to the identifier. AnnotationCodeId: $($annotationCode.id); Original Annotation Id: $($annotationCode.annotationId);"
+            }
+
+            $existingAnnotationCodeObjects = (Get-CluedInAnnotationCodes -Id $annotationId).data.preparation.getAnnotationCodes
+            $existingAnnotationCode = $existingAnnotationCodeObjects | Where-Object { $_.vocabKey -eq $annotationCode.vocabKey }
+
+            if($existingAnnotationCode.count -gt 1){
+                Write-Warning "Multiple existing annotation codes found for VocabKey: $($annotationCode.vocabKey). Properties are Type: $($annotationCode.type), EntityCodeOrigin: $($annotationCode.entityCodeOrigin). Skipping import of this identifier."
+                continue
+            }
+
+            # If Exists Update
+            if($null -ne $existingAnnotationCode){
+                Write-Host "Updating Identifier: $($existingAnnotationCode.vocabKey) $($existingAnnotationCode.entityCodeOrigin)" -ForegroundColor 'Cyan'
+                $setAnnotationCodeResult = Set-CluedInAnnotationCode -Id $existingAnnotationCode.id -Configuration $annotationCode
+                Check-ImportResult -Result $setAnnotationCodeResult
+            } else {
+                # Create
+                Write-Host "Creating Identifier: $($annotationCode.vocabKey) $($annotationCode.entityCodeOrigin)" -ForegroundColor 'Cyan'
+                $newAnnotationCodeResults = New-CluedInAnnotationCode -AnnotationId $annotationId -Configuration $annotationCode
+                Check-ImportResult -Result $newAnnotationCodeResults
+            }
+        }
+
         Write-Host "Updating PreProcess DataSet Rules for $($dataSetObject.name)" -ForegroundColor 'Cyan'
         $preProcessRulesPath = Join-Path -Path $dataSetsPath -ChildPath ('{0}-Preprocess-dataset-rules.json' -f $dataSetObject.id)
-        if (!(Test-Path -Path $preProcessRulesPath -PathType 'Leaf')) { Write-Warning "No pre process rules to import"; continue}
+        if (!(Test-Path -Path $preProcessRulesPath -PathType 'Leaf')) { Write-Information "No pre process rules to import"; continue}
 
         $preProcessRulesJson = Get-Content -Path $preProcessRulesPath | ConvertFrom-Json -Depth 20
         $preProcessRulesObject = $preProcessRulesJson.data.preparation.getAllPreProcessDataSetRules

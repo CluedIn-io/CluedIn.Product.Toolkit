@@ -72,6 +72,14 @@ function Export-DataSets{
         }
 
         switch ($annotationId) {
+            $null { Write-Warning "No annotation detected. Skipping export of codes" }
+            default {
+                Write-Host "Exporting Codes" -ForegroundColor 'Cyan'
+                Get-CluedAnnotationCodes -Id $annotationId | Out-JsonFile -Path $path -Name ('{0}-Annotation-Codes' -f $id)
+            }
+        }
+
+        switch ($annotationId) {
             $null { Write-Warning "No annotation detected. Skipping export of pre-process data set rules" }
             default {
                 Write-Host "Exporting Preprocess data set rules" -ForegroundColor 'Cyan'

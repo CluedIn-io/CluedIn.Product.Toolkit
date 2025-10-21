@@ -75,7 +75,7 @@ function Export-DataSets{
             $null { Write-Warning "No annotation detected. Skipping export of codes" }
             default {
                 Write-Host "Exporting Codes" -ForegroundColor 'Cyan'
-                Get-CluedAnnotationCodes -Id $annotationId | Out-JsonFile -Path $path -Name ('{0}-Annotation-Codes' -f $id)
+                Get-CluedInAnnotationCodes -Id $annotationId | Out-JsonFile -Path $path -Name ('{0}-Annotation-Codes' -f $id)
             }
         }
 

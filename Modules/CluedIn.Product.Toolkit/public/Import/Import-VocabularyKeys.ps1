@@ -81,13 +81,6 @@ function Import-VocabularyKeys{
 
             $currentVocabularyKeyObjectResult = Get-CluedInVocabularyKey -KeyName $key.key
             $currentVocabularyKeyObject = $currentVocabularyKeyObjectResult.data.management.vocabularyPerKey
-            
-            if ($key.mapsToOtherKeyId) {
-                $mappedKeyId = Get-CluedInVocabularyKey -KeyName $key.mappedKey.key
-                $key.mapsToOtherKeyId = $mappedKeyID ?
-                    $mappedKeyId.data.management.vocabularyPerKey.vocabularyKeyId :
-                    $null
-            }
 
             if($null -ne $key.compositeVocabularyId) {
                 Write-Host "Skipping composite Vocab Key: $($key.key)" -ForegroundColor 'DarkCyan'
@@ -142,7 +135,10 @@ function Import-VocabularyKeys{
                 $vocabKeyUpdateResult = Set-CluedInVocabularyKey -Object $key
                 Check-ImportResult -Result $vocabKeyUpdateResult            
             }
+        }
 
+        foreach ($key in ($vocabKeyObject | Where-Object { -not [string]::IsNullOrWhiteSpace($_.mapsToOtherKeyId)})) {
+            Write-Host "Processing Vocab Key Mapping for: $($key.key)" -ForegroundColor 'Cyan'
             if ($key.mapsToOtherKeyId) {
                 Write-Verbose "Processing Vocabulary Key Mapping"
                 $keyLookup = Get-CluedInVocabularyKey -Search $key.mappedKey.key
@@ -152,9 +148,13 @@ function Import-VocabularyKeys{
                     Write-Host "Setting Vocab Key mapping '$($key.key)' to '$($key.mappedKey.key)'" -ForegroundColor 'DarkCyan'
                     $mapResult = Set-CluedInVocabularyKeyMapping -Source $key.vocabularyKeyId -Destination $keyLookupId
                     Check-ImportResult -Result $mapResult
+                }else{
+                    Write-Warning "Could not find mapped key for '$($key.mappedKey.key)'. Please make sure that you are exporting the mapped key. Skipping mapping for '$($key.key)'"
                 }
             }
         }
+
+
     }
 }
 

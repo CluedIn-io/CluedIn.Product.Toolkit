@@ -1,0 +1,16 @@
+query getAnnotationCodes($annotationId: ID!) {
+  preparation {
+    id
+    getAnnotationCodes(annotationId: $annotationId) {
+      id
+      annotationId
+      key
+      entityCodeOrigin
+      sourceCode
+      type
+      vocabKey
+      __typename
+    }
+    __typename
+  }
+}

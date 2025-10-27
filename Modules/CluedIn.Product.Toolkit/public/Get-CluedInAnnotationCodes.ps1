@@ -10,7 +10,7 @@ function Get-CluedInAnnotationCodes {
         The annotation Id that you want to retrieve the Annotation Codes for
 
         .EXAMPLE
-        PS> Get-CluedAnnotationCodes
+        PS> Get-CluedInAnnotationCodes
     #>
 
     [CmdletBinding()]

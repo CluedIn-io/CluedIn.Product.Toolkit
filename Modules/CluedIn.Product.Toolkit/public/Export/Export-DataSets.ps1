@@ -51,6 +51,10 @@ function Export-DataSets{
         # Caching of exports to avoid duplicated work.
         if (!$dataSourceBackup[$dataSourceId]) {
             Write-Host "Exporting Data Source Id: $dataSourceId" -ForegroundColor 'Cyan'
+            # Remove unwanted properties (guard in case the sql section is missing)
+            if ($dataSource.data -and $dataSource.data.inbound -and $dataSource.data.inbound.dataSource -and $dataSource.data.inbound.dataSource.sql) {
+                $dataSource.data.inbound.dataSource.sql.password = $null
+            }
             $dataSource | Out-JsonFile -Path $dataSourcePath -Name ('{0}-DataSource' -f $dataSourceId)
             $dataSourceBackup[$dataSourceId] = $true
         }

@@ -51,6 +51,10 @@ function Export-DataSets{
         # Caching of exports to avoid duplicated work.
         if (!$dataSourceBackup[$dataSourceId]) {
             Write-Host "Exporting Data Source Id: $dataSourceId" -ForegroundColor 'Cyan'
+            # Remove unwanted properties (guard in case the sql section is missing)
+            if ($dataSource.data -and $dataSource.data.inbound -and $dataSource.data.inbound.dataSource -and $dataSource.data.inbound.dataSource.sql) {
+                $dataSource.data.inbound.dataSource.sql.password = $null
+            }
             $dataSource | Out-JsonFile -Path $dataSourcePath -Name ('{0}-DataSource' -f $dataSourceId)
             $dataSourceBackup[$dataSourceId] = $true
         }
@@ -68,6 +72,14 @@ function Export-DataSets{
             default {
                 Write-Host "Exporting Annotation" -ForegroundColor 'Cyan'
                 Get-CluedInAnnotations -id $annotationId | Out-JsonFile -Path $path -Name ('{0}-Annotation' -f $id)
+            }
+        }
+
+        switch ($annotationId) {
+            $null { Write-Warning "No annotation detected. Skipping export of codes" }
+            default {
+                Write-Host "Exporting Codes" -ForegroundColor 'Cyan'
+                Get-CluedInAnnotationCodes -Id $annotationId | Out-JsonFile -Path $path -Name ('{0}-Annotation-Codes' -f $id)
             }
         }
 

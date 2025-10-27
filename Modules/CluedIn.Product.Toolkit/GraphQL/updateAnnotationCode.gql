@@ -1,0 +1,10 @@
+mutation editAnnotationCode($id: ID, $annotationCode: InputAnnotationCode) {
+  preparation {
+    id
+    editAnnotationCode(id: $id, annotationCode: $annotationCode) {
+      id
+      __typename
+    }
+    __typename
+  }
+}

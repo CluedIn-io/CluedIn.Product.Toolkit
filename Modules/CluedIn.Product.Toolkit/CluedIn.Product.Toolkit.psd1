@@ -86,7 +86,7 @@ FunctionsToExport = 'Connect-CluedInOrganization', 'Get-CluedInAdminSetting',
                'New-CluedInGlossaryTerm', 'New-CluedInRule', 'New-CluedInVocabulary',
                'New-CluedInVocabularyKey', 'Out-JsonFile',
                'Send-CluedInIngestionData', 'Set-CluedInAdminSettings', 'Set-CluedInAdminSettingsBulk',
-               'Set-CluedInAnnotation', 'Set-CluedInAnnotationEntityCodes',
+               'Set-CluedInAnnotation',
                'Set-CluedInRule', 'Set-CluedInDataSourceConfiguration',
                'Set-CluedInVocabulary', 'Set-CluedInVocabularyKey',
                'Enable-CluedInVocabulary', 'Set-CluedInDataSetMapping',
@@ -116,7 +116,9 @@ FunctionsToExport = 'Connect-CluedInOrganization', 'Get-CluedInAdminSetting',
                'Export-ExportTargets', 'Export-Streams',
                'Export-Glossaries', 'Export-CleanProjects',
                'Import-Glossaries', 'Set-CluedInDataSourceDatabaseConfiguration',
-               'Get-CluedInGlossaryTags', 'Set-CluedInDataSet'
+               'Get-CluedInGlossaryTags', 'Set-CluedInDataSet',
+               'New-CluedInAnnotationCode', 'Set-CluedInAnnotationCode',
+               'Get-CluedInAnnotationCodes'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()

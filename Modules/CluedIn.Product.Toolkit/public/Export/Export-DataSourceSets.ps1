@@ -20,8 +20,6 @@ function Export-DataSourceSets{
         [Parameter(Mandatory)][string]$BackupPath,
         [string]$SelectDataSets = 'None'
     )
-    $path = Join-Path -Path $BackupPath -ChildPath 'Data/SourceSets'
-    if (!(Test-Path -Path $path -PathType Container)) { New-Item $path -ItemType Directory | Out-Null }
 
     Write-Host "INFO: Exporting Data Sources and Sets" -ForegroundColor 'Green'
 
@@ -30,7 +28,6 @@ function Export-DataSourceSets{
     }
     
     $dataSourceSets = Get-CluedInDataSourceSet
-    $dataSourceSets | Out-JsonFile -Path $path -Name 'DataSourceSet'
 
     return $dataSourceSets
 }

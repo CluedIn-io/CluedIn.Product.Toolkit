@@ -36,11 +36,13 @@ function Import-DataSources{
         if (!$dataSourceSetMatch) {
             $dataSourceSetResult = New-CluedInDataSourceSet -DisplayName $dataSourceSetName
             Check-ImportResult -Result $dataSourceSetResult
-            $dataSourceSetMatch = (Get-CluedInDataSourceSet -Search $dataSourceSetName).data.inbound.dataSourceSets.data
+            $dataSourceSetMatch = (Get-CluedInDataSourceSet -Search $dataSourceSetName).data.inbound.dataSourceSets.data |
+                Where-Object {$_.name -match "^$dataSourceSetName$"}
         }
         $dataSourceObject.dataSourceSet.id = $dataSourceSetMatch.id
 
-        Write-Host "Processing Data Source: $($dataSourceObject.name) ($($dataSourceObject.id))" -ForegroundColor 'Cyan'
+        Write-Host "Processing Data Source: $($dataSourceObject.name); ID: $($dataSourceObject.id)" -ForegroundColor 'Cyan'
+
         $exists = (Get-CluedInDataSource -Search $dataSourceObject.name).data.inbound.dataSource
         $dataSourceId = $exists.id
         if (!$exists) {

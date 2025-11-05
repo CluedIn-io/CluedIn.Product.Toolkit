@@ -32,7 +32,7 @@ function Import-VocabularyKeys{
 
     $vocabKeysPath = Join-Path -Path $RestorePath -ChildPath 'DataCatalog/Keys'
 
-    $vocabKeys = Get-ChildItem -Path $vocabKeysPath -Filter "*.json"
+    $vocabKeys = Get-ChildItem -Path $vocabKeysPath -Filter "*.json"   
     foreach ($vocabKey in $vocabKeys) {
         $vocabKeyJson = Get-Content -Path $vocabKey.FullName | ConvertFrom-Json -Depth 20
         $vocabKeyObject = $vocabKeyJson.data.management.vocabularyKeysFromVocabularyId.data
@@ -140,7 +140,7 @@ function Import-VocabularyKeys{
 
                 Write-Verbose "'$($key.key)' exists, overwriting existing configuration"
                 $vocabKeyUpdateResult = Set-CluedInVocabularyKey -Object $key
-                Check-ImportResult -Result $vocabKeyUpdateResult
+                Check-ImportResult -Result $vocabKeyUpdateResult            
             }
 
             if ($key.mapsToOtherKeyId) {
@@ -168,9 +168,12 @@ function ResolveLookupKeys ($key, $LookupGlossaryTerms) {
             if($null -eq $LookupGlossaryTerms -or $LookupGlossaryTerms.Count -eq 0){
                 Write-Warning "No Lookup Glossary Terms provided. Most likey due to no Glossary Terms not being imported. Please make sure you export and import required glossaries if you are importing lookup keys."
             }
+
+            $glossaryTermId = ($LookupGlossaryTerms | Where-Object { $_.OriginalGlossaryTermId -eq $key.glossaryTermId })?.GlossaryTermId
+
             if([string]::IsNullOrWhiteSpace($glossaryTermId))
             {
-                Write-Error "Can not find matching glossary term for the look up field. Vocabulary: '$vocabName'; Vocabulary Key: '$($key.name)'; NewGlossaryTermId: '$glossaryTermId'; OriginalTermId: '$($key.glossaryTermId)'"
+                Write-Warning "Can not find matching glossary term for the look up field. Vocabulary: '$vocabName'; Vocabulary Key: '$($key.name)'; OriginalTermId: '$($key.glossaryTermId)'"
                 continue
             }
             Write-Host "Updating lookup glossary term id. Vocabulary: '$vocabName'; Vocabulary Key: '$($key.name)'; NewGlossaryTermId: '$glossaryTermId'; OriginalGlossaryTermId: '$($key.glossaryTermId)'"  -ForegroundColor 'DarkCyan'

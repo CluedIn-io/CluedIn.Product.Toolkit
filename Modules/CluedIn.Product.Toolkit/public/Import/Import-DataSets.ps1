@@ -169,43 +169,48 @@ function Import-DataSets{
                             Write-Warning "Key: $($mapping.key) doesn't exist. Mapping will be skipped for '$($mapping.originalField)'"
                             continue
                         }
+                        try {
+                            if ($mapping.originalField -notin $currentFieldMappings.originalField) {
+                                $mapping.key = $fieldVocabKeyObject.key # To cover case sensitive process
 
-                        if ($mapping.originalField -notin $currentFieldMappings.originalField) {
-                            $mapping.key = $fieldVocabKeyObject.key # To cover case sensitive process
-
-                            $dataSetMappingParams = @{
-                                Object = $mapping
-                                DataSetId = $dataSetId
-                                VocabularyKeyId = $fieldVocabKeyObject.vocabularyKeyId
-                                VocabularyId = $fieldVocabKeyObject.vocabularyId
-                            }
-
-                            $dataSetMappingResult = New-CluedInDataSetMapping @dataSetMappingParams
-                        }
-                        else {
-                            $currentMappingObject = $currentFieldMappings | Where-Object { $_.originalField -eq $mapping.originalField }
-
-                            $desiredAnnotation = $annotationObject.annotationProperties | Where-Object { $_.vocabKey -ceq $mapping.key }
-                            if (!$desiredAnnotation) { Write-Warning "Issue finding the desired annotation. Skipping map"; continue }
-
-                            $propertyMappingConfiguration = @{
-                                originalField = $currentMappingObject.originalField
-                                id = $currentMappingObject.id
-                                useAsAlias = $desiredAnnotation.useAsAlias
-                                useAsEntityCode = $false
-                                vocabularyKeyConfiguration = @{
-                                    vocabularyId = $fieldVocabKeyObject.vocabularyId
-                                    new = $false
-                                    vocabularyKeyId = $fieldVocabKeyObject.vocabularyKeyId
+                                $dataSetMappingParams = @{
+                                    Object = $mapping
+                                    DataSetId = $dataSetId
+                                    VocabularyKeyId = $fieldVocabKeyObject.vocabularyKeyId
+                                    VocabularyId = $fieldVocabKeyObject.vocabularyId
                                 }
-                            }
 
-                            $dataSetMappingsParams = @{
-                                DataSetId = $dataSetId
-                                PropertyMappingConfiguration = $propertyMappingConfiguration
+                                $dataSetMappingResult = New-CluedInDataSetMapping @dataSetMappingParams
                             }
+                            else {
+                                $currentMappingObject = $currentFieldMappings | Where-Object { $_.originalField -eq $mapping.originalField }
 
-                            $dataSetMappingResult = Set-CluedInDataSetMapping @dataSetMappingsParams
+                                $desiredAnnotation = $annotationObject.annotationProperties | Where-Object { $_.vocabKey -ceq $mapping.key }
+                                if (!$desiredAnnotation) { Write-Warning "Issue finding the desired annotation. Skipping map"; continue }
+
+                                $propertyMappingConfiguration = @{
+                                    originalField = $currentMappingObject.originalField
+                                    id = $currentMappingObject.id
+                                    useAsAlias = $desiredAnnotation.useAsAlias
+                                    useAsEntityCode = $false
+                                    vocabularyKeyConfiguration = @{
+                                        vocabularyId = $fieldVocabKeyObject.vocabularyId
+                                        new = $false
+                                        vocabularyKeyId = $fieldVocabKeyObject.vocabularyKeyId
+                                    }
+                                }
+
+                                $dataSetMappingsParams = @{
+                                    DataSetId = $dataSetId
+                                    PropertyMappingConfiguration = $propertyMappingConfiguration
+                                }
+
+                                $dataSetMappingResult = Set-CluedInDataSetMapping @dataSetMappingsParams
+                            }
+                        }
+                        catch {
+                            Write-Warning "Error setting dataset mapping: $_"
+                            continue
                         }
                         Check-ImportResult -Result $dataSetMappingResult
                     }
@@ -268,8 +273,8 @@ function Import-DataSets{
             }
         }
         catch {
-            Write-Verbose "Annotation file '$annotationPath' not found or error occured during run"
-            Write-Debug $_
+            Write-Error "Annotation file '$annotationPath' not found or error occured during run"
+            Write-Host $_
             continue
         }
 

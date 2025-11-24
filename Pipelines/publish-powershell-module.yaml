@@ -97,6 +97,9 @@ steps:
       Write-Host "##vso[build.updatebuildnumber]CluedIn.Product.Toolkit ($(MODULE_VERSION))"
   displayName: Tag Pipeline
 
+- task: NuGetAuthenticate@1
+  displayName: 'Authenticate with nuget'
+
 - task: NuGetCommand@2
   displayName: 'Nuget Pack'
   inputs:

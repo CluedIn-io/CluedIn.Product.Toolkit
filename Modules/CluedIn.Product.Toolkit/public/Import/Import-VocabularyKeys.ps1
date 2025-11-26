@@ -32,7 +32,7 @@ function Import-VocabularyKeys{
 
     $vocabKeysPath = Join-Path -Path $RestorePath -ChildPath 'DataCatalog/Keys'
 
-    $vocabKeys = Get-ChildItem -Path $vocabKeysPath -Filter "*.json"
+    $vocabKeys = Get-ChildItem -Path $vocabKeysPath -Filter "*.json"   
     foreach ($vocabKey in $vocabKeys) {
         $vocabKeyJson = Get-Content -Path $vocabKey.FullName | ConvertFrom-Json -Depth 20
         $vocabKeyObject = $vocabKeyJson.data.management.vocabularyKeysFromVocabularyId.data
@@ -81,13 +81,6 @@ function Import-VocabularyKeys{
 
             $currentVocabularyKeyObjectResult = Get-CluedInVocabularyKey -KeyName $key.key
             $currentVocabularyKeyObject = $currentVocabularyKeyObjectResult.data.management.vocabularyPerKey
-            
-            if ($key.mapsToOtherKeyId) {
-                $mappedKeyId = Get-CluedInVocabularyKey -KeyName $key.mappedKey.key
-                $key.mapsToOtherKeyId = $mappedKeyID ?
-                    $mappedKeyId.data.management.vocabularyPerKey.vocabularyKeyId :
-                    $null
-            }
 
             if($null -ne $key.compositeVocabularyId) {
                 Write-Host "Skipping composite Vocab Key: $($key.key)" -ForegroundColor 'DarkCyan'
@@ -140,9 +133,12 @@ function Import-VocabularyKeys{
 
                 Write-Verbose "'$($key.key)' exists, overwriting existing configuration"
                 $vocabKeyUpdateResult = Set-CluedInVocabularyKey -Object $key
-                Check-ImportResult -Result $vocabKeyUpdateResult
+                Check-ImportResult -Result $vocabKeyUpdateResult            
             }
+        }
 
+        foreach ($key in ($vocabKeyObject | Where-Object { -not [string]::IsNullOrWhiteSpace($_.mapsToOtherKeyId)})) {
+            Write-Host "Processing Vocab Key Mapping for: $($key.key)" -ForegroundColor 'Cyan'
             if ($key.mapsToOtherKeyId) {
                 Write-Verbose "Processing Vocabulary Key Mapping"
                 $keyLookup = Get-CluedInVocabularyKey -Search $key.mappedKey.key
@@ -152,9 +148,13 @@ function Import-VocabularyKeys{
                     Write-Host "Setting Vocab Key mapping '$($key.key)' to '$($key.mappedKey.key)'" -ForegroundColor 'DarkCyan'
                     $mapResult = Set-CluedInVocabularyKeyMapping -Source $key.vocabularyKeyId -Destination $keyLookupId
                     Check-ImportResult -Result $mapResult
+                }else{
+                    Write-Warning "Could not find mapped key for '$($key.mappedKey.key)'. Please make sure that you are exporting the mapped key. Skipping mapping for '$($key.key)'"
                 }
             }
         }
+
+
     }
 }
 
@@ -168,9 +168,12 @@ function ResolveLookupKeys ($key, $LookupGlossaryTerms) {
             if($null -eq $LookupGlossaryTerms -or $LookupGlossaryTerms.Count -eq 0){
                 Write-Warning "No Lookup Glossary Terms provided. Most likey due to no Glossary Terms not being imported. Please make sure you export and import required glossaries if you are importing lookup keys."
             }
+
+            $glossaryTermId = ($LookupGlossaryTerms | Where-Object { $_.OriginalGlossaryTermId -eq $key.glossaryTermId })?.GlossaryTermId
+
             if([string]::IsNullOrWhiteSpace($glossaryTermId))
             {
-                Write-Error "Can not find matching glossary term for the look up field. Vocabulary: '$vocabName'; Vocabulary Key: '$($key.name)'; NewGlossaryTermId: '$glossaryTermId'; OriginalTermId: '$($key.glossaryTermId)'"
+                Write-Warning "Can not find matching glossary term for the look up field. Vocabulary: '$vocabName'; Vocabulary Key: '$($key.name)'; OriginalTermId: '$($key.glossaryTermId)'"
                 continue
             }
             Write-Host "Updating lookup glossary term id. Vocabulary: '$vocabName'; Vocabulary Key: '$($key.name)'; NewGlossaryTermId: '$glossaryTermId'; OriginalGlossaryTermId: '$($key.glossaryTermId)'"  -ForegroundColor 'DarkCyan'

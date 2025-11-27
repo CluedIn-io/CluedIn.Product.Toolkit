@@ -40,6 +40,11 @@ function Import-DataSets{
             continue
         }
 
+        if ($dataSetObject.configuration.object.archive -eq $true) {
+            Write-Warning "Importing of 'archived' data sets is not supported. Skipping import."
+            continue
+        }
+
         $dataSource = Get-CluedInDataSource -Search $dataSetObject.dataSource.name
         if (!$dataSource) { Write-Warning "Data Source '$($dataSetObject.dataSource.name)' not found"; continue }
         $dataSetObject.dataSource.id = $dataSource.data.inbound.dataSource.id

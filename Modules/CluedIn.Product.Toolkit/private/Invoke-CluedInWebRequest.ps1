@@ -58,7 +58,6 @@ function Invoke-CluedInWebRequest {
 
             Write-Verbose "Attempting again"
             $requestResult = invokeRequest
-
             if ($requestResult.StatusDescription -eq 'OK') { return ($requestResult.Content | ConvertFrom-Json) }
             else { Write-Error "Refreshed token, but received response: $($requestResult.StatusDescription)"; return }
         }

@@ -39,7 +39,7 @@ function Set-CluedInManualDataEntryProject {
                     vocabularyId   = $VocabularyId
                     vocabularyName = $Object.vocabulary.vocabularyName
                     keyPrefix      = $Object.vocabulary.keyPrefix
-                    new            = $false #TODO: How to set?!
+                    new            = $false # Expect this to be included as part of the vocabulary migration
                 }
             }
         }  

@@ -26,7 +26,7 @@ function New-CluedInManualDataEntryProjectFormField {
         projectId = $ManualDataEntryProjectId
         formField = @{
             vocabularyKeyConfiguration = @{
-                new               = $false # TODO: How to set??
+                new               = $false # Expect this to be included as part of the vocabulary migration
                 vocabularyKeyName = $Object.vocabularyKeyObject.key
                 vocabularyKeyId   = $VocabularyKeyId
             }

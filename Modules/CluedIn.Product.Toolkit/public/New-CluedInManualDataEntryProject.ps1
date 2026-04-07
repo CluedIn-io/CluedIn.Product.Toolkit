@@ -16,7 +16,8 @@ function New-CluedInManualDataEntryProject {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true)][PSCustomObject]$VocabularyId,
-        [Parameter(Mandatory = $true)][PSCustomObject]$Object
+        [Parameter(Mandatory = $true)][PSCustomObject]$Object,
+        [bool]$newEntityTypeConfiguration = $false
     )
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'createManualDataEntryProject'
@@ -28,13 +29,13 @@ function New-CluedInManualDataEntryProject {
             requireApproval         = $Object.requireApproval
             description             = $Object.description
             entityTypeConfiguration = @{
-                new         = $false #TODO: How to set?!
+                new         = $newEntityTypeConfiguration
                 icon        = $Object.entityTypeConfiguration.icon
                 entityType  = $Object.entityTypeConfiguration.entityType
                 displayName = $Object.entityTypeConfiguration.displayName
             }
             vocabularyConfiguration = @{
-                new            = $false #TODO: How to set?!
+                new            = $false # Expect this to be included as part of the vocabulary migration
                 vocabularyName = $Object.vocabulary.vocabularyName
                 keyPrefix      = $Object.vocabulary.keyPrefix
                 vocabularyId   = $VocabularyId

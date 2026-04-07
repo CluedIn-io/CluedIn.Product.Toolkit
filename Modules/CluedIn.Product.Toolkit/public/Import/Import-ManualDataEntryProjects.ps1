@@ -52,7 +52,12 @@ function Import-ManualDataEntryProjects {
         if ($manualDataEntryProjectObject.title -notin $currentManualDataEntryProjectObjects.title) {
             Write-Host "Creating Manual Data Entry Project '$($manualDataEntryProjectObject.title)'" -ForegroundColor 'Cyan'
 
-            $manualDataEntryProjectResult = New-CluedInManualDataEntryProject -VocabularyId $vocabularyId -Object $manualDataEntryProjectObject
+            # Check for existing entity type
+            $entityTypeResult = Get-CluedInEntityType -Search $($manualDataEntryProjectObject.entityTypeConfiguration.displayName)
+            $newEntityType = $entityTypeResult.data.management.entityTypeConfigurations.total -lt 1
+
+            $manualDataEntryProjectResult = New-CluedInManualDataEntryProject -VocabularyId $vocabularyId -newEntityTypeConfiguration $newEntityType -Object $manualDataEntryProjectObject
+
             Check-ImportResult -Result $manualDataEntryProjectResult
 
             $manualDataEntryProjectId = $manualDataEntryProjectResult.data.management.createManualDataEntryProject.id

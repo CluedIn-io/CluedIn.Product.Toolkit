@@ -1,0 +1,47 @@
+query getManualDataEntryProjects($pageNumber: Int, $pageSize: Int) {
+  management {
+    manualDataEntryProjects(pageNumber: $pageNumber, pageSize: $pageSize) {
+      total
+      data {
+        id
+        title
+        description
+        entityType
+        createdAt
+        createdBy
+        modifiedAt
+        modifiedBy
+        annotationId
+        entityTypeConfiguration {
+          icon
+          displayName
+          entityType
+          __typename
+        }
+        createdByUser {
+          id
+          email
+          username
+          __typename
+        }
+        formFields {
+          id
+          label
+          description
+          vocabularyKey
+          type
+          parameters
+          isRequired
+          onlyExistingValues
+          onlyAllowedValues
+          preventForbiddenValues
+          isArchived
+          __typename
+        }
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

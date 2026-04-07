@@ -1,0 +1,18 @@
+mutation saveManualDataEntryProject(
+  $id: ID!
+  $manualDataEntryProject: ManualDataEntryProjectInput
+) {
+  management {
+    saveManualDataEntryProject(
+      id: $id
+      manualDataEntryProject: $manualDataEntryProject
+    ) {
+      id
+      title
+      description
+      entityType
+      __typename
+    }
+    __typename
+  }
+}

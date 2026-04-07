@@ -1,0 +1,25 @@
+mutation saveManualDataEntryProjectFormField(
+  $projectId: ID!
+  $formField: FormFieldInput
+) {
+  management {
+    saveManualDataEntryProjectFormField(
+      projectId: $projectId
+      formField: $formField
+    ) {
+      id
+      label
+      description
+      vocabularyKey
+      type
+      onlyExistingValues
+      useAsEntityCode
+      isRequired
+      onlyAllowedValues
+      preventForbiddenValues
+      isArchived
+      __typename
+    }
+    __typename
+  }
+}

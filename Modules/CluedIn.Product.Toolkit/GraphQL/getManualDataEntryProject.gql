@@ -1,0 +1,160 @@
+query manualDataEntryProject($id: ID!) {
+  management {
+    manualDataEntryProject(id: $id) {
+      id
+      title
+      requireApproval
+      isOwner
+      description
+      entityType
+      hasPendingRecordsApproval
+      entityTypeConfiguration {
+        icon
+        displayName
+        entityType
+        __typename
+      }
+      createdAt
+      createdBy
+      createdByUser {
+        id
+        username
+        __typename
+      }
+      modifiedAt
+      modifiedBy
+      annotationId
+      fieldMappings {
+        id
+        originalField
+        key
+        columnType
+        columnSubType
+        __typename
+      }
+      connectorConfigurationId
+      connectorConfiguration {
+        id
+        name
+        accountDisplay
+        accountId
+        active
+        autoSync
+        codeName
+        connector {
+          id
+          icon
+          name
+          authMethods
+          properties
+          streamModes
+          __typename
+        }
+        createdDate
+        entityId
+        failingAuthentication
+        guide
+        helperConfiguration
+        providerId
+        reAuthEndpoint
+        source
+        sourceQuality
+        stats
+        status
+        supportsAutomaticWebhookCreation
+        supportsConfiguration
+        supportsWebhooks
+        userId
+        userName
+        users {
+          id
+          username
+          roles
+          __typename
+        }
+        permissions {
+          user {
+            id
+            username
+            __typename
+          }
+          role {
+            id
+            name
+            userCount
+            __typename
+          }
+          createdDate
+          __typename
+        }
+        webhookManagementEndpoints
+        webhooks
+        __typename
+      }
+      vocabularyId
+      vocabulary {
+        vocabularyId
+        vocabularyName
+        keyPrefix
+        __typename
+      }
+      formFields {
+        id
+        position
+        label
+        description
+        vocabularyKey
+        isRequired
+        createdAt
+        createdBy
+        type
+        onlyExistingValues
+        onlyAllowedValues
+        preventForbiddenValues
+        parameters
+        useAsEntityCode
+        isArchived
+        createdByUser {
+          id
+          username
+          __typename
+        }
+        vocabularyKeyObject {
+          displayName
+          vocabularyKeyId
+          isCluedInCore
+          isDynamic
+          isObsolete
+          mappedKey
+          isProvider
+          vocabularyId
+          name
+          isVisible
+          key
+          groupName
+          dataClassificationCode
+          dataType
+          description
+          providerId
+          mapsToOtherKeyId
+          vocabulary {
+            connector {
+              about
+              icon
+              id
+              name
+              __typename
+            }
+            vocabularyId
+            vocabularyName
+            __typename
+          }
+          __typename
+        }
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

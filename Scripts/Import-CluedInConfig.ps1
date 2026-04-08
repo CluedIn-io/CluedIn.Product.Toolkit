@@ -69,6 +69,8 @@ Import-CleanProjects -RestorePath $RestorePath
 
 Import-DeduplicationProjects -RestorePath $RestorePath
 
+Import-ManualDataEntryProjects -RestorePath $RestorePath
+
 Write-Host "INFO: Import Complete" -ForegroundColor 'Green'
 
 if ($IncludeSupportFiles) {

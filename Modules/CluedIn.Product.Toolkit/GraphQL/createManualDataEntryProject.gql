@@ -1,0 +1,22 @@
+mutation createManualDataEntryProject(
+  $manualDataEntryProject: ManualDataEntryProjectInput
+) {
+  management {
+    createManualDataEntryProject(
+      manualDataEntryProject: $manualDataEntryProject
+    ) {
+      id
+      title
+      description
+      entityType
+      entityTypeConfiguration {
+        icon
+        displayName
+        entityType
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

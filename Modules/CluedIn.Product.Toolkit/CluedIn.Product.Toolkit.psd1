@@ -118,7 +118,11 @@ FunctionsToExport = 'Connect-CluedInOrganization', 'Get-CluedInAdminSetting',
                'Import-Glossaries', 'Set-CluedInDataSourceDatabaseConfiguration',
                'Get-CluedInGlossaryTags', 'Set-CluedInDataSet',
                'New-CluedInAnnotationCode', 'Set-CluedInAnnotationCode',
-               'Get-CluedInAnnotationCodes'
+               'Get-CluedInAnnotationCodes', 'Export-ManualDataEntryProjects', 
+               'Get-CluedInManualDataEntryProject', 'Get-CluedInManualDataEntryProjects',
+               'Import-ManualDataEntryProjects', 'New-CluedInManualDataEntryProject', 
+               'Set-CluedInManualDataEntryProject', 'Set-CluedInManualDataEntryProjectFormField',
+               'New-CluedInManualDataEntryProjectFormField'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()

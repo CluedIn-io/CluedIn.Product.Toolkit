@@ -72,6 +72,7 @@ param(
     [string]$SelectGlossaries = 'None',
     [string]$SelectCleanProjects = 'None',
     [string]$SelectDeduplicationProjects = 'None',
+    [string]$SelectManualDataEntryProjects = 'None',
     [switch]$IncludeSupportFiles
 )
 
@@ -111,6 +112,8 @@ Export-Glossaries -BackupPath $BackupPath -SelectGlossaries $SelectGlossaries
 Export-CleanProjects -BackupPath $BackupPath -SelectCleanProjects $SelectCleanProjects
 
 Export-DeduplicationProjects -BackupPath $BackupPath -SelectDeduplicationProjects $SelectDeduplicationProjects 
+
+Export-ManualDataEntryProjects -BackupPath $BackupPath -SelectManualDataEntryProjects $SelectManualDataEntryProjects 
 
 Write-Host "INFO: Backup now complete"
 

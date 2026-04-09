@@ -95,7 +95,7 @@ function Get-CluedInVocabularyKey {
         }
         'KeyName' {
             Write-Verbose "Getting key by key name"
-            $script:queryContent = Get-CluedInGQLQuery -OperationName 'getVocabularyByKeyName'
+            $script:queryContent = Get-CluedInGQLQuery -OperationName 'getVocabularyKeyByKeyName'
 
             $variables = @{
                 key = $KeyName

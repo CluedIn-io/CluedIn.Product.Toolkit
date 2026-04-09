@@ -36,7 +36,7 @@ function Import-Vocabularies{
         
         $entityTypeResult = Get-CluedInEntityType -Search $($vocabObject.entityTypeConfiguration.displayName)
         if ($entityTypeResult.data.management.entityTypeConfigurations.total -lt 1) {
-            Write-Host "Creating entity type: $($entityTypeResult.data.management.entityTypeConfigurations.total)" 
+            Write-Host "Creating entity type: $($vocabObject.entityTypeConfiguration.displayName)" -ForegroundColor Cyan
             $entityResult = New-CluedInEntityType -Object $vocabObject.entityTypeConfiguration
             Check-ImportResult -Result $entityResult
         }

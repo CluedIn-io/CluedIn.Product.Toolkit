@@ -1,0 +1,24 @@
+mutation addManualDataEntryProjectFormField(
+  $projectId: ID!
+  $formField: FormFieldInput
+) {
+  management {
+    addManualDataEntryProjectFormField(
+      projectId: $projectId
+      formField: $formField
+    ) {
+      id
+      label
+      description
+      vocabularyKey
+      type
+      onlyExistingValues
+      isRequired
+      onlyAllowedValues
+      preventForbiddenValues
+      parameters
+      __typename
+    }
+    __typename
+  }
+}

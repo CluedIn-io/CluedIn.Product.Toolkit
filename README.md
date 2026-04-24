@@ -4,57 +4,168 @@ A toolkit to work with the CluedIn product utilising GraphQL query language.
 
 This toolkit is provided by CluedIn to assist with environment switching. Please note that it is not included within the CluedIn license.
 
+## Contents
+
+- [Requirements](#requirements)
+- [Supported Resources](#supported-resources)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Scripts](#scripts)
+  - [Export-CluedInConfig.ps1](#export-cluedinconfigps1)
+  - [Import-CluedInConfig.ps1](#import-cluedinconfigps1)
+- [Azure DevOps Pipeline](#azure-devops-pipeline)
+- [Notes](#notes)
+
+## Requirements
+
+- PowerShell Core (7+). Works on both Windows and Linux versions of `pwsh`.
+- Network access from the host running the toolkit to the CluedIn instance(s) involved.
+
+## Supported Resources
+
+The toolkit can export and import the following CluedIn resources:
+
+| Resource | Export Parameter | Notes |
+| --- | --- | --- |
+| Admin Settings | `-BackupAdminSettings` | Switch parameter. Always restored on import when present in the backup. |
+| Data Source Sets & Data Sets | `-SelectDataSets` | Data source sets are exported alongside their data sets. Archived data sets are excluded. |
+| Vocabularies & Vocabulary Keys | `-SelectVocabularies` | `All` is **not** supported here to avoid exporting the core vocabularies shipped with CluedIn (which may contain thousands of keys). |
+| Rules | `-SelectRules` | Agnostic to rule type — provide the GUIDs. |
+| Export Targets | `-SelectExportTargets` | |
+| Streams | `-SelectStreams` | |
+| Glossaries & Glossary Terms | `-SelectGlossaries` | Terms are exported along with their parent glossary. |
+| Clean Projects | `-SelectCleanProjects` | |
+| Deduplication Projects | `-SelectDeduplicationProjects` | |
+| Manual Data Entry Projects | `-SelectManualDataEntryProjects` | |
+
+Each `Select...` parameter accepts:
+
+- `None` (default) — nothing of that type is exported.
+- `All` — export every instance of that resource (not supported for `SelectVocabularies`).
+- A comma-separated list of Ids/GUIDs/names wrapped in a string, e.g. `'66505aa1-bacb-463e-832c-799c484577a8, e257a226-d91c-4946-a8af-85ef803cf55e'`.
+
+There is no hard-and-fast export order — you can mix and match the `Select...` parameters as needed, export a few at a time, or export everything in one run.
+
 ## Installation
 
-It is possible to use this toolkit locally, as well as having it automated via a pipeline. 
+This toolkit can be used both locally and from an automated pipeline.
 
-We support PowerShell Core (7+) only, and it will work on both Windows and Linux versions of `pwsh`
+1. Open a `pwsh` session.
+1. Import the module:
+   ```powershell
+   Import-Module /path/to/CluedIn.Product.Toolkit
+   ```
+1. You are now ready to use the functions or scripts.
 
-### Local Usage
+To list available functions, run `Get-Command -Module CluedIn.Product.Toolkit`.
+To see how to use an individual function, run `Get-Help -Name <functionName>`.
 
-Using this toolkit is very simple from a local usage perspective. We simply import the module, and run either the functions or scripts depending on what is trying to be achieved.
+### Authentication
 
-1. Open up a `pwsh` and import the module. If doing this locally, you can simply do:
-    `Import-Module /path/to/CluedIn.Product.Toolkit`
-1. Once imported, we are ready to use the Functions or the Scripts.
-1. If using the functions, please ensure you run `Connect-CluedInOrganization` before running any function, as it will fail to produce any results.
+If you plan on calling the individual functions (as opposed to the bundled scripts), run `Connect-CluedInOrganization` before calling any function — otherwise they will fail to produce results.
 
-    **Note**: The functions rely on a JWToken being obtained. This token by default will last 60 minutes only. If it loses connection, you'll need to run `Connect-CluedInOrganization -Force` to refresh.
-    
-1. Once you have connected successfully, you can then run any function within the toolkit. 
+> **Note:** The functions rely on a JWT that by default lasts 60 minutes. If it expires, run `Connect-CluedInOrganization -Force` to refresh.
 
-To list out functions availabe, you can run `Get-Command -Module CluedIn.Product.Toolkit`.
-To see how to use the functions, you can run `Get-Help -Name ${functionName}`
+The bundled `Export-CluedInConfig.ps1` and `Import-CluedInConfig.ps1` scripts will call `Connect-CluedInOrganization` themselves, so you don't need to connect beforehand when using them.
 
-Included in the toolkit are 2 main scripts.
-- `Export-CluedInConfig.ps1`
-- `Import-CluedInConfig.ps1`
+## Quick Start
 
-Both of these will work so long as you have the toolkit imported. It will attempt to connect when you run them, so it's not necessary to run `Connect-CluedInOrganization` beforehand.
+Export some rules and streams from a source environment:
 
-The way it works is `Export-CluedInConfig.ps1` will export the configuration as json files.
-You must specify `BaseURL`, `Organization`, and `BackupPath`. There are then a few additional parameters to define what to export. These begin with `Select` followed by the type of resource to export. (ie. `SelectDataSets`).
+```powershell
+./Scripts/Export-CluedInConfig.ps1 `
+    -BaseURL 'cluedin.com' `
+    -Organization 'source' `
+    -BackupPath 'C:\backups\cluedin' `
+    -SelectRules 'All' `
+    -SelectStreams 'All'
+```
 
-**Note**: If you are using this on a 'Home' environment, you'll need to append port 8888 (`:8888`) to the end of the base URL and also use `-UseHTTP` as HTTPS isn't supported in home environments by default.
+Validate the produced JSON files under `-BackupPath` and make any adjustments if necessary.
 
-By default, all these will be set to `None`, meaning if you were to run the script without specifying what to export, you will export nothing. There is no hard and fast rule as to export order. You can export a few bits at once, you can export everything, and mix and match. Another supported value is `All` which will work for all Select parameters except for `SelectVocabularies`. This is because CluedIn by default comes shipped with Core Vocabularies which may contain thousands of vocabulary keys. This is not ideal in an export scenario.
+We recommend starting a fresh PowerShell session (so any cached tokens/variables are cleared) and then importing into the destination:
 
-Once you have exported the configuration, you can validate these by navigating to the specified `BackupPath` and seeing the files in `json` format. You can make any adjustments here if necessary, or simply validate it's what you're expecting.
+```powershell
+./Scripts/Import-CluedInConfig.ps1 `
+    -BaseURL 'cluedin.com' `
+    -Organization 'destination' `
+    -RestorePath 'C:\backups\cluedin'
+```
 
-When you're ready, you can then run `Import-CluedInConfig.ps1`. We recommend starting a new PowerShell session before doing this so that any potential variables are wiped clean beforehand.
+The import restores everything found under `RestorePath` and handles drift — if it matches an existing item that has been updated, it is reconciled back to the values in the backup.
 
-The import simply needs to know the destination and the folder to restore. There's nothing you need to specify as it'll restore everything in the `RestoreFolder`. The import process will cover drift as well. If it matches an existing field that may have been updated, it'll ensure it's set to the correct values.
+Validate the result by logging into the destination URL and checking that the resources have been transferred across.
 
-You can then validate by logging into the destination URL and ensuring everything has been transferred across.
+## Scripts
 
-### Azure DevOps Pipeline
+### Export-CluedInConfig.ps1
 
-The Azure DevOps pipeline method works in the same way as the local version, but it runs on an ADO Build Agent instead. This build agent must be able to reach the CluedIn instances, otherwise it will fail.
+Exports the selected configuration from a connected environment as a set of JSON files.
 
-We have provided sample pipelines for backup, restore, and a combined version of the two called transfer.
+By default every `Select...` parameter is `None`. Running the script without any of them will connect to the environment and only run the default settings pass — no resources will be exported.
 
-These are boilerplate samples, and will require your team to adjust to your needs. They're just a guide on how to set them up and will not work without additional work on your end. 
+| Parameter | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `BaseURL` | string | Yes | — | Base URL of the CluedIn instance. For `https://cluedin.domain.com`, the BaseURL is `domain.com`. |
+| `Organization` | string | Yes | — | Organization portion of the URL. For `https://cluedin.domain.com`, the Organization is `cluedin`. Alias: `Organisation`. |
+| `BackupPath` | string | Yes | — | Location where the export files will be written. |
+| `UseHTTP` | switch | No | `$false` | Use HTTP instead of HTTPS. Required for 'Home' environments. |
+| `BackupAdminSettings` | switch | No | `$false` | Include admin settings in the export. |
+| `SelectVocabularies` | string | No | `None` | Vocabularies (and their keys) to export. CSV of GUIDs or names. `All` is **not** supported. |
+| `SelectDataSets` | string | No | `None` | Data Sets to export. `None`, `All`, or CSV of Ids. |
+| `SelectRules` | string | No | `None` | Rules to export (any rule type). `None`, `All`, or CSV of GUIDs. |
+| `SelectExportTargets` | string | No | `None` | Export Targets to export. `None`, `All`, or CSV of Ids. |
+| `SelectStreams` | string | No | `None` | Streams to export. `None`, `All`, or CSV of Ids. |
+| `SelectGlossaries` | string | No | `None` | Glossaries to export (terms are included automatically). `None`, `All`, or CSV of Ids. |
+| `SelectCleanProjects` | string | No | `None` | Clean Projects to export. `None`, `All`, or CSV of Ids. |
+| `SelectDeduplicationProjects` | string | No | `None` | Deduplication Projects to export. `None`, `All`, or CSV of Ids. |
+| `SelectManualDataEntryProjects` | string | No | `None` | Manual Data Entry Projects to export. `None`, `All`, or CSV of Ids. |
+| `IncludeSupportFiles` | switch | No | `$false` | Wraps the JSON export with a transcript and produces a ZIP for CluedIn support to diagnose migration issues. |
 
-Please refer to `README-Pipelines.md`.
+**Example**
 
-**Note** Please ensure rule names are unique to avoid lookup conflicts.
+```powershell
+./Scripts/Export-CluedInConfig.ps1 `
+    -BaseURL 'cluedin.com' `
+    -Organization 'dev' `
+    -BackupPath 'C:\backups\cluedin' `
+    -SelectVocabularies 'organization,user' `
+    -SelectRules 'All' `
+    -SelectStreams 'All' `
+    -BackupAdminSettings
+```
+
+### Import-CluedInConfig.ps1
+
+Restores a previously exported configuration into the connected environment. No `Select...` parameters are needed — everything found in `RestorePath` is imported.
+
+| Parameter | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `BaseURL` | string | Yes | — | Base URL of the destination CluedIn instance. |
+| `Organization` | string | Yes | — | Organization portion of the destination URL. Alias: `Organisation`. |
+| `RestorePath` | string | Yes | — | Path to the folder produced by `Export-CluedInConfig.ps1`. |
+| `UseHTTP` | switch | No | `$false` | Use HTTP instead of HTTPS. Required for 'Home' environments. |
+| `IncludeSupportFiles` | switch | No | `$false` | Wraps the run with a transcript and produces a ZIP for CluedIn support. |
+
+**Example**
+
+```powershell
+./Scripts/Import-CluedInConfig.ps1 `
+    -BaseURL 'cluedin.com' `
+    -Organization 'prod' `
+    -RestorePath 'C:\backups\cluedin'
+```
+
+## Azure DevOps Pipeline
+
+The Azure DevOps pipeline method works in the same way as the local version, but it runs on an ADO Build Agent instead. The build agent must be able to reach the CluedIn instances, otherwise it will fail.
+
+We have provided sample pipelines for backup, restore, and a combined version of the two called *transfer*. These are boilerplate samples and will require your team to adjust them to your needs — they are a guide on how to set them up and will not work without additional work on your end.
+
+Please refer to [`README-Pipelines.md`](README-Pipelines.md).
+
+## Notes
+
+- If you are using a 'Home' environment, append port `:8888` to the end of the base URL and also pass `-UseHTTP`, since HTTPS isn't supported in home environments by default.
+- Please ensure rule names are unique to avoid lookup conflicts.
+- After an import, validate by logging into the destination URL and confirming everything has been transferred across.

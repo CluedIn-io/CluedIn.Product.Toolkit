@@ -105,11 +105,11 @@ function Export-VocabularyKeys {
             $structure = [PSCustomObject]@{
                 data = [PSCustomObject]@{
                     management = [PSCustomObject]@{
-                        id              = $null
+                        id              = "management" # Copied this value to reflect the structure returned by the API. It shouldnt matter but aligning it just incase something uses it downstream 
                         vocabularyKeysFromVocabularyId = [PSCustomObject]@{
                             total      = $newKeys.Count
                             data       = $newKeys
-                            __typename = 'VocabularyKeysPaged'
+                            __typename = 'PagedVocabularyKey'
                         }
                         __typename = 'Management'
                     }

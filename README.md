@@ -30,6 +30,10 @@ The toolkit can export and import the following CluedIn resources:
 | Admin Settings | `-BackupAdminSettings` | Switch parameter. Always restored on import when present in the backup. |
 | Data Source Sets & Data Sets | `-SelectDataSets` | Data source sets are exported alongside their data sets. Archived data sets are excluded. |
 | Vocabularies & Vocabulary Keys | `-SelectVocabularies` | `All` is **not** supported here to avoid exporting the core vocabularies shipped with CluedIn (which may contain thousands of keys). |
+<<<<<<< HEAD
+=======
+| Individual Vocabulary Keys | `-SelectVocabularyKeys` | Exports specific keys by full key name (e.g. `organization.user.firstName`). The parent vocabulary metadata is automatically included so the import works without also running `-SelectVocabularies`. Keys are saved in the same format as `-SelectVocabularies` so the import step is unchanged. `All` is not supported — a CSV of key names is required. |
+>>>>>>> c152350 (Feat/export individual keys (#99))
 | Rules | `-SelectRules` | Agnostic to rule type — provide the GUIDs. |
 | Export Targets | `-SelectExportTargets` | |
 | Streams | `-SelectStreams` | |
@@ -99,9 +103,72 @@ Validate the result by logging into the destination URL and checking that the re
 ## Scripts
 
 ### Export-CluedInConfig.ps1
+<<<<<<< HEAD
+=======
 
 Exports the selected configuration from a connected environment as a set of JSON files.
 
+By default every `Select...` parameter is `None`. Running the script without any of them will connect to the environment and only run the default settings pass — no resources will be exported.
+
+| Parameter | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `BaseURL` | string | Yes | — | Base URL of the CluedIn instance. For `https://cluedin.domain.com`, the BaseURL is `domain.com`. |
+| `Organization` | string | Yes | — | Organization portion of the URL. For `https://cluedin.domain.com`, the Organization is `cluedin`. Alias: `Organisation`. |
+| `BackupPath` | string | Yes | — | Location where the export files will be written. |
+| `UseHTTP` | switch | No | `$false` | Use HTTP instead of HTTPS. Required for 'Home' environments. |
+| `BackupAdminSettings` | switch | No | `$false` | Include admin settings in the export. |
+| `SelectVocabularies` | string | No | `None` | Vocabularies (and their keys) to export. CSV of GUIDs or names. `All` is **not** supported. |
+| `SelectVocabularyKeys` | string | No | `None` | Individual vocabulary keys to export by full key name. CSV of key names, e.g. `'organization.user.firstName, organization.user.lastName'`. The parent vocabulary metadata is automatically exported alongside the keys so the import works correctly even without `-SelectVocabularies`. `All` is not supported. |
+| `SelectDataSets` | string | No | `None` | Data Sets to export. `None`, `All`, or CSV of Ids. |
+| `SelectRules` | string | No | `None` | Rules to export (any rule type). `None`, `All`, or CSV of GUIDs. |
+| `SelectExportTargets` | string | No | `None` | Export Targets to export. `None`, `All`, or CSV of Ids. |
+| `SelectStreams` | string | No | `None` | Streams to export. `None`, `All`, or CSV of Ids. |
+| `SelectGlossaries` | string | No | `None` | Glossaries to export (terms are included automatically). `None`, `All`, or CSV of Ids. |
+| `SelectCleanProjects` | string | No | `None` | Clean Projects to export. `None`, `All`, or CSV of Ids. |
+| `SelectDeduplicationProjects` | string | No | `None` | Deduplication Projects to export. `None`, `All`, or CSV of Ids. |
+| `SelectManualDataEntryProjects` | string | No | `None` | Manual Data Entry Projects to export. `None`, `All`, or CSV of Ids. |
+| `IncludeSupportFiles` | switch | No | `$false` | Wraps the JSON export with a transcript and produces a ZIP for CluedIn support to diagnose migration issues. |
+
+**Example**
+
+```powershell
+./Scripts/Export-CluedInConfig.ps1 `
+    -BaseURL 'cluedin.com' `
+    -Organization 'dev' `
+    -BackupPath 'C:\backups\cluedin' `
+    -SelectVocabularies 'organization,user' `
+    -SelectRules 'All' `
+    -SelectStreams 'All' `
+    -BackupAdminSettings
+```
+
+### Import-CluedInConfig.ps1
+
+Restores a previously exported configuration into the connected environment. No `Select...` parameters are needed — everything found in `RestorePath` is imported.
+
+| Parameter | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `BaseURL` | string | Yes | — | Base URL of the destination CluedIn instance. |
+| `Organization` | string | Yes | — | Organization portion of the destination URL. Alias: `Organisation`. |
+| `RestorePath` | string | Yes | — | Path to the folder produced by `Export-CluedInConfig.ps1`. |
+| `UseHTTP` | switch | No | `$false` | Use HTTP instead of HTTPS. Required for 'Home' environments. |
+| `IncludeSupportFiles` | switch | No | `$false` | Wraps the run with a transcript and produces a ZIP for CluedIn support. |
+
+**Example**
+
+```powershell
+./Scripts/Import-CluedInConfig.ps1 `
+    -BaseURL 'cluedin.com' `
+    -Organization 'prod' `
+    -RestorePath 'C:\backups\cluedin'
+```
+
+## Azure DevOps Pipeline
+>>>>>>> c152350 (Feat/export individual keys (#99))
+
+Exports the selected configuration from a connected environment as a set of JSON files.
+
+<<<<<<< HEAD
 By default every `Select...` parameter is `None`. Running the script without any of them will connect to the environment and only run the default settings pass — no resources will be exported.
 
 | Parameter | Type | Required | Default | Description |
@@ -166,6 +233,14 @@ Please refer to [`README-Pipelines.md`](README-Pipelines.md).
 
 ## Notes
 
+=======
+We have provided sample pipelines for backup, restore, and a combined version of the two called *transfer*. These are boilerplate samples and will require your team to adjust them to your needs — they are a guide on how to set them up and will not work without additional work on your end.
+
+Please refer to [`README-Pipelines.md`](README-Pipelines.md).
+
+## Notes
+
+>>>>>>> c152350 (Feat/export individual keys (#99))
 - If you are using a 'Home' environment, append port `:8888` to the end of the base URL and also pass `-UseHTTP`, since HTTPS isn't supported in home environments by default.
 - Please ensure rule names are unique to avoid lookup conflicts.
 - After an import, validate by logging into the destination URL and confirming everything has been transferred across.

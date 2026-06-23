@@ -134,6 +134,51 @@ Validate the result by logging into the destination URL and checking that the re
 ## Scripts
 
 ### Export-CluedInConfig.ps1
+| `SelectDataSets` | string | No | `None` | Data Sets to export. `None`, `All`, or CSV of Ids. |
+| `SelectRules` | string | No | `None` | Rules to export (any rule type). `None`, `All`, or CSV of GUIDs. |
+| `SelectExportTargets` | string | No | `None` | Export Targets to export. `None`, `All`, or CSV of Ids. |
+| `SelectStreams` | string | No | `None` | Streams to export. `None`, `All`, or CSV of Ids. |
+| `SelectGlossaries` | string | No | `None` | Glossaries to export (terms are included automatically). `None`, `All`, or CSV of Ids. |
+| `SelectCleanProjects` | string | No | `None` | Clean Projects to export. `None`, `All`, or CSV of Ids. |
+| `SelectDeduplicationProjects` | string | No | `None` | Deduplication Projects to export. `None`, `All`, or CSV of Ids. |
+| `SelectManualDataEntryProjects` | string | No | `None` | Manual Data Entry Projects to export. `None`, `All`, or CSV of Ids. |
+| `IncludeSupportFiles` | switch | No | `$false` | Wraps the JSON export with a transcript and produces a ZIP for CluedIn support to diagnose migration issues. |
+
+**Example**
+
+```powershell
+./Scripts/Export-CluedInConfig.ps1 `
+    -BaseURL 'cluedin.com' `
+    -Organization 'dev' `
+    -BackupPath 'C:\backups\cluedin' `
+    -SelectVocabularies 'organization,user' `
+    -SelectRules 'All' `
+    -SelectStreams 'All' `
+    -BackupAdminSettings
+```
+
+### Import-CluedInConfig.ps1
+
+Restores a previously exported configuration into the connected environment. No `Select...` parameters are needed — everything found in `RestorePath` is imported.
+
+| Parameter | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `BaseURL` | string | Yes | — | Base URL of the destination CluedIn instance. |
+| `Organization` | string | Yes | — | Organization portion of the destination URL. Alias: `Organisation`. |
+| `RestorePath` | string | Yes | — | Path to the folder produced by `Export-CluedInConfig.ps1`. |
+| `UseHTTP` | switch | No | `$false` | Use HTTP instead of HTTPS. Required for 'Home' environments. |
+| `IncludeSupportFiles` | switch | No | `$false` | Wraps the run with a transcript and produces a ZIP for CluedIn support. |
+
+**Example**
+
+```powershell
+./Scripts/Import-CluedInConfig.ps1 `
+    -BaseURL 'cluedin.com' `
+    -Organization 'prod' `
+    -RestorePath 'C:\backups\cluedin'
+```
+
+## Azure DevOps Pipeline
 
 Exports the selected configuration from a connected environment as a set of JSON files.
 
@@ -147,7 +192,6 @@ By default every `Select...` parameter is `None`. Running the script without any
 | `UseHTTP` | switch | No | `$false` | Use HTTP instead of HTTPS. Required for 'Home' environments. |
 | `BackupAdminSettings` | switch | No | `$false` | Include admin settings in the export. |
 | `SelectVocabularies` | string | No | `None` | Vocabularies (and their keys) to export. CSV of GUIDs or names. `All` is **not** supported. |
-| `SelectVocabularyKeys` | string | No | `None` | Individual vocabulary keys to export by full key name. CSV of key names, e.g. `'organization.user.firstName, organization.user.lastName'`. The parent vocabulary metadata is automatically exported alongside the keys so the import works correctly even without `-SelectVocabularies`. `All` is not supported. |
 | `SelectDataSets` | string | No | `None` | Data Sets to export. `None`, `All`, or CSV of Ids. |
 | `SelectRules` | string | No | `None` | Rules to export (any rule type). `None`, `All`, or CSV of GUIDs. |
 | `SelectExportTargets` | string | No | `None` | Export Targets to export. `None`, `All`, or CSV of Ids. |
@@ -201,6 +245,9 @@ We have provided sample pipelines for backup, restore, and a combined version of
 Please refer to [`README-Pipelines.md`](README-Pipelines.md).
 
 ## Notes
+We have provided sample pipelines for backup, restore, and a combined version of the two called *transfer*. These are boilerplate samples and will require your team to adjust them to your needs — they are a guide on how to set them up and will not work without additional work on your end.
+
+Please refer to [`README-Pipelines.md`](README-Pipelines.md).
 
 - If you are using a 'Home' environment, append port `:8888` to the end of the base URL and also pass `-UseHTTP`, since HTTPS isn't supported in home environments by default.
 - Please ensure rule names are unique to avoid lookup conflicts.

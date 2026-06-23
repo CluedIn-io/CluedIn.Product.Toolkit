@@ -22,6 +22,12 @@
 
     Example: '66505aa1-bacb-463e-832c-799c484577a8,e257a226-d91c-4946-a8af-85ef803cf55e,organization,user'
 
+    .PARAMETER SelectVocabularyKeys
+    This is a list of individual vocabulary keys to back up, identified by their full key name.
+    Use this when you need to export specific keys without exporting the entire parent vocabulary.
+
+    Example: 'organization.user.firstName, organization.user.lastName'
+
     .PARAMETER SelectDataSets
     This is a list of Data Sets to backup.
     Default value is 'None', but 'All' and ints are accepted in csv format wrapped in a string.
@@ -65,6 +71,7 @@ param(
     [switch]$UseHTTP,
     [switch]$BackupAdminSettings,
     [string]$SelectVocabularies = 'None',
+    [string]$SelectVocabularyKeys = 'None',
     [string]$SelectDataSets = 'None',
     [string]$SelectRules = 'None',
     [string]$SelectExportTargets = 'None',
@@ -100,6 +107,8 @@ $dataSourceSets = Export-DataSourceSets -BackupPath $BackupPath -SelectDataSets 
 Export-DataSets -BackupPath $BackupPath -SelectDataSets $SelectDataSets -DataSourceSets $dataSourceSets
 
 Export-Vocabularies -BackupPath $BackupPath -SelectVocabularies $SelectVocabularies
+
+Export-VocabularyKeys -BackupPath $BackupPath -SelectVocabularyKeys $SelectVocabularyKeys
 
 Export-Rules -BackupPath $BackupPath -SelectRules $SelectRules
 

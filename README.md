@@ -49,18 +49,55 @@ There is no hard-and-fast export order — you can mix and match the `Select...`
 
 ## Installation
 
-It is possible to use this toolkit locally, as well as having it automated via a pipeline. 
+This toolkit can be used both locally and from an automated pipeline.
 
-We support PowerShell Core (7+) only, and it will work on both Windows and Linux versions of `pwsh`
+1. Open a `pwsh` session.
+1. Import the module:
+   ```powershell
+   Import-Module /path/to/CluedIn.Product.Toolkit
+   ```
+1. You are now ready to use the functions or scripts.
 
-### Local Usage
+To list available functions, run `Get-Command -Module CluedIn.Product.Toolkit`.
+To see how to use an individual function, run `Get-Help -Name <functionName>`.
 
-Using this toolkit is very simple from a local usage perspective. We simply import the module, and run either the functions or scripts depending on what is trying to be achieved.
+### Authentication
 
-1. Open up a `pwsh` and import the module. If doing this locally, you can simply do:
-    `Import-Module /path/to/CluedIn.Product.Toolkit`
-1. Once imported, we are ready to use the Functions or the Scripts.
-1. If using the functions, please ensure you run `Connect-CluedInOrganization` before running any function, as it will fail to produce any results.
+If you plan on calling the individual functions (as opposed to the bundled scripts), run `Connect-CluedInOrganization` before calling any function — otherwise they will fail to produce results.
+
+> **Note:** The functions rely on a JWT that by default lasts 60 minutes. If it expires, run `Connect-CluedInOrganization -Force` to refresh.
+
+The bundled `Export-CluedInConfig.ps1` and `Import-CluedInConfig.ps1` scripts will call `Connect-CluedInOrganization` themselves, so you don't need to connect beforehand when using them.
+
+## Quick Start
+
+Export some rules and streams from a source environment:
+
+```powershell
+./Scripts/Export-CluedInConfig.ps1 `
+    -BaseURL 'cluedin.com' `
+    -Organization 'source' `
+    -BackupPath 'C:\backups\cluedin' `
+    -SelectRules 'All' `
+    -SelectStreams 'All'
+```
+
+Validate the produced JSON files under `-BackupPath` and make any adjustments if necessary.
+
+We recommend starting a fresh PowerShell session (so any cached tokens/variables are cleared) and then importing into the destination:
+
+```powershell
+./Scripts/Import-CluedInConfig.ps1 `
+    -BaseURL 'cluedin.com' `
+    -Organization 'destination' `
+    -RestorePath 'C:\backups\cluedin'
+```
+
+The import restores everything found under `RestorePath` and handles drift — if it matches an existing item that has been updated, it is reconciled back to the values in the backup.
+
+Validate the result by logging into the destination URL and checking that the resources have been transferred across.
+
+## Scripts
 
 > **Note:** The functions rely on a JWT that by default lasts 60 minutes. If it expires, run `Connect-CluedInOrganization -Force` to refresh.
 
@@ -157,7 +194,7 @@ Restores a previously exported configuration into the connected environment. No 
 
 ## Azure DevOps Pipeline
 
-The Azure DevOps pipeline method works in the same way as the local version, but it runs on an ADO Build Agent instead. This build agent must be able to reach the CluedIn instances, otherwise it will fail.
+The Azure DevOps pipeline method works in the same way as the local version, but it runs on an ADO Build Agent instead. The build agent must be able to reach the CluedIn instances, otherwise it will fail.
 
 We have provided sample pipelines for backup, restore, and a combined version of the two called *transfer*. These are boilerplate samples and will require your team to adjust them to your needs — they are a guide on how to set them up and will not work without additional work on your end.
 

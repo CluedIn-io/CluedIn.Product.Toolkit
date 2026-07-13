@@ -1,8 +1,12 @@
-query getDataSetById($id: ID!) {
+query getDataSetById($id: ID!, $includeStatusesByLogs: Boolean = false) {
   inbound {
     id
-    dataSet(id: $id) {
+    dataSet(id: $id, includeStatusesByLogs: $includeStatusesByLogs) {
       id
+      annotation {
+        ...AnnotationFragment
+        __typename
+      }
       name
       touched
       createdAt
@@ -12,9 +16,7 @@ query getDataSetById($id: ID!) {
       hasReceivedData
       sanitizeUnicodes
       elasticTotal
-      hasParsingWarnings
       expectedTotal
-      canResetMapping
       hasSubmissions
       lastPurgedAt
       isOwner
@@ -23,6 +25,7 @@ query getDataSetById($id: ID!) {
       isArchive
       hasQuarantineData
       hasPendingRecordsApproval
+      lastSwitchedToDefaultMode
       supportsIngestionSourceId
       archivedBy
       fileSize
@@ -51,12 +54,13 @@ query getDataSetById($id: ID!) {
         __typename
       }
       currentLoadedSize
+      hasParsingWarnings
       hasValidationParsingError
       hasValidationStoringError
       hasValidationMappingError
       hasValidationProcessingError
+      hasValidationEnrichingError
       editModeElasticTotal
-      hasSubmissions
       failedLoadingTotal
       isDeleteInProgress
       archivedByUser {
@@ -79,6 +83,8 @@ query getDataSetById($id: ID!) {
         id
         entityType
         originEntityCodeKey
+        annotationCodeSetup
+        useEnricherOriginEntityCode
         lastSubmissionPurgedByUser {
           id
           username
@@ -97,7 +103,15 @@ query getDataSetById($id: ID!) {
       }
       dataSourceId
       configuration
+      schemaDriftProtection
       dataSourceHasDuplicatedEntityType
+      sourceOriginalFields {
+        name
+        dataSetId
+        createdAt
+        updatedAt
+        __typename
+      }
       dataSource {
         id
         name
@@ -105,6 +119,38 @@ query getDataSetById($id: ID!) {
         stopped
         connectorConfigurationId
         crashedDuringUpload
+        canBeDeleted
+        landingZone {
+          entityType
+          vocabKeyPrefix
+          origin
+          originField
+          autoMap
+          autoSubmission
+          useEnricherOriginEntityCode
+          supportConfidenceScore
+          confidenceScoreEnabled
+          minConfidenceScore
+          maxConfidenceScore
+          confidenceAutoApprovalEnabled
+          confidenceAutoThreshold
+          confidenceQuarantineEnabled
+          confidenceQuarantineThreshold
+          entityTypeConfiguration {
+            icon
+            displayName
+            entityType
+            __typename
+          }
+          vocabularyConfiguration {
+            vocabularyName
+            vocabularyId
+            providerId
+            keyPrefix
+            __typename
+          }
+          __typename
+        }
         fileMetadata {
           fileName
           sanitizeUnicodes
@@ -159,7 +205,6 @@ query getDataSetById($id: ID!) {
         id
         name
         operation {
-          id
           parameters {
             key
             value
@@ -200,8 +245,163 @@ query getDataSetById($id: ID!) {
         __typename
       }
       onlyUpdateClueHeadVersion
+      quarantineCleaningJobInProgress
       __typename
     }
     __typename
   }
+}
+
+fragment AnnotationFragment on EntityAnnotation {
+  id
+  annotationCodeSetup
+  isDynamicVocab
+  name
+  entityType
+  previewImageKey
+  nameKey
+  descriptionKey
+  originEntityCodeKey
+  createdDateMap
+  modifiedDateMap
+  cultureKey
+  origin
+  versionKey
+  beforeCreatingClue
+  beforeSendingClue
+  useStrictEdgeCode
+  useDefaultSourceCode
+  vocabularyId
+  vocabulary {
+    vocabularyName
+    vocabularyId
+    providerId
+    keyPrefix
+    __typename
+  }
+  entityTypeConfiguration {
+    icon
+    displayName
+    entityType
+    __typename
+  }
+  annotationProperties {
+    key
+    vocabKey
+    coreVocab
+    useAsEntityCode
+    useAsAlias
+    useSourceCode
+    entityCodeOrigin
+    vocabularyKeyId
+    type
+    annotationEdges {
+      id
+      key
+      edgeType
+      entityTypeConfiguration {
+        icon
+        displayName
+        entityType
+        __typename
+      }
+      origin
+      dataSourceGroupId
+      dataSourceId
+      dataSetId
+      direction
+      edgeProperties {
+        id
+        annotationEdgeId
+        originalField
+        vocabularyKey {
+          displayName
+          vocabularyKeyId
+          isCluedInCore
+          isDynamic
+          isObsolete
+          isProvider
+          vocabularyId
+          name
+          isVisible
+          key
+          mappedKey
+          groupName
+          dataClassificationCode
+          dataType
+          description
+          providerId
+          mapsToOtherKeyId
+          __typename
+        }
+        __typename
+      }
+      __typename
+    }
+    vocabularyKey {
+      displayName
+      vocabularyKeyId
+      isCluedInCore
+      isDynamic
+      isObsolete
+      isProvider
+      vocabularyId
+      name
+      isVisible
+      key
+      mappedKey
+      groupName
+      dataClassificationCode
+      dataType
+      description
+      providerId
+      mapsToOtherKeyId
+      __typename
+    }
+    validations {
+      id
+      displayName
+      inverse
+      parameters {
+        key
+        value
+        __typename
+      }
+      __typename
+    }
+    transformations {
+      filters {
+        parameters {
+          key
+          value
+          __typename
+        }
+        id
+        displayName
+        inverse
+        __typename
+      }
+      operations {
+        inverse
+        parameters {
+          key
+          value
+          __typename
+        }
+        id
+        displayName
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+  lastSubmissionPurgedByUser {
+    id
+    username
+    __typename
+  }
+  lastSubmissionPurgedAt
+  lastSubmissionPurgedBy
+  __typename
 }

@@ -41,11 +41,10 @@ function Export-DataSets{
     foreach ($id in $dataSetIds) {
         Write-Verbose "Processing id: $id"
         $set = Get-CluedInDataSet -id $id
-        if ((!$?) -or ($set.errors)) { Write-Warning "Data Set Id '$id' was not found. This won't be backed up"; continue }
+        if ((!$?) -or ($set.errors) -or $null -eq $set) { Write-Warning "Data Set Id '$id' was not found. This won't be backed up"; continue }
 
         $dataSourceId = $set.data.inbound.dataSet.dataSourceId
         $dataSource = Get-CluedInDataSource -Id $dataSourceId
-
         if (!($dataSource.data.inbound.dataSource)) { Write-Warning "Data Source Id '$dataSourceId' was not found. This won't be backed up"; continue }
 
         # Caching of exports to avoid duplicated work.

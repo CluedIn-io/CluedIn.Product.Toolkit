@@ -24,6 +24,9 @@ function Import-CleanProjects{
     $cleanProjectsPath = Join-Path -Path $RestorePath -ChildPath 'CleanProjects'
 
     $cleanProjects = Get-ChildItem -Path $cleanProjectsPath -Filter "*.json" -Recurse
+    
+    if ($cleanProjects.count -eq 0) { Write-Verbose "No clean projects, continuing"; return }
+
     $currentCleanProjects = Get-CluedInCleanProjects
     $currentCleanProjectsObject = $currentCleanProjects.data.preparation.allCleanProjects.projects
 

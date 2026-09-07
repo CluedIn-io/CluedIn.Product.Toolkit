@@ -232,6 +232,9 @@ function Import-DataSets{
                 foreach ($edge in $edges) {
                     foreach ($edgeMapping in $edge.annotationEdges) {
                         # Skip if strict edge as we cannot guarentee we find the correct dataset/source/group
+                        foreach ($strictProperty in 'DataSetId', 'DataSourceGroupId', 'DataSourceId') {
+                            if ($edgeMapping.$strictProperty -eq '') { $edgeMapping.$strictProperty = $null }
+                        }
                         if($null -ne $edgeMapping.DataSetId -or $null -ne $edgeMapping.DataSourceGroupId -or $null -ne $edgeMapping.DataSourceId) {
                             Write-Warning "Importing of Strict Edges are not supported. Skipping strict edge for $($edgeMapping.key)"
                             continue

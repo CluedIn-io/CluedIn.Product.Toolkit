@@ -1,0 +1,25 @@
+query getRoles(
+  $searchName: String
+  $pageNumber: Int
+  $itemsPerPage: Int
+) {
+  administration {
+    id
+    roles(
+      searchName: $searchName
+      pageNumber: $pageNumber
+      itemsPerPage: $itemsPerPage
+    ) {
+      total
+      data {
+        id
+        name
+        description
+        userCount
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

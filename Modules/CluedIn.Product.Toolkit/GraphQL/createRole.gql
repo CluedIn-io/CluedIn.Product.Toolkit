@@ -1,0 +1,21 @@
+mutation createRole($role: InputCreateRole!) {
+  administration {
+    id
+    createRole(role: $role) {
+      id
+      name
+      description
+      userCount
+      claims {
+        id
+        name
+        friendlyName
+        value
+        category
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

@@ -1,0 +1,21 @@
+query getRole($roleName: String) {
+  administration {
+    id
+    role(roleName: $roleName) {
+      id
+      name
+      description
+      userCount
+      claims {
+        id
+        name
+        friendlyName
+        value
+        category
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

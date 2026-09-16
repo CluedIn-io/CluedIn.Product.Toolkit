@@ -65,6 +65,8 @@ $lookupConnectors = $lookupVocabularies = @(Import-ExportTargets -RestorePath $R
 
 Import-Streams -RestorePath $RestorePath -LookupConnectors $lookupConnectors
 
+Import-Roles -RestorePath $RestorePath
+
 Import-CleanProjects -RestorePath $RestorePath
 
 Import-DeduplicationProjects -RestorePath $RestorePath

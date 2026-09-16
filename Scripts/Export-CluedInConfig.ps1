@@ -22,6 +22,9 @@
 
     Example: '66505aa1-bacb-463e-832c-799c484577a8,e257a226-d91c-4946-a8af-85ef803cf55e,organization,user'
 
+    'Used' is also accepted, which backs up every custom vocabulary that CluedIn reports as being in use.
+    'All' is not supported as it would include the core vocabularies that ship with the product.
+
     .PARAMETER SelectVocabularyKeys
     This is a list of individual vocabulary keys to back up, identified by their full key name.
     Use this when you need to export specific keys without exporting the entire parent vocabulary.
@@ -50,6 +53,12 @@
     This is what Glossaries to export. It supports All, None, and csv format of the Id's.
     It will export all Glossary terms along with it as well.
 
+    .PARAMETER SelectRoles
+    This is a list of Roles to backup, along with every claim they hold and the level it's held at.
+    It supports All, None, and csv format of the role names or Id's.
+
+    Example: 'DataSteward, OrganizationAdmin'
+
     .PARAMETER SelectCleanProjects
     Specifies what Clean Projects to export. It supports All, None, and csv format of the Id's
 
@@ -77,6 +86,7 @@ param(
     [string]$SelectExportTargets = 'None',
     [string]$SelectStreams = 'None',
     [string]$SelectGlossaries = 'None',
+    [string]$SelectRoles = 'None',
     [string]$SelectCleanProjects = 'None',
     [string]$SelectDeduplicationProjects = 'None',
     [string]$SelectManualDataEntryProjects = 'None',
@@ -117,6 +127,8 @@ Export-ExportTargets -BackupPath $BackupPath -SelectExportTargets $SelectExportT
 Export-Streams -BackupPath $BackupPath -SelectStreams $SelectStreams
 
 Export-Glossaries -BackupPath $BackupPath -SelectGlossaries $SelectGlossaries
+
+Export-Roles -BackupPath $BackupPath -SelectRoles $SelectRoles
 
 Export-CleanProjects -BackupPath $BackupPath -SelectCleanProjects $SelectCleanProjects
 

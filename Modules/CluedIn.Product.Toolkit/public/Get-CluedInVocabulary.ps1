@@ -17,6 +17,10 @@ function Get-CluedInVocabulary {
         By default, all CluedIn base vocabularies will be filtered out. If this is set to $true
         it will return all results without any filtering
 
+        .PARAMETER Used
+        Narrows the returned results to vocabularies that are in use. This is the same 'Used' filter that
+        is available in the Data Catalog and it is applied by CluedIn itself rather than locally.
+
         .EXAMPLE
         PS> Get-CluedInVocabulary
 
@@ -26,13 +30,19 @@ function Get-CluedInVocabulary {
         PS> Get-CluedInVocabulary -IncludeCore
 
         Will return all vocabularies, including the ones that get shipped with the product.
+
+        .EXAMPLE
+        PS> Get-CluedInVocabulary -Used
+
+        Will return all custom vocabularies that are currently in use
     #>
 
     [CmdletBinding()]
     param(
         [string]$Search = "",
         [switch]$IncludeCore,
-        [switch]$HardMatch
+        [switch]$HardMatch,
+        [switch]$Used
     )
 
     $queryContent = Get-CluedInGQLQuery -OperationName 'getAllVocabularies'
@@ -47,6 +57,7 @@ function Get-CluedInVocabulary {
             isActive = $null
             filterTypes = $null
             filterHasNoSource = $null
+            filterIsUsed = $Used ? $true : $null
         }
         query = $queryContent
     }

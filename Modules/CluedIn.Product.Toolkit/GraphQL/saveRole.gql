@@ -1,0 +1,21 @@
+mutation saveRole($role: InputSaveRole!) {
+  administration {
+    id
+    saveRole(role: $role) {
+      id
+      name
+      description
+      userCount
+      claims {
+        id
+        name
+        friendlyName
+        value
+        category
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

@@ -10,12 +10,21 @@ function Export-Vocabularies{
         The path to the backup folder
 
         .PARAMETER SelectVocabularies
-        Specifies what Vocabularies to export. It supports All, None, and csv format of the Id's
+        Specifies what Vocabularies to export. It supports Used, All, None, and csv format of the Id's
+
+        'Used' exports every custom vocabulary that CluedIn reports as being in use. The core vocabularies
+        that ship with the product are always excluded, which is what makes this a usable alternative to
+        'All' (which isn't supported as it would pull in thousands of core keys).
 
         .EXAMPLE
         PS> Export-Vocabularies -BackupPath "c:\backuplocation"
 
         This will export all of the data source sets details
+
+        .EXAMPLE
+        PS> Export-Vocabularies -BackupPath "c:\backuplocation" -SelectVocabularies 'Used'
+
+        This will export every custom vocabulary that is in use, along with their keys
     #>
 
     [CmdletBinding()]
@@ -40,6 +49,13 @@ function Export-Vocabularies{
         'All' {
             $null # All not supported at the moment
             #($vocabularies.data.management.vocabularies.data | Where-Object {$_.isCluedInCore -eq $False}).vocabularyId
+        }
+        'Used' {
+            # Core vocabularies are filtered out by Get-CluedInVocabulary, so this stays to the custom ones.
+            $usedVocabularies = Get-CluedInVocabulary -Used
+            [array]$usedVocabularyIds = $usedVocabularies.data.management.vocabularies.data.vocabularyId
+            if (!$usedVocabularyIds) { Write-Warning "No vocabularies are reported as used. Nothing will be backed up" }
+            $usedVocabularyIds
         }
         'None' { $null }
         default { ($SelectVocabularies -Split ',').Trim() }

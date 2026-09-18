@@ -29,12 +29,13 @@ The toolkit can export and import the following CluedIn resources:
 | --- | --- | --- |
 | Admin Settings | `-BackupAdminSettings` | Switch parameter. Always restored on import when present in the backup. |
 | Data Source Sets & Data Sets | `-SelectDataSets` | Data source sets are exported alongside their data sets. Archived data sets are excluded. |
-| Vocabularies & Vocabulary Keys | `-SelectVocabularies` | `All` is **not** supported here to avoid exporting the core vocabularies shipped with CluedIn (which may contain thousands of keys). |
+| Vocabularies & Vocabulary Keys | `-SelectVocabularies` | `All` is **not** supported here to avoid exporting the core vocabularies shipped with CluedIn (which may contain thousands of keys). Use `Used` instead to export every custom vocabulary that CluedIn reports as being in use. |
 | Individual Vocabulary Keys | `-SelectVocabularyKeys` | Exports specific keys by full key name (e.g. `organization.user.firstName`). The parent vocabulary metadata is automatically included so the import works without also running `-SelectVocabularies`. Keys are saved in the same format as `-SelectVocabularies` so the import step is unchanged. `All` is not supported — a CSV of key names is required. |
 | Rules | `-SelectRules` | Agnostic to rule type — provide the GUIDs. |
 | Export Targets | `-SelectExportTargets` | |
 | Streams | `-SelectStreams` | |
 | Glossaries & Glossary Terms | `-SelectGlossaries` | Terms are exported along with their parent glossary. |
+| Roles | `-SelectRoles` | Exports each role with every claim it holds and the level it's held at. Accepts role names or Ids. Claims only — role membership is not exported, so who belongs to a role has to be set on the destination separately. |
 | Clean Projects | `-SelectCleanProjects` | |
 | Deduplication Projects | `-SelectDeduplicationProjects` | |
 | Manual Data Entry Projects | `-SelectManualDataEntryProjects` | |
@@ -43,6 +44,7 @@ Each `Select...` parameter accepts:
 
 - `None` (default) — nothing of that type is exported.
 - `All` — export every instance of that resource (not supported for `SelectVocabularies`).
+- `Used` — `SelectVocabularies` only. Exports every custom vocabulary CluedIn reports as being in use, which is the practical stand-in for `All`.
 - A comma-separated list of Ids/GUIDs/names wrapped in a string, e.g. `'66505aa1-bacb-463e-832c-799c484577a8, e257a226-d91c-4946-a8af-85ef803cf55e'`.
 
 There is no hard-and-fast export order — you can mix and match the `Select...` parameters as needed, export a few at a time, or export everything in one run.
@@ -139,6 +141,7 @@ Validate the result by logging into the destination URL and checking that the re
 | `SelectExportTargets` | string | No | `None` | Export Targets to export. `None`, `All`, or CSV of Ids. |
 | `SelectStreams` | string | No | `None` | Streams to export. `None`, `All`, or CSV of Ids. |
 | `SelectGlossaries` | string | No | `None` | Glossaries to export (terms are included automatically). `None`, `All`, or CSV of Ids. |
+| `SelectRoles` | string | No | `None` | Roles to export, along with their claims. `None`, `All`, or CSV of role names/Ids. |
 | `SelectCleanProjects` | string | No | `None` | Clean Projects to export. `None`, `All`, or CSV of Ids. |
 | `SelectDeduplicationProjects` | string | No | `None` | Deduplication Projects to export. `None`, `All`, or CSV of Ids. |
 | `SelectManualDataEntryProjects` | string | No | `None` | Manual Data Entry Projects to export. `None`, `All`, or CSV of Ids. |
@@ -191,12 +194,13 @@ By default every `Select...` parameter is `None`. Running the script without any
 | `BackupPath` | string | Yes | — | Location where the export files will be written. |
 | `UseHTTP` | switch | No | `$false` | Use HTTP instead of HTTPS. Required for 'Home' environments. |
 | `BackupAdminSettings` | switch | No | `$false` | Include admin settings in the export. |
-| `SelectVocabularies` | string | No | `None` | Vocabularies (and their keys) to export. CSV of GUIDs or names. `All` is **not** supported. |
+| `SelectVocabularies` | string | No | `None` | Vocabularies (and their keys) to export. `Used`, or a CSV of GUIDs/names. `All` is **not** supported. |
 | `SelectDataSets` | string | No | `None` | Data Sets to export. `None`, `All`, or CSV of Ids. |
 | `SelectRules` | string | No | `None` | Rules to export (any rule type). `None`, `All`, or CSV of GUIDs. |
 | `SelectExportTargets` | string | No | `None` | Export Targets to export. `None`, `All`, or CSV of Ids. |
 | `SelectStreams` | string | No | `None` | Streams to export. `None`, `All`, or CSV of Ids. |
 | `SelectGlossaries` | string | No | `None` | Glossaries to export (terms are included automatically). `None`, `All`, or CSV of Ids. |
+| `SelectRoles` | string | No | `None` | Roles to export, along with their claims. `None`, `All`, or CSV of role names/Ids. |
 | `SelectCleanProjects` | string | No | `None` | Clean Projects to export. `None`, `All`, or CSV of Ids. |
 | `SelectDeduplicationProjects` | string | No | `None` | Deduplication Projects to export. `None`, `All`, or CSV of Ids. |
 | `SelectManualDataEntryProjects` | string | No | `None` | Manual Data Entry Projects to export. `None`, `All`, or CSV of Ids. |

@@ -9,7 +9,7 @@ function Get-ShouldRefreshToken {
     [CmdletBinding()]
     param([string]$JWT)
 
-    $tokenDetails = ($JWT.split('.')[1] | base64 -d 2>nul) | ConvertFrom-Json
+    $tokenDetails = ConvertFrom-JWToken -Token $JWT
     $refreshTime = Get-Date -UnixTimeSeconds $tokenDetails.exp
     Write-Verbose "Refresh Time: $refreshTime"
     return ((Get-Date) -gt $refreshTime)

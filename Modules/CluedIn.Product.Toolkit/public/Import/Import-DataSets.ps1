@@ -61,10 +61,25 @@ function Import-DataSets{
                 $dataSetObject.configuration.object.autoSubmit = $false
             }
 
+            # The export records 'new' as it was when the data set was originally created. If the entity type
+            # already exists in the destination, creating it again violates the server's unique index.
+            $entityTypeConfiguration = $dataSetObject.configuration.entityTypeConfiguration
+            if ($entityTypeConfiguration.new -and $entityTypeConfiguration.entityType) {
+                $searchTerms = @($entityTypeConfiguration.displayName, $entityTypeConfiguration.entityType.TrimStart('/')) | Select-Object -Unique
+                $existingEntityTypes = $searchTerms | ForEach-Object {
+                    (Get-CluedInEntityType -Search $_).data.management.entityTypeConfigurations.data
+                }
+                if ($entityTypeConfiguration.entityType -in $existingEntityTypes.entityType) {
+                    Write-Verbose "Entity type '$($entityTypeConfiguration.entityType)' already exists. Setting new to false"
+                    $entityTypeConfiguration.new = $false
+                }
+            }
+
             Write-Host "Creating '$($dataSetObject.name)' as it doesn't exist" -ForegroundColor 'DarkCyan'
             $dataSetResult = New-CluedInDataSet -Object $dataSetObject
             Check-ImportResult -Result $dataSetResult
             $dataSetId = $dataSetResult.data.inbound.createDataSets.id
+            if (!$dataSetId) { Write-Warning "Failed to create data set '$($dataSetObject.name)'. Skipping"; continue }
 
             if ($dataSetObject.dataSource.type -eq 'endpoint') {
                 $endpoint = '{0}/upload/api/endpoint/{1}' -f ${env:CLUEDIN_ENDPOINT}, $dataSetId
@@ -141,12 +156,21 @@ function Import-DataSets{
             if (!$dataSetObject.fieldMappings) { Write-Warning "No field mappings detected." }
 
             $currentFieldMappings = (Get-CluedInDataSet -Id $dataSetId).data.inbound.dataSet.fieldMappings
+            $claimedMappingIds = [System.Collections.Generic.HashSet[string]]::new()
             foreach ($mapping in $dataSetObject.fieldMappings) {
                 Write-Host "Processing field mapping: $($mapping.originalField)" -ForegroundColor 'Cyan'
-                
+
+                $matchingMappingParams = @{
+                    Mapping = $mapping
+                    SourceFieldMappings = $dataSetObject.fieldMappings
+                    CurrentFieldMappings = $currentFieldMappings
+                    ClaimedIds = $claimedMappingIds
+                }
+                $currentMappingObject = Get-MatchingFieldMapping @matchingMappingParams
+
                 switch ($mapping.key) {
                     '--ignore--' {
-                        if ($mapping.originalField -notin $currentFieldMappings.originalField) {
+                        if (!$currentMappingObject) {
                             $dataSetMappingParams = @{
                                 Object = $mapping
                                 DataSetId = $dataSetId
@@ -155,7 +179,6 @@ function Import-DataSets{
                             $dataSetMappingResult = New-CluedInDataSetMapping @dataSetMappingParams
                         }
                         else {
-                            $currentMappingObject = $currentFieldMappings | Where-Object { $_.originalField -eq $mapping.originalField }
                             $mappingParams = @{
                                 DataSetId = $dataSetId
                                 PropertyMappingConfiguration = @{
@@ -164,6 +187,7 @@ function Import-DataSets{
                                     id = $currentMappingObject.id
                                 }
                             }
+                            [void]$claimedMappingIds.Add([string]$currentMappingObject.id)
                             $dataSetMappingResult = Set-CluedInDataSetMapping @mappingParams
                         }
                         Check-ImportResult -Result $dataSetMappingResult
@@ -175,7 +199,7 @@ function Import-DataSets{
                             continue
                         }
                         try {
-                            if ($mapping.originalField -notin $currentFieldMappings.originalField) {
+                            if (!$currentMappingObject) {
                                 $mapping.key = $fieldVocabKeyObject.key # To cover case sensitive process
 
                                 $dataSetMappingParams = @{
@@ -188,8 +212,6 @@ function Import-DataSets{
                                 $dataSetMappingResult = New-CluedInDataSetMapping @dataSetMappingParams
                             }
                             else {
-                                $currentMappingObject = $currentFieldMappings | Where-Object { $_.originalField -eq $mapping.originalField }
-
                                 $desiredAnnotation = $annotationObject.annotationProperties | Where-Object { $_.vocabKey -ceq $mapping.key }
                                 if (!$desiredAnnotation) { Write-Warning "Issue finding the desired annotation. Skipping map"; continue }
 
@@ -210,6 +232,7 @@ function Import-DataSets{
                                     PropertyMappingConfiguration = $propertyMappingConfiguration
                                 }
 
+                                [void]$claimedMappingIds.Add([string]$currentMappingObject.id)
                                 $dataSetMappingResult = Set-CluedInDataSetMapping @dataSetMappingsParams
                             }
                         }

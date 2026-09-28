@@ -44,9 +44,11 @@ function Get-CluedInVocabularyKey {
             connectorId = $null
             filterTypes = $null
             filterHasNoSource = $null
+            filterIsUsed = $null
+            skipFilterVisibility = $true
+            filterExcludeLookups = $false
             filterIsObsolete = 'All'
         }
-
         return GetResult
     }
 

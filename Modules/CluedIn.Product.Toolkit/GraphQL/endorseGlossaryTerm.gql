@@ -9,7 +9,7 @@ mutation endorseGlossaryTerm($termId: ID, $status: Boolean) {
       rating
       modifiedBy
       isEndorsedByCurrentUser
-      ownedBy
+      isOwner
       createdAt
       modifiedAt
       shortDescription

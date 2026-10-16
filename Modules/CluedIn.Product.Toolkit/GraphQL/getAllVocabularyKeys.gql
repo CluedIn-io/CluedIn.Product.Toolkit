@@ -107,10 +107,5 @@ fragment VocabularyKey on VocabularyKey {
     }
     __typename
   }
-  author {
-    id
-    username
-    __typename
-  }
   __typename
 }

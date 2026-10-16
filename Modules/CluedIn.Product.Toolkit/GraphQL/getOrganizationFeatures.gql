@@ -9,6 +9,10 @@ query getOrganizationFeatures {
       status
       isEnabled
       isTrial
+      hidden
+      dependencies
+      dependents
+      areDependentsEnabled
       __typename
     }
     __typename

@@ -41,6 +41,7 @@ query manualDataEntryProject($id: ID!) {
         active
         autoSync
         codeName
+        configuration
         connector {
           id
           icon
@@ -137,6 +138,7 @@ query manualDataEntryProject($id: ID!) {
           description
           providerId
           mapsToOtherKeyId
+          glossaryTermId
           vocabulary {
             connector {
               about

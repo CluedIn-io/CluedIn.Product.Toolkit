@@ -1,9 +1,17 @@
-query allCleanProjects($page: Int, $pageSize: Int, $searchName: String) {
+query allCleanProjects(
+  $page: Int
+  $pageSize: Int
+  $searchName: String
+  $excludeProjectStages: [String]
+  $includeProjectStages: [String]
+) {
   preparation {
     allCleanProjects(
       page: $page
       pageSize: $pageSize
       searchName: $searchName
+      excludeProjectStages: $excludeProjectStages
+      includeProjectStages: $includeProjectStages
     ) {
       total
       projects {

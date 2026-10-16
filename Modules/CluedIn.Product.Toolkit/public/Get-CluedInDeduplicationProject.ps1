@@ -25,6 +25,7 @@ function Get-CluedInDeduplicationProject {
     $query = @{
         variables = @{
             id = $Id
+            skipLastDeduplicationRun = $false
         }
         query = $queryContent
     }

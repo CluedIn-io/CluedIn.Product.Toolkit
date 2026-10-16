@@ -40,6 +40,7 @@ fragment EntityTypeConfiguration on EntityTypeLayoutConfiguration {
   path
   route
   template
+  color
   type
   pageTemplate {
     displayName

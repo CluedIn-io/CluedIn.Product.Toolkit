@@ -26,8 +26,9 @@ function Get-CluedInStreams {
             sortDirection = $null
             itemsPerPage = 20
             pageNumber = 1
-            isActive = $null
+            status = $null
             searchName = $null
+            includeStreamData = $true
         }
         query = $queryContent
     }

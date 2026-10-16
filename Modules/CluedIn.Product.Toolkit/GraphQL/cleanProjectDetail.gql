@@ -36,6 +36,7 @@ query cleanProjectDetail($id: ID!) {
         objectTypeId
         field
         rules {
+          id
           condition
           field
           objectTypeId

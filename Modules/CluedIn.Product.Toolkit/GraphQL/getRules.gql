@@ -30,11 +30,14 @@ query getRules(
         author {
           id
           username
+          avatarUrl
           __typename
         }
         scope
         isReprocessing
         requiresAttention
+        hasFailed
+        affectedRecords
         __typename
       }
       __typename

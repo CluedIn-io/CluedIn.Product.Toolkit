@@ -6,6 +6,7 @@ query getStreams(
   $sortBy: String
   $sortDirection: String
   $exportTargetId: ID
+  $includeStreamData: Boolean!
 ) {
   consume {
     id
@@ -19,8 +20,8 @@ query getStreams(
       exportTargetId: $exportTargetId
     ) {
       total
-      data {
-        ...Stream
+      data @include(if: $includeStreamData) {
+        ...StreamListItem
         __typename
       }
       __typename
@@ -29,35 +30,18 @@ query getStreams(
   }
 }
 
-fragment Stream on Stream {
+fragment StreamListItem on Stream {
   id
   name
   status
-  createdBy
-  modifiedBy
-  type
-  modifiedAt
   createdAt
-  isOwner
-  condition
-  rules
-  numberOfRecords
-  rulesApplied
-  containerName
   mode
-  connectorProperties
-  exportOutgoingEdges
-  exportIncomingEdges
-  exportOutgoingEdgeProperties
-  exportIncomingEdgeProperties
   requiresAttention
   author {
     id
     username
     __typename
   }
-  description
-  mappingConfiguration
   connector {
     id
     name

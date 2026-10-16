@@ -1,14 +1,10 @@
-query getRoles(
-  $searchName: String
-  $pageNumber: Int
-  $itemsPerPage: Int
-) {
+query getRoles($searchName: String, $itemsPerPage: Int, $pageNumber: Int) {
   administration {
     id
     roles(
       searchName: $searchName
-      pageNumber: $pageNumber
       itemsPerPage: $itemsPerPage
+      pageNumber: $pageNumber
     ) {
       total
       data {

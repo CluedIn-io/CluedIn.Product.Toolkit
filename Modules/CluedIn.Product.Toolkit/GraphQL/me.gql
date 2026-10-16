@@ -1,8 +1,10 @@
 query me {
   administration {
+    id
     me {
       client
       entity
+      idp
       __typename
     }
     __typename

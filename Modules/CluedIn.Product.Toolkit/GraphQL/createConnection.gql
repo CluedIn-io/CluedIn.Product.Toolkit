@@ -1,4 +1,8 @@
-mutation createConnection($connectorId: ID, $authInfo: JSON, $accountDisplay: String) {
+mutation createConnection(
+  $connectorId: ID
+  $authInfo: JSON
+  $accountDisplay: String
+) {
   inbound {
     createConnection(
       connectorId: $connectorId

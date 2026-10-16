@@ -3,6 +3,8 @@ query deDupProjects(
   $itemsPerPage: Int
   $excludeProjectStages: [String]
   $includeProjectStages: [String]
+  $orderBy: String
+  $orderAscending: Boolean
 ) {
   management {
     deDupProjects(
@@ -10,6 +12,8 @@ query deDupProjects(
       itemsPerPage: $itemsPerPage
       excludeProjectStages: $excludeProjectStages
       includeProjectStages: $includeProjectStages
+      orderBy: $orderBy
+      orderAscending: $orderAscending
     ) {
       total
       data {
@@ -17,6 +21,7 @@ query deDupProjects(
         name
         status
         createdDate
+        lastGenerationStartedAt
         author {
           id
           username

@@ -36,6 +36,7 @@ fragment VocabularyKey on VocabularyKey {
   dataAnnotationsMaximumLength
   providerId
   compositeVocabularyId
+  compositeVocabularyKeyId
   compositeVocabulary {
     name
     displayName
@@ -44,6 +45,7 @@ fragment VocabularyKey on VocabularyKey {
   }
   mapsToOtherKeyId
   glossaryTermId
+  additionalProperties
   createdAt
   createdBy
   mappedKey
@@ -59,6 +61,8 @@ fragment VocabularyKey on VocabularyKey {
   vocabulary {
     vocabularyId
     vocabularyName
+    grouping
+    isUsed
     connector {
       id
       name
@@ -66,11 +70,6 @@ fragment VocabularyKey on VocabularyKey {
       icon
       __typename
     }
-    __typename
-  }
-  author {
-    id
-    username
     __typename
   }
   __typename

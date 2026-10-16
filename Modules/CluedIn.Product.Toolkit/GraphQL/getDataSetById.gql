@@ -1,4 +1,4 @@
-query getDataSetById($id: ID!, $includeStatusesByLogs: Boolean = false) {
+query getDataSetById($id: ID!, $includeStatusesByLogs: Boolean = true) {
   inbound {
     id
     dataSet(id: $id, includeStatusesByLogs: $includeStatusesByLogs) {

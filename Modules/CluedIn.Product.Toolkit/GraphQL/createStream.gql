@@ -10,6 +10,12 @@ mutation createStream($stream: InputCreateStream!) {
 }
 
 fragment Stream on Stream {
+  ...StreamBase
+  mappingConfiguration
+  __typename
+}
+
+fragment StreamBase on Stream {
   id
   name
   status
@@ -37,7 +43,6 @@ fragment Stream on Stream {
     __typename
   }
   description
-  mappingConfiguration
   connector {
     id
     name

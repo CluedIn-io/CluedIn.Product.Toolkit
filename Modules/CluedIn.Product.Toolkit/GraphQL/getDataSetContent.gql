@@ -6,6 +6,9 @@ query getDataSetContent(
   $disableFilters: Boolean
   $searchAfter: [String]
   $mainSort: String
+  $receiptId: String
+  $searchName: String
+  $connectorConfigurationId: ID
 ) {
   inbound {
     id
@@ -17,6 +20,9 @@ query getDataSetContent(
       disableFilters: $disableFilters
       searchAfter: $searchAfter
       mainSort: $mainSort
+      receiptId: $receiptId
+      searchName: $searchName
+      connectorConfigurationId: $connectorConfigurationId
     )
     __typename
   }

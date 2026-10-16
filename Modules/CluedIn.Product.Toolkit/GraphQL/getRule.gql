@@ -28,6 +28,8 @@ query getRule($id: ID!) {
       scope
       isReprocessing
       requiresAttention
+      hasFailed
+      affectedRecords
       __typename
     }
     __typename

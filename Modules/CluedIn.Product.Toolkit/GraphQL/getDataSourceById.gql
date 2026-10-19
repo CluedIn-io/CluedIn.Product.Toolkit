@@ -1,7 +1,7 @@
 query getDataSourceById(
   $id: ID!
-  $withDataSets: Boolean = false
-  $withDataSourceSet: Boolean = false
+  $withDataSets: Boolean = true
+  $withDataSourceSet: Boolean = true
 ) {
   inbound {
     id

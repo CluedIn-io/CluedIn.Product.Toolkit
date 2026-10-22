@@ -20,6 +20,7 @@ query getAnnotationById($id: ID) {
       beforeSendingClue
       useStrictEdgeCode
       useDefaultSourceCode
+      useEnricherOriginEntityCode
       vocabularyId
       vocabulary {
         vocabularyName

@@ -80,4 +80,3 @@ fragment ConnectorConfigurationFragment on ConnectorConfiguration {
   isOwner
   __typename
 }
-

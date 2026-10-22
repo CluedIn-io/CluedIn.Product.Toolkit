@@ -1,4 +1,4 @@
-query deDupProject($id: ID!) {
+query deDupProject($id: ID!, $skipLastDeduplicationRun: Boolean!) {
   management {
     deDupProject(id: $id) {
       id
@@ -14,6 +14,12 @@ query deDupProject($id: ID!) {
       querySizeLimit
       groupCount
       isOwner
+      canBeAutomated {
+        projectCanBeAutomated
+        projectCanBeAutomatedMessage
+        __typename
+      }
+      lastDeduplicationRun @skip(if: $skipLastDeduplicationRun)
       author {
         id
         username

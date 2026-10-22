@@ -1,4 +1,8 @@
-query getDataSourceById($id: ID!) {
+query getDataSourceById(
+  $id: ID!
+  $withDataSets: Boolean = true
+  $withDataSourceSet: Boolean = true
+) {
   inbound {
     id
     dataSource(id: $id) {
@@ -11,6 +15,7 @@ query getDataSourceById($id: ID!) {
       stopped
       logoType
       crashedDuringUpload
+      isOwner
       author {
         id
         username
@@ -22,11 +27,12 @@ query getDataSourceById($id: ID!) {
         uploading
         uploadedPercentage
         mimeType
+        fileId
         __typename
       }
       createdAt
       type
-      dataSourceSet {
+      dataSourceSet @include(if: $withDataSourceSet) {
         id
         name
         __typename
@@ -37,7 +43,7 @@ query getDataSourceById($id: ID!) {
         errorMessage
         __typename
       }
-      dataSets {
+      dataSets @include(if: $withDataSets) {
         id
         name
         isBridge
@@ -53,11 +59,16 @@ query getDataSourceById($id: ID!) {
         elasticTotal
         expectedTotal
         currentLoadedSize
-        failedLoadingTotal
+        hasParsingWarnings
         hasValidationParsingError
         hasValidationStoringError
         hasValidationMappingError
         hasValidationProcessingError
+        hasValidationEnrichingError
+        hasSubmissions
+        hasPendingRecordsApproval
+        hasQuarantineData
+        isOwner
         fileSize
         hasError
         fieldMappings {

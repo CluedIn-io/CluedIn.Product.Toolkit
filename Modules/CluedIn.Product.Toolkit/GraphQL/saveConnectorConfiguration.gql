@@ -6,8 +6,8 @@ mutation saveConnectorConfiguration(
       connectorConfiguration: $connectorConfiguration
     ) {
       id
-      accountDisplay
       helperConfiguration
+      accountDisplay
       __typename
     }
     __typename

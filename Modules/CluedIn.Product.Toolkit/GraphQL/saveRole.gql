@@ -1,4 +1,4 @@
-mutation saveRole($role: InputSaveRole!) {
+mutation ($role: InputSaveRole!) {
   administration {
     id
     saveRole(role: $role) {
@@ -8,10 +8,9 @@ mutation saveRole($role: InputSaveRole!) {
       userCount
       claims {
         id
-        name
         friendlyName
+        name
         value
-        category
         __typename
       }
       __typename
